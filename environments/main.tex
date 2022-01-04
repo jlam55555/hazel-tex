@@ -82,12 +82,12 @@ The small-step evaluation judgments equivalent to the above big-step judgments a
   \and
   \Infer{EvalS-Ap$_3$}{
     E\vdash d_2\textsf{ final} \\
-    E::E'::x\leftarrow d_2\vdash d_1\to d_1'
+    E::E',x\leftarrow d_2\vdash d_1\to d_1'
   }{E\vdash ([E']\lambda x:\tau.d_1)(d_2)\to ([E']\lambda x:\tau.d_1')(d_2)}
   \and
   \Infer{EvalS-Ap$_4$}{
     E\vdash d_2\textsf{ final} \\
-    E::E'::x\leftarrow d_2\vdash d_1\textsf{ final}
+    E::E',x\leftarrow d_2\vdash d_1\textsf{ final}
   }{E\vdash([E']\lambda x:\tau.d_1)(d_2)\to d_1}
   \and
   \Infer{EvalS-Let$_1$}{
