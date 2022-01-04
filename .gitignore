@@ -1,0 +1,8 @@
+# tempfiles
+*~
+
+# latex
+auto/
+*.log
+*.out
+*.aux
