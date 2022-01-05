@@ -7,6 +7,7 @@
 \input{../latex-includes/macros.tex}
 
 \usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{stmaryrd}
 \usepackage{hyperref}
 
@@ -80,7 +81,7 @@ The judgment rules for evaluating variables, lambdas (which evaluate to closures
 \clearpage{}
 \section*{Small-step semantics}
 
-The small-step evaluation judgments equivalent to the above big-step judgments are shown below. \\
+The small-step evaluation judgments equivalent to the above big-step judgments are shown below. This assumes an evaluation context $\mathcal{E}$ as described in the POPL 2019 paper, which evaluates subexpressions down to final expressions. \\
 
 \judgbox{E\vdash d\to d'}{Internal expression $d$ takes an instruction transition to $d'$ \\ given environment $E$}
 
@@ -89,39 +90,27 @@ The small-step evaluation judgments equivalent to the above big-step judgments a
   \and
   \Infer{EvalS-Lam}{}{E\vdash(\lambda x:\tau.d)\to ([E]\lambda x:\tau.d)}
   \and
-  \Infer{EvalS-Ap$_1$}{E\vdash d_1\to d_1'}{E\vdash d_1(d_2)\to d_1'(d_2)}
-  \and
-  \Infer{EvalS-Ap$_2$}{E\vdash d_2\to d_2'}{E\vdash d_1(d_2)\to d_1(d_2')}
-  \and
-  \Infer{EvalS-Ap$_3$}{
+  \Infer{EvalS-Ap$_1$}{
     E\vdash d_2\textsf{ final} \\
     E::E',x\leftarrow d_2\vdash d_1\to d_1'
   }{E\vdash ([E']\lambda x:\tau.d_1)(d_2)\to ([E']\lambda x:\tau.d_1')(d_2)}
   \and
-  \Infer{EvalS-Ap$_4$}{
+  \Infer{EvalS-Ap$_2$}{
     E\vdash d_2\textsf{ final} \\
     E::E',x\leftarrow d_2\vdash d_1\textsf{ final}
   }{E\vdash([E']\lambda x:\tau.d_1)(d_2)\to d_1}
   \and
   \Infer{EvalS-Let$_1$}{
-    E\vdash d_2\to d_2'
-  }{E\vdash\texttt{let }x=d_2\texttt{ in }d_1\to\texttt{let }x=d_2'\texttt{ in }d_1}
-  \and
-  \Infer{EvalS-Let$_2$}{
     E\vdash d_2\textsf{ final} \\
     E,x\leftarrow d_2\vdash d_1\to d_1'
   }{E\vdash\texttt{let }x=d_2\texttt{ in }d_1\to\texttt{let }x=d_2\texttt{ in }d_1'}
   \and
-  \Infer{EvalS-Let$_3$}{
+  \Infer{EvalS-Let$_2$}{
     E\vdash d_2\textsf{ final} \\
     E,x\leftarrow d_2\vdash d_1\textsf{ final}
   }{E\vdash\texttt{let }x=d_2\texttt{ in }d_1\to d_1}
   \and
-  \Infer{EvalS-Op$_1$}{E\vdash d_1\to d_1'}{E\vdash d_1+d_2\to d_1'+d_2}
-  \and
-  \Infer{EvalS-Op$_2$}{E\vdash d_2\to d_2'}{E\vdash d_1+d_2\to d_1+d_2'}
-  \and
-  \Infer{EvalS-Op$_3$}{}{E\vdash\hnum{n_1}+\hnum{n_2}\to\hnum{n_1+n_2}}
+  \Infer{EvalS-Op}{}{E\vdash\hnum{n_1}+\hnum{n_2}\to\hnum{n_1+n_2}}
 \end{mathpar}
 
 
