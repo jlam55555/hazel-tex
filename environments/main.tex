@@ -48,20 +48,33 @@ The judgment rules for evaluating variables, lambdas (which evaluate to closures
   \and
   \Infer{EvalB-Lam}{}{E\vdash(\lambda x:\tau.d)\Downarrow [E](\lambda x:\tau.d)}
   \and
-  \Infer{EvalB-Ap}{
+  \Infer{EvalB-Ap$_1$}{
+    E\vdash d_1\Downarrow d_1' \\
+    d_1'\ne([E']\lambda x:\tau.d) \\
+    E\vdash d_2\Downarrow d_2'
+  }{E\vdash d_1(d_2)\Downarrow d_1'(d_2')}
+  \and
+  \Infer{EvalB-Ap$_2$}{
+    E\vdash d_1\Downarrow ([E']\lambda x:\tau.d_1') \\
     E\vdash d_2\Downarrow d_2' \\
-    E::E',x\leftarrow d_2'\vdash d_1\Downarrow d
-  }{E\vdash[E'](\lambda x:\tau.d_1)(d_2)\Downarrow d}
+    E::E',x\leftarrow d_2'\vdash d_1'\Downarrow d
+  }{E\vdash d_1(d_2)\Downarrow d}
   \and
   \Infer{EvalB-Let}{
     E\vdash d_2\Downarrow d_2' \\
     E,x\leftarrow d_2'\vdash d_1\Downarrow d
   }{E\vdash\texttt{let }x=d_2\texttt{ in }d_1\Downarrow d}
   \and
-  \Infer{EvalB-Op}{
+  \Infer{EvalB-Op$_1$}{
     E\vdash d_1\Downarrow d_1' \\
-    E\vdash d_2\Downarrow d_2'
-  }{E\vdash d_1+d_2\Downarrow d_1'+d_2'}
+    E\vdash d_2\Downarrow d_2' \\
+    (d_1\ne\hnum{n_1}\lor d_2\ne\hnum{n_2})
+  }{E\vdash d_1+d_2\Downarrow d_1'+d_2'}  
+  \and
+  \Infer{EvalB-Op$_2$}{
+    E\vdash d_1\Downarrow\hnum{n_1} \\
+    E\vdash d_2\Downarrow\hnum{n_2}
+  }{E\vdash d_1+d_2\Downarrow\hnum{n_1+n_2}}
 \end{mathpar}
 
 \clearpage{}
