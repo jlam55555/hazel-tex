@@ -31,7 +31,7 @@ Evaluation with substitution is not efficient because it forces the re-evaluatio
 
 The irreducible judgment (for internal expressions) in Hazel is not $d\textsf{ val}$, but rather $E\vdash d\textsf{ final}$. Thus, final expressions evaluate to themselves. Variables evaluate to the final value that they are bound to (assuming they are bound; otherwise they are free and thus final). Lambdas evaluate to a closure type. The evaluation of a let-expression or function application extends the current environment with the newly-bound variable. For function applications, the current environment is first extended with the closure environment before binding the new variable. When extending an environment ($E::E'$ or $E,x\leftarrow d$), bindings on the right overwrite bindings on the left.
 
-The treatment of holes occurs in two places: when evaluating holes, and when evaluating lambda functions. (Previously, updating the hole environment was handled by substitution.) When evaluating an empty or nonempty hole, the hole environment should be the environment. When evaluating a lambda, not only do we wrap it in its closure with its environment, but all of the holes contained in the body expression must also set the environment to the current (incomplete) environment. This is because we want holes in function bodies to have an environment for users to inspect, even if the function is never invoked.
+The treatment of holes occurs in two places: when evaluating holes, and when evaluating lambda functions. (Previously, updating the hole environment was handled by substitution.) When evaluating an empty or nonempty hole, the hole environment should be the environment. When evaluating a lambda, not only do we wrap it in its closure with its environment, but all of the holes contained in the body expression must also set the environment to the current (incomplete) environment. This is because we want holes in function bodies to have an environment for users to inspect, even if evaluation never reaches the function body.
 
 The following metatheorem states that environments only include final terms.
 \begin{theorem}
@@ -81,8 +81,8 @@ The judgment rules for evaluating variables, lambdas (which evaluate to closures
   \Infer{EvalB-EHole}{}{E\vdash\hehole_{\sigma}\Downarrow\hehole_{\sigma::E}}
   \and
   \Infer{EvalB-NEHole}{
-    E\vdash e\Downarrow e'
-  }{E\vdash\hhole{e}_{\sigma}\Downarrow\hhole{e'}_{\sigma::E}}
+    E\vdash d\Downarrow d'
+  }{E\vdash\hhole{d}_{\sigma}\Downarrow\hhole{d'}_{\sigma::E}}
   \and
   \Infer{EvalB-Op$_2$}{
     E\vdash d_1\Downarrow\hnum{n_1} \\
@@ -126,7 +126,7 @@ The small-step evaluation judgments equivalent to the above big-step judgments a
   \and\\
   \Infer{EvalS-EHole}{}{E\vdash\hehole_{\sigma}\to\hehole_{\sigma::E}}
   \and
-  \Infer{EvalS-NEHole}{E\vdash e\textsf{ final}}{E\vdash\hhole{e}_{\sigma}\to\hhole{e}_{\sigma::E}}
+  \Infer{EvalS-NEHole}{E\vdash d\textsf{ final}}{E\vdash\hhole{d}_{\sigma}\to\hhole{d}_{\sigma::E}}
   \and
   \Infer{EvalS-Op}{}{E\vdash\hnum{n_1}+\hnum{n_2}\to\hnum{n_1+n_2}}
 \end{mathpar}
