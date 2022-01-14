@@ -14,7 +14,7 @@
 
 \newtheorem{theorem}{Theorem}
 
-\title{Hole instance renumbering for unique hole closures}
+\title{Numbering for unique hole closures \\rather than hole instances}
 \author{Jonathan Lam}
 \date{2022/01/13}
 
@@ -59,10 +59,28 @@ let b = (* hole 2 *) in
 let c = (* hole 3 *) in
 (* hole 4 *)
 \end{minted}
+The renumbering operation proceeds like so:
+\begin{enumerate}
+\item An instance of hole 4 is encountered. Number it 4:1. Examine the environment of the instance of hole 4, which contains the bindings for $a$, $b$, and $c$.
+  \begin{enumerate}
+  \item In the definition of $a$, an instance of hole 1 is encountered. Number it 1:1. Examine the environment of the instance of hole 1, which is empty.
+  \item In the definition of $b$, an instance of hole 2 is encountered. Number it 2:1. Examine the environment of the instance of hole 2, which contains the binding for $a$.
+    \begin{enumerate}
+    \item In the definition of $a$, an instance of hole 1 is encountered. Number it 1:2. Examine the environment of the instance of hole 1, which is empty.
+    \end{enumerate}
+  \item In the definition of $c$, an instance of hole 3 is encountered. Number it 3:1. Examine the environment of the instance of hole 3, which contains the binding for $a$ and $b$.
+    \begin{enumerate}
+    \item In the definition of $a$, an instance of hole 1 is encountered. Number it 1:3. Examine the environment of the instance of hole 1, which is empty.
+    \item In the definition of $b$, an instance of hole 2 is encountered. Number it 2:2. Examine the environment of the instance of hole 2, which contains the binding for $a$.
+      \begin{enumerate}
+      \item In the definition of $a$, an instance of hole 1 is encountered. Number it 1:4. Examine the environment of the instance of hole 1, which is empty.
+      \end{enumerate}
+    \end{enumerate}
+  \end{enumerate}
+\end{enumerate}
+Clearly, the number of hole instances grows exponentially even though the unique hole closures only grow linearly. The easiest way to see this is to type the above program into the Hazel environment and visually observe that the hole instance counts come in powers of two.
 
-
-
-\section{Proposed solution}
+\section{Solution}
 \subsection{Evaluation with environments}
 The solution is very simple if evaluation is implemented with environments rather than substitution. This means that variables will be given meaning through lookup in the current eval-time environment, rather than by substitution during binding. This has the ordinary performance benefit over substitution, i.e., variable lookups will be lazily performed only on evaluated branches whereas substitution will act on all branches of the expression. The fixpoint form is also not necessary for recursion, due to the lazy nature of lookup.
 
@@ -86,6 +104,8 @@ With these changes, the structure that keeps track of hole closures can be defin
 MetaVarMap.t(EnvironmentMap.t((int, Environment.t, list(HoleClosure.t))))
 \end{minted}
 where \mintinline{reason}|EnvironmentMap = IntMap| and \mintinline{reason}|HoleClosure.t| is defined analogously to \mintinline{reason}|HoleInstance.t|. This is interpreted as: each hole $u$ maps to a map from environment ID's to the information about each hole closure. Each hole closure has an integer ID, an associated environment shared by all instances of this hole closure, and a list of ``parent'' hole closures.
+
+Note that this representation retains all of the information from the original representation. If we were to enumerate all possible paths in the DAG of hole closures, we would get all hole instances. Of course, the number of paths will grow exponentially with respect to the number of nodes in the graph for even simple programs, such as the example with cascaded \mintinline{reason}|let| statements.
 
 \section{Implications}
 The performance implication is already well-discussed in the motivation.
