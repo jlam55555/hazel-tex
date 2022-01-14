@@ -1,0 +1,35 @@
+\message{ !name(main.tex)}\documentclass{article}
+
+% see readme
+\def\OPTIONConf{1}%
+\usepackage{joshuadunfield}
+\usepackage{llproof}
+\input{../latex-includes/macros.tex}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+\usepackage{hyperref}
+\usepackage{minted}
+
+\newtheorem{theorem}{Theorem}
+
+\title{Hole instance renumbering for unique holes}
+\author{Jonathan Lam}
+\date{2022/01/13}
+
+\begin{document}
+
+\message{ !name(main.tex) !offset(4) }
+
+Adding to the performance issue is the fact that \mintinline{reasonml}|Program.get_result| is called extraneously many times. The program result can be stored in the \mintinline{reason}|Model.t|, and the program does not have to be re-evaluated after every action: it should only be re-evaluated after appropriate edit actions and can be memoized with respect to the \mintinline{reason}|UHExp| program expression.
+
+\section{Existing hole instance numbering scheme}
+\message{ !name(main.tex) !offset(11) }
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
