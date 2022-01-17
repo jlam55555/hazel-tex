@@ -37,6 +37,11 @@
 \contentsline {subsection}{\numberline {3.3}CMTT interpretation of fill-and-resume}{3}{subsection.3.3}%
 \contentsline {subsection}{\numberline {3.4}Notebook-style live programming environments}{3}{subsection.3.4}%
 \contentsline {section}{\numberline {4}Implementation and optimization of FAR}{4}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Evaluation with environments}{4}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Restructuring hole numbering}{4}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Implementing FAR}{4}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Memoization of recent actions}{4}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}UI changes for notebook-like editing}{4}{subsection.4.5}%
 \contentsline {section}{\numberline {5}Evaluation of FAR}{5}{section.5}%
 \contentsline {section}{\numberline {6}Conclusions and recommendations}{6}{section.6}%
 \contentsline {section}{References}{7}{section.6}%
