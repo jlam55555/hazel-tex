@@ -32,49 +32,34 @@
 \begin{document}
 
 \doublespacing
+\pagenumbering{roman}
 
 % title and signature pages
 \include{titlepage}
 \include{signaturepage}
-
-% front matter: numbered with latin numerals
-\pagenumbering{roman}
-
 \include{acknowledgements}
 \include{abstract}
 
+% toc and lof
 \pt{Table of contents}
 \tableofcontents{}
-
 \clearpage{}
 \pt{List of figures}
-
-\clearpage{}
-\pt{Table of nomenclature}
-TODO
-
 \listoffigures{}
+
+% list of nomenclature/terminology/notation
+\include{nomenclature}
 
 % end front matter
 \pagenumbering{arabic}
 \clearpage{}
 
-\section{Introduction}
-\label{sec:introduction}
-
-Thesis body goes here.....
-
-\section{Problem Statement}
-\label{sec:prb_stmt}
-
-\section{FAR Implementation}
-\label{sec:far_impl}
-
-\section{Evaluation of FAR}
-\label{sec:far_eval}
-
-\section{Conclusion and Recommendations}
-\label{sec:concl}
+\include{introduction}
+\include{hazel}
+\include{problem_statement}
+\include{implementation}
+\include{evaluation}
+\include{conclusion}
 
 % bibliography
 \clearpage{}
@@ -87,11 +72,11 @@ Thesis body goes here.....
 \appendix{}
 \addcontentsline{toc}{section}{Appendices}
 \pt{Appendices}
+% TODO: put this header on the same page as the first appendix
 
-\section{Formalization of Evaluation with Environments}
-\label{app:eval_env}
-
-TODO
+\include{eval_envs}
+\include{contributions}
+\include{code_samples}
 
 \end{document}
 
