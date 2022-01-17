@@ -25,6 +25,10 @@
 }
 \makeatother{}
 
+% https://tex.stackexchange.com/a/132647
+\usepackage{etoolbox}
+\patchcmd{\thebibliography}{\section*{\refname}}{}{}{}
+
 \begin{document}
 
 \doublespacing
@@ -60,15 +64,34 @@ TODO
 
 Thesis body goes here.....
 
-% text or body of thesis (...) (thesis statement?)
-% 1. Introduction (1)
-% 1.1 Statement of problem (...)
-% ...
-% 9. Conclusions and recommendations (102)
-% Appendix A: Data, Equations derived (...)
-% Bibliography (...)
+\section{Problem Statement}
+\label{sec:prb_stmt}
 
-TODO: bibliography
+\section{FAR Implementation}
+\label{sec:far_impl}
+
+\section{Evaluation of FAR}
+\label{sec:far_eval}
+
+\section{Conclusion and Recommendations}
+\label{sec:concl}
+
+% bibliography
+\clearpage{}
+\addcontentsline{toc}{section}{References}
+\pt{References}
+\bibliography{refs}
+
+% appendices
+\clearpage{}
+\appendix{}
+\addcontentsline{toc}{section}{Appendices}
+\pt{Appendices}
+
+\section{Formalization of Evaluation with Environments}
+\label{app:eval_env}
+
+TODO
 
 \end{document}
 

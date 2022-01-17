@@ -8,3 +8,7 @@ _region*
 *.log
 *.out
 *.aux
+
+# biblatex
+*.bbl
+*.blg
