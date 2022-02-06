@@ -4,6 +4,55 @@
 \subsection{Evaluation with environments}
 \label{sec:eval_with_envs}
 
+\subsubsection{Evaluation with substitution vs. with environments}
+\label{sec:eval_sub_vs_env}
+
+% TODO: move the non-Hazel related parts of this to the background section
+
+% REF: https://cs.brown.edu/courses/cs173/2012/book/From_Substitution_to_Environments.html
+% REF: https://www.cs.bham.ac.uk/research/projects/poplog/paradigms_lectures/lecture18.html
+%   this introduces the issue with special forms like set! in a non-functional context
+
+Evaluation in Hazel was performed using originally using a \textit{substitution model of evaluation}, which is a theoretically simpler model. In this model, variables that are bound by some construct are substituted into the construct's body. For example, the variable(s) bound using a \mintinline{ocaml}|let|-expression pattern are substituted in the \mintinline{ocaml}|let|-expression's body, and the variable(s) bound during a function application are substituted into the function's body, and then the body is evaluated.
+
+% TODO: show example of this
+
+In this formulation, variables are ``given meaning'' via substitution; once evaluation reaches an expression, all variables in scope (in the typing context) will have been replaced by their value by some containing binding expression. In other words, variables are never evaluated directly; they are substituted by their values when bound, and their values are evaluated. The substitution model is useful for teaching purposes because it is simple and close to its mathematical definition: a variable can be thought of as an equivalent stand-in for its value.
+
+However, for the purpose of computational efficiency, a model in which values are lazily expanded (``looked-up'') only when needed is more efficient. This is called the \textit{environment model of evaluation}, and generally is more efficient because the runtime does not need to perform an extra substitution pass over subexpressions; untraversed (unevaluated) branches do not require substituting; and the runtime does not need to carry an expression-level IR of the language. The last point is due to the fact that the substitution model manipulates expressions, while evaluation does not; this means that the latter is more amenable for compilation, and is how compiled languages tend to be implemented: each frame of the theoretical stack frame is a de facto environment frame. While switching from the substitution to environment model is not an improvement in asymptotic efficency, these effects are useful especially for high-performance and compiled languages.
+
+In the case of Hazel (which does not prioritize speed of evaluation in its implementation, and is not a compiled language), evaluation with (reified) environments offers an additional (performance) benefit over the substitution model: the ability to easily identify (and thus memoize) operations over environments. This is useful for the optimizations described later in this paper.
+
+Note that the substitution model does not imply a lazy (i.e., normal-order, call-by-name, call-by-need) evaluation as in languages such as Haskell or Miranda, in which bound variables are (by default) not evaluated until their value is required. Laziness is conceptually tied to substitution, but the substitution model does not require laziness. Like most programming languages, Hazel only has strict (i.e., applicative-order, call-by-value) evaluation: the expressions bound to variables are evaluated at the time of binding.
+
+% TODO: "Laziness is conceptually tied to substitution" -- but does it require substitution? Methinks so but not sure;
+%   will find out more later due to this independent study
+
+The implementation of evaluation with environments differs from that of evaluation with substitution primarily in that: an evaluation environment is required to look up bound variables as evaluation reaches them; binding constructs extend the evaluation environment rather than performing substitution; and $\lambda$ abstractions are bound with their evaluation environment at runtime to form (lexical) closures.
+
+The implementation of evaluation in Hazel differs from a typical interpreter implementation of evaluation with environments in three regards: we need to account for hole environments; environments are uniquely identified by an identifier for memoization (in turn for optimization); and any closures in the evaluation result should be converted back into plain $\lambda$ abstractions, for reasons that will be discussed later TODOREF.
+
+% TODO: describe why the result from substitution is better than the result from environments
+
+\subsubsection{Formalization of evaluation with environments}
+\label{sec:eval_with_env_formal}
+
+Omar et al. \cite{conf/popl/HazelnutLive19} describes evaluation with the substitution model using a little-step semantics with an evaluation context $\mathcal{E}$, reproduced in TODOREF.
+
+% TODO: reproduce diagram below
+
+TODOREF is an analogous small-step description of the substitution model, also using the little-step semantics.
+
+% TODO: introduce little-step formalization
+
+The Hazel implementation follows a big-step evaluation model, so a big-step formalization is also displayed in TODOREF.
+
+% TODO: introduce big-step formalization
+
+% TODO: describe formalization
+
+% TODO: need justification that the two are equivalent
+
 \subsection{Restructuring hole numbering}
 \label{sec:restructuring_hole_numbering}
 

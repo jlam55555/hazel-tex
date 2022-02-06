@@ -38,20 +38,22 @@
 \contentsline {subsection}{\numberline {3.4}Notebook-style live programming environments}{3}{subsection.3.4}%
 \contentsline {section}{\numberline {4}Implementation and optimization of FAR}{4}{section.4}%
 \contentsline {subsection}{\numberline {4.1}Evaluation with environments}{4}{subsection.4.1}%
-\contentsline {subsection}{\numberline {4.2}Restructuring hole numbering}{4}{subsection.4.2}%
-\contentsline {subsection}{\numberline {4.3}Implementing FAR}{4}{subsection.4.3}%
-\contentsline {subsection}{\numberline {4.4}Memoization of recent actions}{4}{subsection.4.4}%
-\contentsline {subsection}{\numberline {4.5}UI changes for notebook-like editing}{4}{subsection.4.5}%
-\contentsline {section}{\numberline {5}Evaluation of FAR}{5}{section.5}%
-\contentsline {section}{\numberline {6}Conclusions and recommendations}{6}{section.6}%
-\contentsline {section}{References}{7}{section.6}%
-\contentsline {section}{Appendices}{8}{section.6}%
-\contentsline {section}{\numberline {A}Formalization of evaluation with environments}{9}{appendix.A}%
-\contentsline {section}{\numberline {B}Contributions to Hazel}{10}{appendix.B}%
-\contentsline {subsection}{\numberline {B.1}Equivalent evaluation with environments}{10}{subsection.B.1}%
-\contentsline {subsection}{\numberline {B.2}Identifying performance issue}{10}{subsection.B.2}%
-\contentsline {subsection}{\numberline {B.3}Simplifying hole renumbering process}{10}{subsection.B.3}%
-\contentsline {subsection}{\numberline {B.4}Implementation of FAR functionality}{10}{subsection.B.4}%
-\contentsline {subsection}{\numberline {B.5}Memoization for FAR}{10}{subsection.B.5}%
-\contentsline {subsection}{\numberline {B.6}Additional performance improvements}{10}{subsection.B.6}%
-\contentsline {section}{\numberline {C}Selected code samples}{11}{appendix.C}%
+\contentsline {subsubsection}{\numberline {4.1.1}Evaluation with substitution vs. with environments}{4}{subsubsection.4.1.1}%
+\contentsline {subsubsection}{\numberline {4.1.2}Formalization of evaluation with environments}{5}{subsubsection.4.1.2}%
+\contentsline {subsection}{\numberline {4.2}Restructuring hole numbering}{6}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Implementing FAR}{6}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Memoization of recent actions}{6}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}UI changes for notebook-like editing}{6}{subsection.4.5}%
+\contentsline {section}{\numberline {5}Evaluation of FAR}{7}{section.5}%
+\contentsline {section}{\numberline {6}Conclusions and recommendations}{8}{section.6}%
+\contentsline {section}{References}{9}{section.6}%
+\contentsline {section}{Appendices}{10}{section.6}%
+\contentsline {section}{\numberline {A}Formalization of evaluation with environments}{11}{appendix.A}%
+\contentsline {section}{\numberline {B}Contributions to Hazel}{12}{appendix.B}%
+\contentsline {subsection}{\numberline {B.1}Equivalent evaluation with environments}{12}{subsection.B.1}%
+\contentsline {subsection}{\numberline {B.2}Identifying performance issue}{12}{subsection.B.2}%
+\contentsline {subsection}{\numberline {B.3}Simplifying hole renumbering process}{12}{subsection.B.3}%
+\contentsline {subsection}{\numberline {B.4}Implementation of FAR functionality}{12}{subsection.B.4}%
+\contentsline {subsection}{\numberline {B.5}Memoization for FAR}{12}{subsection.B.5}%
+\contentsline {subsection}{\numberline {B.6}Additional performance improvements}{12}{subsection.B.6}%
+\contentsline {section}{\numberline {C}Selected code samples}{13}{appendix.C}%
