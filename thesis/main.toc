@@ -4,56 +4,57 @@
 \contentsline {subsubsection}{\numberline {1.1.2}The $\lambda $-calculus}{1}{subsubsection.1.1.2}%
 \contentsline {subsubsection}{\numberline {1.1.3}Purity and statefulness}{1}{subsubsection.1.1.3}%
 \contentsline {subsubsection}{\numberline {1.1.4}Comparison to other programming paradigms}{1}{subsubsection.1.1.4}%
-\contentsline {subsection}{\numberline {1.2}Classifications of type systems}{1}{subsection.1.2}%
-\contentsline {subsubsection}{\numberline {1.2.1}Primer on programming language semantics and reasoning}{1}{subsubsection.1.2.1}%
-\contentsline {subsubsection}{\numberline {1.2.2}Static vs. dynamic typing}{1}{subsubsection.1.2.2}%
-\contentsline {subsubsection}{\numberline {1.2.3}Strong vs. weak typing}{1}{subsubsection.1.2.3}%
-\contentsline {subsubsection}{\numberline {1.2.4}Inferred vs. manifold typing}{1}{subsubsection.1.2.4}%
-\contentsline {subsubsection}{\numberline {1.2.5}Gradual typing}{1}{subsubsection.1.2.5}%
-\contentsline {subsubsection}{\numberline {1.2.6}Other classifications}{1}{subsubsection.1.2.6}%
-\contentsline {subsection}{\numberline {1.3}Approaches to programming interfaces}{1}{subsection.1.3}%
-\contentsline {subsubsection}{\numberline {1.3.1}Structure editors}{1}{subsubsection.1.3.1}%
-\contentsline {subsubsection}{\numberline {1.3.2}Graphical editors}{1}{subsubsection.1.3.2}%
-\contentsline {subsubsection}{\numberline {1.3.3}Intentional, generative, and meta-programming}{1}{subsubsection.1.3.3}%
-\contentsline {subsubsection}{\numberline {1.3.4}Applications to programming education}{1}{subsubsection.1.3.4}%
-\contentsline {subsubsection}{\numberline {1.3.5}Drawbacks of non-textual editors}{1}{subsubsection.1.3.5}%
-\contentsline {section}{\numberline {2}An overview of the Hazel programming environment}{2}{section.2}%
-\contentsline {subsection}{\numberline {2.1}Hazelnut static semantics}{2}{subsection.2.1}%
-\contentsline {subsubsection}{\numberline {2.1.1}Expression and type holes}{2}{subsubsection.2.1.1}%
-\contentsline {subsubsection}{\numberline {2.1.2}Bidirectional typing}{2}{subsubsection.2.1.2}%
-\contentsline {subsubsection}{\numberline {2.1.3}Example of bidirectional type derivation}{2}{subsubsection.2.1.3}%
-\contentsline {subsection}{\numberline {2.2}Hazelnut Live dynamic semantics}{2}{subsection.2.2}%
-\contentsline {subsubsection}{\numberline {2.2.1}Example of elaboration}{2}{subsubsection.2.2.1}%
-\contentsline {subsubsection}{\numberline {2.2.2}Example of evaluation}{2}{subsubsection.2.2.2}%
-\contentsline {subsubsection}{\numberline {2.2.3}Example of hole instance numbering}{2}{subsubsection.2.2.3}%
-\contentsline {subsection}{\numberline {2.3}Hazel programming environment}{2}{subsection.2.3}%
-\contentsline {subsubsection}{\numberline {2.3.1}Explanation of interface}{2}{subsubsection.2.3.1}%
-\contentsline {subsubsection}{\numberline {2.3.2}Implications of Hazel}{2}{subsubsection.2.3.2}%
-\contentsline {section}{\numberline {3}Problem statement and related works}{3}{section.3}%
-\contentsline {subsection}{\numberline {3.1}Problem statement}{3}{subsection.3.1}%
-\contentsline {subsection}{\numberline {3.2}Issues with the current implementation}{3}{subsection.3.2}%
-\contentsline {subsubsection}{\numberline {3.2.1}Hole numbering inefficiencies}{3}{subsubsection.3.2.1}%
-\contentsline {subsubsection}{\numberline {3.2.2}Hole instance tracking inefficiencies}{3}{subsubsection.3.2.2}%
-\contentsline {subsection}{\numberline {3.3}CMTT interpretation of fill-and-resume}{3}{subsection.3.3}%
-\contentsline {subsection}{\numberline {3.4}Notebook-style live programming environments}{3}{subsection.3.4}%
-\contentsline {section}{\numberline {4}Implementation and optimization of FAR}{4}{section.4}%
-\contentsline {subsection}{\numberline {4.1}Evaluation with environments}{4}{subsection.4.1}%
-\contentsline {subsubsection}{\numberline {4.1.1}Evaluation with substitution vs. with environments}{4}{subsubsection.4.1.1}%
-\contentsline {subsubsection}{\numberline {4.1.2}Formalization of evaluation with environments}{5}{subsubsection.4.1.2}%
-\contentsline {subsection}{\numberline {4.2}Restructuring hole numbering}{6}{subsection.4.2}%
-\contentsline {subsection}{\numberline {4.3}Implementing FAR}{6}{subsection.4.3}%
-\contentsline {subsection}{\numberline {4.4}Memoization of recent actions}{6}{subsection.4.4}%
-\contentsline {subsection}{\numberline {4.5}UI changes for notebook-like editing}{6}{subsection.4.5}%
-\contentsline {section}{\numberline {5}Evaluation of FAR}{7}{section.5}%
-\contentsline {section}{\numberline {6}Conclusions and recommendations}{8}{section.6}%
-\contentsline {section}{References}{9}{section.6}%
-\contentsline {section}{Appendices}{10}{section.6}%
-\contentsline {section}{\numberline {A}Formalization of evaluation with environments}{11}{appendix.A}%
-\contentsline {section}{\numberline {B}Contributions to Hazel}{12}{appendix.B}%
-\contentsline {subsection}{\numberline {B.1}Equivalent evaluation with environments}{12}{subsection.B.1}%
-\contentsline {subsection}{\numberline {B.2}Identifying performance issue}{12}{subsection.B.2}%
-\contentsline {subsection}{\numberline {B.3}Simplifying hole renumbering process}{12}{subsection.B.3}%
-\contentsline {subsection}{\numberline {B.4}Implementation of FAR functionality}{12}{subsection.B.4}%
-\contentsline {subsection}{\numberline {B.5}Memoization for FAR}{12}{subsection.B.5}%
-\contentsline {subsection}{\numberline {B.6}Additional performance improvements}{12}{subsection.B.6}%
-\contentsline {section}{\numberline {C}Selected code samples}{13}{appendix.C}%
+\contentsline {subsection}{\numberline {1.2}Implementations for programming languages}{1}{subsection.1.2}%
+\contentsline {subsubsection}{\numberline {1.2.1}Compiler vs. interpreter implementations}{1}{subsubsection.1.2.1}%
+\contentsline {subsubsection}{\numberline {1.2.2}The substitution and environment models of evaluation}{3}{subsubsection.1.2.2}%
+\contentsline {subsection}{\numberline {1.3}Classifications of type systems}{4}{subsection.1.3}%
+\contentsline {subsubsection}{\numberline {1.3.1}Primer on programming language semantics and reasoning}{4}{subsubsection.1.3.1}%
+\contentsline {subsubsection}{\numberline {1.3.2}Static vs. dynamic typing}{4}{subsubsection.1.3.2}%
+\contentsline {subsubsection}{\numberline {1.3.3}Strong vs. weak typing}{4}{subsubsection.1.3.3}%
+\contentsline {subsubsection}{\numberline {1.3.4}Inferred vs. manifold typing}{4}{subsubsection.1.3.4}%
+\contentsline {subsubsection}{\numberline {1.3.5}Gradual typing}{4}{subsubsection.1.3.5}%
+\contentsline {subsubsection}{\numberline {1.3.6}Other classifications}{4}{subsubsection.1.3.6}%
+\contentsline {subsection}{\numberline {1.4}Approaches to programming interfaces}{4}{subsection.1.4}%
+\contentsline {subsubsection}{\numberline {1.4.1}Structure editors}{4}{subsubsection.1.4.1}%
+\contentsline {subsubsection}{\numberline {1.4.2}Graphical editors}{4}{subsubsection.1.4.2}%
+\contentsline {subsubsection}{\numberline {1.4.3}Intentional, generative, and meta-programming}{4}{subsubsection.1.4.3}%
+\contentsline {subsubsection}{\numberline {1.4.4}Applications to programming education}{4}{subsubsection.1.4.4}%
+\contentsline {subsubsection}{\numberline {1.4.5}Drawbacks of non-textual editors}{4}{subsubsection.1.4.5}%
+\contentsline {section}{\numberline {2}An overview of the Hazel programming environment}{5}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Hazelnut static semantics}{5}{subsection.2.1}%
+\contentsline {subsubsection}{\numberline {2.1.1}Expression and type holes}{5}{subsubsection.2.1.1}%
+\contentsline {subsubsection}{\numberline {2.1.2}Bidirectional typing}{5}{subsubsection.2.1.2}%
+\contentsline {subsubsection}{\numberline {2.1.3}Example of bidirectional type derivation}{5}{subsubsection.2.1.3}%
+\contentsline {subsection}{\numberline {2.2}Hazelnut Live dynamic semantics}{5}{subsection.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.1}Example of elaboration}{5}{subsubsection.2.2.1}%
+\contentsline {subsubsection}{\numberline {2.2.2}Example of evaluation}{5}{subsubsection.2.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.3}Example of hole instance numbering}{5}{subsubsection.2.2.3}%
+\contentsline {subsection}{\numberline {2.3}Hazel programming environment}{5}{subsection.2.3}%
+\contentsline {subsubsection}{\numberline {2.3.1}Explanation of interface}{5}{subsubsection.2.3.1}%
+\contentsline {subsubsection}{\numberline {2.3.2}Implications of Hazel}{5}{subsubsection.2.3.2}%
+\contentsline {section}{\numberline {3}Problem statement and related works}{6}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Problem statement}{6}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Issues with the current implementation}{6}{subsection.3.2}%
+\contentsline {subsubsection}{\numberline {3.2.1}Hole numbering inefficiencies}{6}{subsubsection.3.2.1}%
+\contentsline {subsubsection}{\numberline {3.2.2}Hole instance tracking inefficiencies}{6}{subsubsection.3.2.2}%
+\contentsline {subsection}{\numberline {3.3}CMTT interpretation of fill-and-resume}{6}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Notebook-style live programming environments}{6}{subsection.3.4}%
+\contentsline {section}{\numberline {4}Implementation and optimization of FAR}{7}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Evaluation with environments}{7}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Restructuring hole instance numbering}{7}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Implementing FAR}{7}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Memoization of recent actions}{7}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}UI changes for notebook-like editing}{7}{subsection.4.5}%
+\contentsline {section}{\numberline {5}Evaluation of FAR}{9}{section.5}%
+\contentsline {section}{\numberline {6}Conclusions and recommendations}{10}{section.6}%
+\contentsline {section}{References}{11}{section.6}%
+\contentsline {section}{Appendices}{12}{section.6}%
+\contentsline {section}{\numberline {A}Formalization of evaluation with environments}{13}{appendix.A}%
+\contentsline {section}{\numberline {B}Contributions to Hazel}{14}{appendix.B}%
+\contentsline {subsection}{\numberline {B.1}Equivalent evaluation with environments}{14}{subsection.B.1}%
+\contentsline {subsection}{\numberline {B.2}Identifying performance issue}{14}{subsection.B.2}%
+\contentsline {subsection}{\numberline {B.3}Simplifying hole renumbering process}{14}{subsection.B.3}%
+\contentsline {subsection}{\numberline {B.4}Implementation of FAR functionality}{14}{subsection.B.4}%
+\contentsline {subsection}{\numberline {B.5}Memoization for FAR}{14}{subsection.B.5}%
+\contentsline {subsection}{\numberline {B.6}Additional performance improvements}{14}{subsection.B.6}%
+\contentsline {section}{\numberline {C}Selected code samples}{15}{appendix.C}%

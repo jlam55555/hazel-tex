@@ -1,11 +1,70 @@
+% for header page
 \newcommand{\vs}{\vspace{20pt}}
 
+% for header page
 \newcommand{\pt}[1]{\MakeUppercase{
     \centering{}
     \large{}
     #1 \\
     \vs{}
-}}
+  }}
+
+% allow custom lexer for pygmentize
+% https://github.com/gpoore/minted/issues/176#issuecomment-695344998
+\usepackage{minted}
+\usepackage{regexpatch}
+
+\makeatletter
+\newcommand{\minted@def@optcl@novalue}[2]{%
+  \define@key{minted@opt@g}{#1}[]{%
+    \minted@addto@optlistcl{\minted@optlistcl@g}{#2}%
+    \@namedef{minted@opt@g:#1}{#2}}%
+  \define@key{minted@opt@g@i}{#1}[]{%
+    \minted@addto@optlistcl{\minted@optlistcl@g@i}{#2}%
+    \@namedef{minted@opt@g@i:#1}{#2}}%
+  \define@key{minted@opt@lang}{#1}[]{%
+    \minted@addto@optlistcl@lang{minted@optlistcl@lang\minted@lang}{#2}%
+    \@namedef{minted@opt@lang\minted@lang:#1}{#2}}%
+  \define@key{minted@opt@lang@i}{#1}[]{%
+    \minted@addto@optlistcl@lang{%
+      minted@optlistcl@lang\minted@lang @i}{#2}%
+    \@namedef{minted@opt@lang\minted@lang @i:#1}{#2}}%
+  \define@key{minted@opt@cmd}{#1}[]{%
+    \minted@addto@optlistcl{\minted@optlistcl@cmd}{#2}%
+    \@namedef{minted@opt@cmd:#1}{#2}}%
+}
+
+% new minted option "custom" for adding command line option "-x"
+\minted@def@optcl@novalue{custom}{-x}
+
+% new minted option "formatter=<formatter>" for specifying pygments formatter
+\minted@def@opt{formatter}
+
+% apply "-f <formatter>"
+\newcommand\minted@formatter{%
+  \minted@get@opt{formatter}{latex}\space
+}
+
+% Note: may require fix to regexpatch:
+% https://tex.stackexchange.com/questions/578518/regexpatchcmd-failing-with-latex2e-2020-10-01-patch-level-4-use-cs-replacemen#comment1469403_578518
+\xpatchcmd*\minted@checkstyle
+  {-f latex }
+  {-f \minted@formatter}
+  {}{\fail}
+\xpatchcmd*\minted@pygmentize
+  {-f latex }
+  {-f \minted@formatter}
+  {}{\fail}
+
+  \makeatother
+  % end custom lexer for pygmatize
+
+% Need VerbatimEnvironment:
+% https://tex.stackexchange.com/a/400115
+\newenvironment{hminted}
+{\VerbatimEnvironment
+\begin{minted}[escapeinside=||,frame=single,custom]{../latex-includes/hazel_lexer.py:HazelLexer}}
+{\end{minted}}
 
 %%% Local Variables:
 %%% mode: latex

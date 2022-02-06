@@ -17,19 +17,26 @@
 \usepackage{amssymb}
 \usepackage{stmaryrd}
 \usepackage{hyperref}
-\usepackage{minted}
 \usepackage{geometry}
 \usepackage{setspace}
 \usepackage{cleveref}
+\usepackage[utf8]{inputenc}
 
-% https://tex.stackexchange.com/a/55088
-\makeatletter{}
-\renewcommand\tableofcontents{%
-  \@starttoc{toc}%
-}
-\renewcommand\listoffigures{%
-  \@starttoc{lof}%
-}
+% code listings
+\usepackage{minted}
+
+% https://tex.stackexchange.com/a/35547
+\usepackage{etoolbox}
+\AtBeginEnvironment{minted}{\singlespacing}
+
+% % https://tex.stackexchange.com/a/55088
+% \makeatletter{}
+% \renewcommand\tableofcontents{%
+%   \@starttoc{toc}%
+% }
+% \renewcommand\listoffigures{%
+%   \@starttoc{lof}%
+% }
 \makeatother{}
 
 % https://tex.stackexchange.com/a/132647
