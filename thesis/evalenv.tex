@@ -1,0 +1,107 @@
+\section{Implementing the environment model of evaluation}
+\label{sec:env_model_evaluation}
+
+\subsection{Issues with the current implementation}
+\label{sec:current_problems}
+
+A performance issue appears with the existing evaluator with the program shown in \Cref{fig:hole_renumbering_problem}.
+
+% TODO: describe performance issue
+
+% TODO: describe the existing hole renumbering implementation
+
+\subsubsection{Hole instances and closures}
+\label{sec:hole_instances_and_closures}
+
+\begin{figure}
+  \centering
+  \begin{hminted}
+let a = |$\hehole_1$| in
+let b = |$\hehole_2$| in
+let c = |$\hehole_3$| in
+let d = |$\hehole_4$| in
+let e = |$\hehole_5$| in
+let f = |$\hehole_6$| in
+let g = |$\hehole_7$| in
+|$\hehole_8$|
+  \end{hminted}
+  \caption{A problematic example for hole renumbering}
+  \label{fig:hole_renumbering_problem}
+\end{figure}
+
+\subsection{Evaluation with environments}
+\label{sec:eval_with_envs}
+
+In the case of Hazel (which does not prioritize speed of evaluation in its implementation, and is not a compiled language), evaluation with (reified) environments offers an additional (performance) benefit over the substitution model: the ability to easily identify (and thus memoize) operations over environments. This is useful for the optimizations described later in this paper.
+
+The implementation of evaluation in Hazel differs from a typical interpreter implementation of evaluation with environments in three regards: we need to account for hole environments; environments are uniquely identified by an identifier for memoization (in turn for optimization); and any closures in the evaluation result should be converted back into plain $\lambda$ abstractions, for reasons that will be discussed later TODOREF.
+
+% TODO: describe why the result from substitution is better than the result from environments
+
+\subsubsection{Formalization}
+\label{sec:formalization}
+
+Omar et al. \cite{conf/popl/HazelnutLive19} describes evaluation with the substitution model using a little-step semantics with an evaluation context $\mathcal{E}$, reproduced in TODOREF.
+
+% TODO: reproduce diagram below
+
+\Cref{fig:small-step-formal} is an analogous small-step description of the substitution model, also using the little-step semantics.
+
+% TODO: introduce little-step formalization
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \input{evalenv_smallstep}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Small-step semantics for the environment model of evaluation}
+  \label{fig:small-step-formal}
+\end{figure}
+
+The Hazel implementation follows a big-step evaluation model, so a big-step formalization is also displayed in \Cref{fig:big-step-formal}.
+
+% TODO: introduce big-step formalization
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \input{evalenv_bigstep}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Big-step semantics for the environment model of evaluation}
+  \label{fig:big-step-formal}
+\end{figure}
+
+% TODO: describe formalization
+
+% TODO: need justification that the two are equivalent
+
+% TODO: describe the implementation
+
+\subsubsection{The evaluation boundary and post-processing}
+\label{sec:closures_to_lambdas}
+
+\subsubsection{A strict evaluation boundary}
+\label{sec:strict_eval_boundary}
+
+\subsubsection{Post-processing memoization}
+\label{sec:memoization}
+
+\subsection{Restructuring hole instance numbering}
+\label{sec:restructuring_hole_numbering}
+
+% TODO: describe the solution
+
+% TODO: describe the implementation
+
+\subsubsection{Memoization}
+\label{sec:renumbering_memoization}
+
+\subsubsection{Differences in the hole instance numbering}
+\label{sec:differences_numbering}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:

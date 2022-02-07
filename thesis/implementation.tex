@@ -1,50 +1,6 @@
 \section{Implementation and optimization of FAR}
 \label{sec:far_impl}
 
-\subsection{Evaluation with environments}
-\label{sec:eval_with_envs}
-
-In the case of Hazel (which does not prioritize speed of evaluation in its implementation, and is not a compiled language), evaluation with (reified) environments offers an additional (performance) benefit over the substitution model: the ability to easily identify (and thus memoize) operations over environments. This is useful for the optimizations described later in this paper.
-
-The implementation of evaluation in Hazel differs from a typical interpreter implementation of evaluation with environments in three regards: we need to account for hole environments; environments are uniquely identified by an identifier for memoization (in turn for optimization); and any closures in the evaluation result should be converted back into plain $\lambda$ abstractions, for reasons that will be discussed later TODOREF.
-
-% TODO: describe why the result from substitution is better than the result from environments
-
-Omar et al. \cite{conf/popl/HazelnutLive19} describes evaluation with the substitution model using a little-step semantics with an evaluation context $\mathcal{E}$, reproduced in TODOREF.
-
-% TODO: reproduce diagram below
-
-TODOREF is an analogous small-step description of the substitution model, also using the little-step semantics.
-
-% TODO: introduce little-step formalization
-
-The Hazel implementation follows a big-step evaluation model, so a big-step formalization is also displayed in TODOREF.
-
-% TODO: introduce big-step formalization
-
-% TODO: describe formalization
-
-% TODO: need justification that the two are equivalent
-
-\subsection{Restructuring hole instance numbering}
-\label{sec:restructuring_hole_numbering}
-
-\begin{figure}
-  \centering
-  \begin{hminted}
-let a = |$\hehole_1$| in
-let b = |$\hehole_2$| in
-let c = |$\hehole_3$| in
-let d = |$\hehole_4$| in
-let e = |$\hehole_5$| in
-let f = |$\hehole_6$| in
-let g = |$\hehole_7$| in
-|$\hehole_8$|
-  \end{hminted}
-  \caption{A problematic example for hole renumbering}
-  \label{fig:hole_renumbering_problem}
-\end{figure}
-
 \subsection{Implementing FAR}
 \label{sec:implementing_far}
 

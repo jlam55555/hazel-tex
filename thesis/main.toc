@@ -1,60 +1,65 @@
 \contentsline {section}{\numberline {1}Introduction}{1}{section.1}%
-\contentsline {subsection}{\numberline {1.1}Functional programming}{1}{subsection.1.1}%
-\contentsline {subsubsection}{\numberline {1.1.1}Recursion and mathematical induction}{1}{subsubsection.1.1.1}%
-\contentsline {subsubsection}{\numberline {1.1.2}The $\lambda $-calculus}{1}{subsubsection.1.1.2}%
-\contentsline {subsubsection}{\numberline {1.1.3}Purity and statefulness}{1}{subsubsection.1.1.3}%
-\contentsline {subsubsection}{\numberline {1.1.4}Comparison to other programming paradigms}{1}{subsubsection.1.1.4}%
-\contentsline {subsection}{\numberline {1.2}Implementations for programming languages}{1}{subsection.1.2}%
-\contentsline {subsubsection}{\numberline {1.2.1}Compiler vs. interpreter implementations}{1}{subsubsection.1.2.1}%
-\contentsline {subsubsection}{\numberline {1.2.2}The substitution and environment models of evaluation}{3}{subsubsection.1.2.2}%
-\contentsline {subsection}{\numberline {1.3}Classifications of type systems}{4}{subsection.1.3}%
-\contentsline {subsubsection}{\numberline {1.3.1}Primer on programming language semantics and reasoning}{4}{subsubsection.1.3.1}%
-\contentsline {subsubsection}{\numberline {1.3.2}Static vs. dynamic typing}{4}{subsubsection.1.3.2}%
-\contentsline {subsubsection}{\numberline {1.3.3}Strong vs. weak typing}{4}{subsubsection.1.3.3}%
-\contentsline {subsubsection}{\numberline {1.3.4}Inferred vs. manifold typing}{4}{subsubsection.1.3.4}%
-\contentsline {subsubsection}{\numberline {1.3.5}Gradual typing}{4}{subsubsection.1.3.5}%
-\contentsline {subsubsection}{\numberline {1.3.6}Other classifications}{4}{subsubsection.1.3.6}%
-\contentsline {subsection}{\numberline {1.4}Approaches to programming interfaces}{4}{subsection.1.4}%
-\contentsline {subsubsection}{\numberline {1.4.1}Structure editors}{4}{subsubsection.1.4.1}%
-\contentsline {subsubsection}{\numberline {1.4.2}Graphical editors}{4}{subsubsection.1.4.2}%
-\contentsline {subsubsection}{\numberline {1.4.3}Intentional, generative, and meta-programming}{4}{subsubsection.1.4.3}%
-\contentsline {subsubsection}{\numberline {1.4.4}Applications to programming education}{4}{subsubsection.1.4.4}%
-\contentsline {subsubsection}{\numberline {1.4.5}Drawbacks of non-textual editors}{4}{subsubsection.1.4.5}%
-\contentsline {section}{\numberline {2}An overview of the Hazel programming environment}{5}{section.2}%
-\contentsline {subsection}{\numberline {2.1}Hazelnut static semantics}{5}{subsection.2.1}%
-\contentsline {subsubsection}{\numberline {2.1.1}Expression and type holes}{5}{subsubsection.2.1.1}%
-\contentsline {subsubsection}{\numberline {2.1.2}Bidirectional typing}{5}{subsubsection.2.1.2}%
-\contentsline {subsubsection}{\numberline {2.1.3}Example of bidirectional type derivation}{5}{subsubsection.2.1.3}%
-\contentsline {subsection}{\numberline {2.2}Hazelnut Live dynamic semantics}{5}{subsection.2.2}%
-\contentsline {subsubsection}{\numberline {2.2.1}Example of elaboration}{5}{subsubsection.2.2.1}%
-\contentsline {subsubsection}{\numberline {2.2.2}Example of evaluation}{5}{subsubsection.2.2.2}%
-\contentsline {subsubsection}{\numberline {2.2.3}Example of hole instance numbering}{5}{subsubsection.2.2.3}%
-\contentsline {subsection}{\numberline {2.3}Hazel programming environment}{5}{subsection.2.3}%
-\contentsline {subsubsection}{\numberline {2.3.1}Explanation of interface}{5}{subsubsection.2.3.1}%
-\contentsline {subsubsection}{\numberline {2.3.2}Implications of Hazel}{5}{subsubsection.2.3.2}%
-\contentsline {section}{\numberline {3}Problem statement and related works}{6}{section.3}%
-\contentsline {subsection}{\numberline {3.1}Problem statement}{6}{subsection.3.1}%
-\contentsline {subsection}{\numberline {3.2}Issues with the current implementation}{6}{subsection.3.2}%
-\contentsline {subsubsection}{\numberline {3.2.1}Hole numbering inefficiencies}{6}{subsubsection.3.2.1}%
-\contentsline {subsubsection}{\numberline {3.2.2}Hole instance tracking inefficiencies}{6}{subsubsection.3.2.2}%
-\contentsline {subsection}{\numberline {3.3}CMTT interpretation of fill-and-resume}{6}{subsection.3.3}%
-\contentsline {subsection}{\numberline {3.4}Notebook-style live programming environments}{6}{subsection.3.4}%
-\contentsline {section}{\numberline {4}Implementation and optimization of FAR}{7}{section.4}%
-\contentsline {subsection}{\numberline {4.1}Evaluation with environments}{7}{subsection.4.1}%
-\contentsline {subsection}{\numberline {4.2}Restructuring hole instance numbering}{7}{subsection.4.2}%
-\contentsline {subsection}{\numberline {4.3}Implementing FAR}{7}{subsection.4.3}%
-\contentsline {subsection}{\numberline {4.4}Memoization of recent actions}{7}{subsection.4.4}%
-\contentsline {subsection}{\numberline {4.5}UI changes for notebook-like editing}{7}{subsection.4.5}%
-\contentsline {section}{\numberline {5}Evaluation of FAR}{9}{section.5}%
-\contentsline {section}{\numberline {6}Conclusions and recommendations}{10}{section.6}%
-\contentsline {section}{References}{11}{section.6}%
-\contentsline {section}{Appendices}{12}{section.6}%
-\contentsline {section}{\numberline {A}Formalization of evaluation with environments}{13}{appendix.A}%
-\contentsline {section}{\numberline {B}Contributions to Hazel}{14}{appendix.B}%
-\contentsline {subsection}{\numberline {B.1}Equivalent evaluation with environments}{14}{subsection.B.1}%
-\contentsline {subsection}{\numberline {B.2}Identifying performance issue}{14}{subsection.B.2}%
-\contentsline {subsection}{\numberline {B.3}Simplifying hole renumbering process}{14}{subsection.B.3}%
-\contentsline {subsection}{\numberline {B.4}Implementation of FAR functionality}{14}{subsection.B.4}%
-\contentsline {subsection}{\numberline {B.5}Memoization for FAR}{14}{subsection.B.5}%
-\contentsline {subsection}{\numberline {B.6}Additional performance improvements}{14}{subsection.B.6}%
-\contentsline {section}{\numberline {C}Selected code samples}{15}{appendix.C}%
+\contentsline {subsection}{\numberline {1.1}Problem statement}{1}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}The contribution of this work}{1}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}Structural overview}{1}{subsection.1.3}%
+\contentsline {section}{\numberline {2}Background}{2}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Functional programming}{2}{subsection.2.1}%
+\contentsline {subsubsection}{\numberline {2.1.1}Recursion and mathematical induction}{2}{subsubsection.2.1.1}%
+\contentsline {subsubsection}{\numberline {2.1.2}The $\lambda $-calculus}{2}{subsubsection.2.1.2}%
+\contentsline {subsubsection}{\numberline {2.1.3}Purity and statefulness}{2}{subsubsection.2.1.3}%
+\contentsline {subsubsection}{\numberline {2.1.4}Comparison to other programming paradigms}{2}{subsubsection.2.1.4}%
+\contentsline {subsection}{\numberline {2.2}Implementations for programming languages}{2}{subsection.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.1}Compiler vs. interpreter implementations}{2}{subsubsection.2.2.1}%
+\contentsline {subsubsection}{\numberline {2.2.2}The substitution and environment models of evaluation}{4}{subsubsection.2.2.2}%
+\contentsline {subsection}{\numberline {2.3}Classifications of type systems}{5}{subsection.2.3}%
+\contentsline {subsubsection}{\numberline {2.3.1}Primer on programming language semantics and reasoning}{5}{subsubsection.2.3.1}%
+\contentsline {subsubsection}{\numberline {2.3.2}Static vs. dynamic typing}{5}{subsubsection.2.3.2}%
+\contentsline {subsubsection}{\numberline {2.3.3}Strong vs. weak typing}{5}{subsubsection.2.3.3}%
+\contentsline {subsubsection}{\numberline {2.3.4}Inferred vs. manifold typing}{5}{subsubsection.2.3.4}%
+\contentsline {subsubsection}{\numberline {2.3.5}Gradual typing}{5}{subsubsection.2.3.5}%
+\contentsline {subsubsection}{\numberline {2.3.6}Other classifications}{5}{subsubsection.2.3.6}%
+\contentsline {subsection}{\numberline {2.4}Approaches to programming interfaces}{5}{subsection.2.4}%
+\contentsline {subsubsection}{\numberline {2.4.1}Structure editors}{5}{subsubsection.2.4.1}%
+\contentsline {subsubsection}{\numberline {2.4.2}Graphical editors}{5}{subsubsection.2.4.2}%
+\contentsline {subsubsection}{\numberline {2.4.3}Intentional, generative, and meta-programming}{5}{subsubsection.2.4.3}%
+\contentsline {subsubsection}{\numberline {2.4.4}Applications to programming education}{5}{subsubsection.2.4.4}%
+\contentsline {subsubsection}{\numberline {2.4.5}Drawbacks of non-textual editors}{5}{subsubsection.2.4.5}%
+\contentsline {section}{\numberline {3}An overview of the Hazel programming environment}{6}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Hazelnut static semantics}{6}{subsection.3.1}%
+\contentsline {subsubsection}{\numberline {3.1.1}Expression and type holes}{6}{subsubsection.3.1.1}%
+\contentsline {subsubsection}{\numberline {3.1.2}Bidirectional typing}{6}{subsubsection.3.1.2}%
+\contentsline {subsubsection}{\numberline {3.1.3}Example of bidirectional type derivation}{6}{subsubsection.3.1.3}%
+\contentsline {subsection}{\numberline {3.2}Hazelnut Live dynamic semantics}{6}{subsection.3.2}%
+\contentsline {subsubsection}{\numberline {3.2.1}Example of elaboration}{6}{subsubsection.3.2.1}%
+\contentsline {subsubsection}{\numberline {3.2.2}Example of evaluation}{6}{subsubsection.3.2.2}%
+\contentsline {subsubsection}{\numberline {3.2.3}Example of hole instance numbering}{6}{subsubsection.3.2.3}%
+\contentsline {subsection}{\numberline {3.3}Hazel programming environment}{6}{subsection.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.1}Explanation of interface}{6}{subsubsection.3.3.1}%
+\contentsline {subsubsection}{\numberline {3.3.2}Implications of Hazel}{6}{subsubsection.3.3.2}%
+\contentsline {section}{\numberline {4}Implementing the environment model of evaluation}{7}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Issues with the current implementation}{7}{subsection.4.1}%
+\contentsline {subsubsection}{\numberline {4.1.1}Hole instances and closures}{7}{subsubsection.4.1.1}%
+\contentsline {subsection}{\numberline {4.2}Evaluation with environments}{7}{subsection.4.2}%
+\contentsline {subsubsection}{\numberline {4.2.1}Formalization}{8}{subsubsection.4.2.1}%
+\contentsline {subsubsection}{\numberline {4.2.2}The evaluation boundary and post-processing}{10}{subsubsection.4.2.2}%
+\contentsline {subsubsection}{\numberline {4.2.3}A strict evaluation boundary}{10}{subsubsection.4.2.3}%
+\contentsline {subsubsection}{\numberline {4.2.4}Post-processing memoization}{10}{subsubsection.4.2.4}%
+\contentsline {subsection}{\numberline {4.3}Restructuring hole instance numbering}{10}{subsection.4.3}%
+\contentsline {subsubsection}{\numberline {4.3.1}Memoization}{10}{subsubsection.4.3.1}%
+\contentsline {subsubsection}{\numberline {4.3.2}Differences in the hole instance numbering}{10}{subsubsection.4.3.2}%
+\contentsline {section}{\numberline {5}Implementation and optimization of FAR}{11}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Implementing FAR}{11}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Memoization of recent actions}{11}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}UI changes for notebook-like editing}{11}{subsection.5.3}%
+\contentsline {section}{\numberline {6}Evaluation of FAR}{12}{section.6}%
+\contentsline {section}{\numberline {7}Future directions}{13}{section.7}%
+\contentsline {subsection}{\numberline {7.1}FAR for all edits}{13}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Stateless and efficient notebook environment}{13}{subsection.7.2}%
+\contentsline {section}{\numberline {8}Conclusions and recommendations}{14}{section.8}%
+\contentsline {section}{References}{15}{section.8}%
+\contentsline {section}{Appendices}{16}{section.8}%
+\contentsline {section}{\numberline {A}Formalization of evaluation with environments}{17}{appendix.A}%
+\contentsline {section}{\numberline {B}Additional contributions to Hazel}{18}{appendix.B}%
+\contentsline {subsection}{\numberline {B.1}Additional performance improvements}{18}{subsection.B.1}%
+\contentsline {subsection}{\numberline {B.2}Documentation and learning efforts}{18}{subsection.B.2}%
+\contentsline {section}{\numberline {C}Selected code samples}{19}{appendix.C}%
