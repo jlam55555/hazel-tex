@@ -1,35 +1,7 @@
 \section{Implementing the environment model of evaluation}
 \label{sec:env_model_evaluation}
 
-\subsection{Issues with the current implementation}
-\label{sec:current_problems}
-
-A performance issue appears with the existing evaluator with the program shown in \Cref{fig:hole_renumbering_problem}.
-
-% TODO: describe performance issue
-
-% TODO: describe the existing hole renumbering implementation
-
-\subsubsection{Hole instances and closures}
-\label{sec:hole_instances_and_closures}
-
-\begin{figure}
-  \centering
-  \begin{hminted}
-let a = |$\hehole_1$| in
-let b = |$\hehole_2$| in
-let c = |$\hehole_3$| in
-let d = |$\hehole_4$| in
-let e = |$\hehole_5$| in
-let f = |$\hehole_6$| in
-let g = |$\hehole_7$| in
-|$\hehole_8$|
-  \end{hminted}
-  \caption{A problematic example for hole renumbering}
-  \label{fig:hole_renumbering_problem}
-\end{figure}
-
-\subsection{Evaluation with environments}
+\subsection{Hazel-specific implementation}
 \label{sec:eval_with_envs}
 
 In the case of Hazel (which does not prioritize speed of evaluation in its implementation, and is not a compiled language), evaluation with (reified) environments offers an additional (performance) benefit over the substitution model: the ability to easily identify (and thus memoize) operations over environments. This is useful for the optimizations described later in this paper.
@@ -82,24 +54,13 @@ The Hazel implementation follows a big-step evaluation model, so a big-step form
 \subsubsection{The evaluation boundary and post-processing}
 \label{sec:closures_to_lambdas}
 
+% two-stage approach
+
 \subsubsection{A strict evaluation boundary}
 \label{sec:strict_eval_boundary}
 
 \subsubsection{Post-processing memoization}
 \label{sec:memoization}
-
-\subsection{Restructuring hole instance numbering}
-\label{sec:restructuring_hole_numbering}
-
-% TODO: describe the solution
-
-% TODO: describe the implementation
-
-\subsubsection{Memoization}
-\label{sec:renumbering_memoization}
-
-\subsubsection{Differences in the hole instance numbering}
-\label{sec:differences_numbering}
 
 %%% Local Variables:
 %%% mode: latex

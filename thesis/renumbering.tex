@@ -1,0 +1,62 @@
+\section{Memoizing hole instance numbering using environments}
+\label{sec:renumbering}
+
+\subsection{Issues with the current implementation}
+\label{sec:current_problems}
+
+Consider the program shown in \Cref{fig:sample_hazel_program}.
+
+\begin{figure}
+  \centering
+  \begin{hminted}
+let a = |$\hehole_1$| in
+let b = |$\lambda$| x . { a + x + |$\hehole_2$| } in
+let c = |$\hehole_3$| in
+|$\hehole_4$| + b 1 + f |$\hehole_5$|
+  \end{hminted}
+  \caption{A seemingly innocuous Hazel program}
+  \label{fig:sample_hazel_program}
+\end{figure}
+
+A performance issue appears with the existing evaluator with the program shown in \Cref{fig:hole_renumbering_problem}.
+
+% TODO: describe performance issue
+
+% TODO: describe the existing hole renumbering implementation
+
+\subsubsection{Hole instances and closures}
+\label{sec:hole_instances_and_closures}
+
+\begin{figure}
+  \centering
+  \begin{hminted}
+let a = |$\hehole_1$| in
+let b = |$\hehole_2$| in
+let c = |$\hehole_3$| in
+let d = |$\hehole_4$| in
+let e = |$\hehole_5$| in
+let f = |$\hehole_6$| in
+let g = |$\hehole_7$| in
+|\dots|
+let x = |$\hehole_{n}$| in
+|$\hehole_{n+1}$|
+  \end{hminted}
+  \caption{A Hazel program that generates an exponential ($2^N$) number of total hole instances}
+  \label{fig:hole_renumbering_problem}
+\end{figure}
+
+\subsubsection{Algorithmic concerns and a two-stage approach}
+\label{sec:two-stage-renumber}
+
+\subsubsection{Memoization and unification with closure post-processing}
+\label{sec:renumbering_memoization}
+
+\subsubsection{Differences in the hole instance numbering}
+\label{sec:differences_numbering}
+
+% two-stage to one-stage approach
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:
