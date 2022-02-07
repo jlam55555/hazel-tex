@@ -1,21 +1,31 @@
-\judgbox{E\vdash d\to d'}{Internal expression $d$ takes an instruction transition to $d'$ \\ given environment $E$}
+\judgbox{E\vdash d\to d'}{Internal expression $d$ takes an instruction transition to $d'$ given environment $E$}
 
 \begin{mathpar}
-  \Infer{EvalS-Var}{}{E,x\leftarrow d\vdash x\to d}
+  \Infer{EvalS-Var}{}{E,x\leftarrow d\vdash x\to d}\\
   \and
-  \Infer{EvalS-Lam}{
-    [\hhole{d''}_{\sigma}/\hhole{d''}_{\sigma::E}][\hehole_{\sigma}/\hehole_{\sigma::E}]d=d'
-  }{E\vdash(\lambda x:\tau.d)\to ([E]\lambda x:\tau.d')}
+  \Infer{EvalS-Lam}{}{E\vdash(\lambda x:\tau.d)\to ([E]\lambda x:\tau.d')}
+  \and
+  \Infer{EvalS-Fix}{E\vdash d\to d'}{E\vdash\fix f.d\to \fix f.d'}
   \and
   \Infer{EvalS-Ap$_1$}{
     E\vdash d_2\textsf{ final} \\
-    E::E',x\leftarrow d_2\vdash d_1\to d_1'
+    E',x\leftarrow d_2\vdash d_1\to d_1'
   }{E\vdash ([E']\lambda x:\tau.d_1)(d_2)\to ([E']\lambda x:\tau.d_1')(d_2)}
   \and
   \Infer{EvalS-Ap$_2$}{
     E\vdash d_2\textsf{ final} \\
-    E::E',x\leftarrow d_2\vdash d_1\textsf{ final}
+    E',x\leftarrow d_2\vdash d_1\textsf{ final}
   }{E\vdash([E']\lambda x:\tau.d_1)(d_2)\to d_1}
+  \and
+  \Infer{EvalS-Ap$_3$}{
+    E\vdash d_2\textsf{ final} \\
+    E',f\leftarrow ([E']\lambda x:\tau.d_1),x\leftarrow d_2\vdash d_1\to d_1'
+  }{E\vdash\fix.([E']\lambda x:\tau.d_1)(d_2)\to\fix.([E']\lambda x:\tau.d_1')(d_2)}
+  \and
+  \Infer{EvalS-Ap$_4$}{
+    E\vdash d_2\textsf{ final} \\
+    E',f\leftarrow([E']\lambda x:\tau.d_1),x\leftarrow d_2\vdash d_1\textsf{ final}
+  }{E\vdash\fix.([E']\lambda x:\tau.d_1)(d_2)\to d_1}
   \and
   \Infer{EvalS-Let$_1$}{
     E\vdash d_2\textsf{ final} \\
@@ -25,11 +35,11 @@
   \Infer{EvalS-Let$_2$}{
     E\vdash d_2\textsf{ final} \\
     E,x\leftarrow d_2\vdash d_1\textsf{ final}
-  }{E\vdash\texttt{let }x=d_2\texttt{ in }d_1\to d_1}
-  \and\\
-  \Infer{EvalS-EHole}{}{E\vdash\hehole_{\sigma}\to\hehole_{\sigma::E}}
+  }{E\vdash\texttt{let }x=d_2\texttt{ in }d_1\to d_1}\\
   \and
-  \Infer{EvalS-NEHole}{E\vdash d\textsf{ final}}{E\vdash\hhole{d}_{\sigma}\to\hhole{d}_{\sigma::E}}
+  \Infer{EvalS-EHole}{}{E\vdash\hehole_{\varnothing}\to\hehole_{E}}
+  \and
+  \Infer{EvalS-NEHole}{E\vdash d\textsf{ final}}{E\vdash\hhole{d}_{\varnothing}\to\hhole{d}_{E}}
   \and
   \Infer{EvalS-Op}{}{E\vdash\hnum{n_1}+\hnum{n_2}\to\hnum{n_1+n_2}}
 \end{mathpar}

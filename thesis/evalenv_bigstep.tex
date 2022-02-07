@@ -3,22 +3,29 @@
 \begin{mathpar}
   \Infer{EvalB-Final}{E\vdash d\textsf{ final}}{E\vdash d\Downarrow d}
   \and
-  \Infer{EvalB-Var}{}{E,x\leftarrow d\vdash x\Downarrow d}
+  \Infer{EvalB-Var}{}{E,x\leftarrow d\vdash x\Downarrow d}\\
   \and
-  \Infer{EvalB-Lam}{
-    [\hhole{d''}_{\sigma}/\hhole{d''}_{\sigma::E}][\hehole_{\sigma}/\hehole_{\sigma::E}]d=d'
-  }{E\vdash(\lambda x:\tau.d)\Downarrow [E](\lambda x:\tau.d')}
+  \Infer{EvalB-Fix}{E\vdash d\Downarrow d'}{E\vdash\fix f.d\Downarrow \fix f.d'}
+  \and
+  \Infer{EvalB-Lam}{}{E\vdash(\lambda x:\tau.d)\Downarrow [E](\lambda x:\tau.d')}
   \and
   \Infer{EvalB-Ap$_1$}{
     E\vdash d_1\Downarrow d_1' \\
     d_1'\ne([E']\lambda x:\tau.d) \\
+    d_1'\ne\fix f.d \\
     E\vdash d_2\Downarrow d_2'
   }{E\vdash d_1(d_2)\Downarrow d_1'(d_2')}
   \and
   \Infer{EvalB-Ap$_2$}{
     E\vdash d_1\Downarrow ([E']\lambda x:\tau.d_1') \\
     E\vdash d_2\Downarrow d_2' \\
-    E::E',x\leftarrow d_2'\vdash d_1'\Downarrow d
+    E',x\leftarrow d_2'\vdash d_1'\Downarrow d
+  }{E\vdash d_1(d_2)\Downarrow d}
+  \and
+  \Infer{EvalB-Ap$_3$}{
+    E\vdash d_1\Downarrow(\fix f.([E']\lambda x:\tau.d_1'))=d_1'' \\
+    E\vdash d_2\Downarrow d_2' \\
+    E',f\leftarrow d_1'',x\leftarrow d_2'\vdash d_1'\Downarrow d
   }{E\vdash d_1(d_2)\Downarrow d}
   \and
   \Infer{EvalB-Let}{
@@ -32,11 +39,11 @@
     (d_1\ne\hnum{n_1}\lor d_2\ne\hnum{n_2})
   }{E\vdash d_1+d_2\Downarrow d_1'+d_2'}  
   \and
-  \Infer{EvalB-EHole}{}{E\vdash\hehole_{\sigma}\Downarrow\hehole_{\sigma::E}}
+  \Infer{EvalB-EHole}{}{E\vdash\hehole_{\varnothing}\Downarrow\hehole_{E}}
   \and
   \Infer{EvalB-NEHole}{
     E\vdash d\Downarrow d'
-  }{E\vdash\hhole{d}_{\sigma}\Downarrow\hhole{d'}_{\sigma::E}}
+  }{E\vdash\hhole{d}_{\varnothing}\Downarrow\hhole{d'}_{E}}
   \and
   \Infer{EvalB-Op$_2$}{
     E\vdash d_1\Downarrow\hnum{n_1} \\

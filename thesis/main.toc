@@ -42,6 +42,7 @@
 \contentsline {subsection}{\numberline {4.3}The evaluation boundary and post-processing}{8}{subsection.4.3}%
 \contentsline {subsection}{\numberline {4.4}A strict evaluation boundary}{8}{subsection.4.4}%
 \contentsline {subsection}{\numberline {4.5}Post-processing memoization}{8}{subsection.4.5}%
+\contentsline {subsection}{\numberline {4.6}Purity of implementation}{8}{subsection.4.6}%
 \contentsline {section}{\numberline {5}Memoizing hole instance numbering using environments}{11}{section.5}%
 \contentsline {subsection}{\numberline {5.1}Issues with the current implementation}{11}{subsection.5.1}%
 \contentsline {subsection}{\numberline {5.2}Hole instances and closures}{11}{subsection.5.2}%
