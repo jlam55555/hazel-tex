@@ -8,6 +8,10 @@ _region*
 *.log
 *.out
 *.aux
+*.lof
+*.lol
+*.lot
+*.toc
 
 # biblatex
 *.bbl
