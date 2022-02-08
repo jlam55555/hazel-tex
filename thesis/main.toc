@@ -64,7 +64,8 @@
 \contentsline {section}{\numberline {B}Additional contributions to Hazel}{20}{appendix.B}%
 \contentsline {subsection}{\numberline {B.1}Additional performance improvements}{20}{subsection.B.1}%
 \contentsline {subsection}{\numberline {B.2}Documentation and learning efforts}{20}{subsection.B.2}%
-\contentsline {section}{\numberline {C}Related concurrent research directions in Hazel}{21}{appendix.C}%
-\contentsline {subsection}{\numberline {C.1}Improved hole renumbering}{21}{subsection.C.1}%
-\contentsline {subsection}{\numberline {C.2}Evaluation limits}{21}{subsection.C.2}%
-\contentsline {section}{\numberline {D}Selected code samples}{22}{appendix.D}%
+\contentsline {section}{\numberline {C}Code correspondence}{21}{appendix.C}%
+\contentsline {section}{\numberline {D}Related concurrent research directions in Hazel}{22}{appendix.D}%
+\contentsline {subsection}{\numberline {D.1}Improved hole renumbering}{22}{subsection.D.1}%
+\contentsline {subsection}{\numberline {D.2}Evaluation limits}{22}{subsection.D.2}%
+\contentsline {section}{\numberline {E}Selected code samples}{23}{appendix.E}%

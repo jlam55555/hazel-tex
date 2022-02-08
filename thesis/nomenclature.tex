@@ -1,5 +1,47 @@
 \pt{Table of nomenclature}
-TODO
+% \FloatBarrier{}
+
+% nomencl package is too confusing, just use manual tables
+
+\newcommand{\colwidths}{p{2.5cm}p{11cm}}
+
+\singlespacing
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{\colwidths}
+    \hline\hline
+    $d$ & Internal expression \\
+    $\env$ & Environment \\
+    $x,f$ & Variable name \\
+    $u$ & Hole number \\
+    $i$ & Hole instance or closure number \\
+    $\hehole_\env^{u:i}$ & Empty hole expression \\
+    $\hhole{d}_\env^{u:i}$ & Non-empty hole expression \\
+    \hline\hline
+  \end{tabular}
+  \caption{Symbols relevant to the Hazel internal language}
+  \label{tab:symb_hazel_dhexp}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{\colwidths}
+    \hline\hline
+    $d\textsf{ value}$ & Value \\
+    $d\textsf{ final}$ & Final \\
+    $\env\vdash d\Downarrow d'$ & Evaluation \\
+    $d\pp d'$ & Postprocessing \\
+    $d\pplc d'$ & Postprocessing ($\lambda$-conversion inside evaluation boundary) \\
+    $\env\vdash d\pplc d'$ & Postprocessing ($\lambda$-conversion outside evaluation boundary) \\
+    $\hhole{d}_\env^{u}\ppn\hhole{d'}_\env^{u:i}$ & Postprocessing (hole closure numbering) \\
+    \hline\hline
+  \end{tabular}
+  \caption{Judgments relevant to Hazel evaluation}
+  \label{tab:symb_hazel_dhexp}
+\end{table}
+
+\doublespacing
 
 %%% Local Variables:
 %%% mode: latex

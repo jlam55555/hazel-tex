@@ -22,6 +22,7 @@
 \usepackage{setspace}
 \usepackage{cleveref}
 \usepackage{mdframed}
+\usepackage{placeins}
 \usepackage[utf8]{inputenc}
 
 % code listings
@@ -31,19 +32,17 @@
 \usepackage{etoolbox}
 \AtBeginEnvironment{minted}{\singlespacing}
 
-% % https://tex.stackexchange.com/a/55088
-% \makeatletter{}
-% \renewcommand\tableofcontents{%
-%   \@starttoc{toc}%
-% }
-% \renewcommand\listoffigures{%
-%   \@starttoc{lof}%
-% }
-\makeatother{}
-
 % https://tex.stackexchange.com/a/132647
 \usepackage{etoolbox}
 \patchcmd{\thebibliography}{\section*{\refname}}{}{}{}
+
+% https://tex.stackexchange.com/a/82994
+\renewcommand{\contentsname}{\vspace{-40pt}}
+\renewcommand{\listfigurename}{\vspace{-40pt}}
+\renewcommand{\listtablename}{\vspace{-40pt}}
+
+% https://stackoverflow.com/a/32388972
+\renewcommand{\listoflistingscaption}{\vspace{-40pt}}
 
 \begin{document}
 
@@ -59,16 +58,25 @@
 % toc and lof
 \pt{Table of contents}
 \tableofcontents{}
+
 \clearpage{}
 \pt{List of figures}
 \listoffigures{}
 
+\clearpage{}
+\pt{List of tables}
+\listoftables{}
+
+\clearpage{}
+\pt{List of listings}
+\listoflistings{}
+
 % list of nomenclature/terminology/notation
+\clearpage
 \include{nomenclature}
 
 % end front matter
 \pagenumbering{arabic}
-\clearpage{}
 
 \include{introduction}
 \include{background}
@@ -96,8 +104,11 @@
 
 \include{eval_envs}
 \include{contributions}
+\include{correspondence}
 \include{concurrent_work}
 \include{code_samples}
+
+% TODO: correspondence between concepts and code names
 
 \end{document}
 

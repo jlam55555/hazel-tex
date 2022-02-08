@@ -6,17 +6,17 @@
 
 Consider the program shown in \Cref{fig:sample_hazel_program}.
 
-\begin{figure}
+\begin{listing}
   \centering
   \begin{hminted}
-let a = |$\hehole_1$| in
-let b = |$\lambda$| x . { a + x + |$\hehole_2$| } in
-let c = |$\hehole_3$| in
-|$\hehole_4$| + b 1 + f |$\hehole_5$|
+let a = |$\hehole^1$| in
+let b = |$\lambda$| x . { a + x + |$\hehole^2$| } in
+let c = |$\hehole^3$| in
+|$\hehole^4$| + b 1 + f |$\hehole^5$|
   \end{hminted}
   \caption{A seemingly innocuous Hazel program}
   \label{fig:sample_hazel_program}
-\end{figure}
+\end{listing}
 
 A performance issue appears with the existing evaluator with the program shown in \Cref{fig:hole_renumbering_problem}.
 
@@ -27,23 +27,23 @@ A performance issue appears with the existing evaluator with the program shown i
 \subsection{Hole instances and closures}
 \label{sec:hole_instances_and_closures}
 
-\begin{figure}
+\begin{listing}
   \centering
   \begin{hminted}
-let a = |$\hehole_1$| in
-let b = |$\hehole_2$| in
-let c = |$\hehole_3$| in
-let d = |$\hehole_4$| in
-let e = |$\hehole_5$| in
-let f = |$\hehole_6$| in
-let g = |$\hehole_7$| in
+let a = |$\hehole^1$| in
+let b = |$\hehole^2$| in
+let c = |$\hehole^3$| in
+let d = |$\hehole^4$| in
+let e = |$\hehole^5$| in
+let f = |$\hehole^6$| in
+let g = |$\hehole^7$| in
 |\dots|
-let x = |$\hehole_{n}$| in
-|$\hehole_{n+1}$|
+let x = |$\hehole^{n}$| in
+|$\hehole^{n+1}$|
   \end{hminted}
   \caption{A Hazel program that generates an exponential ($2^N$) number of total hole instances}
   \label{fig:hole_renumbering_problem}
-\end{figure}
+\end{listing}
 
 \subsection{Algorithmic concerns and a two-stage approach}
 \label{sec:two-stage-renumber}

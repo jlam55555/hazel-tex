@@ -70,8 +70,10 @@
 % especially for math operators that are introduced in this paper, want to
 % declare them here so they are easily changeable
 \DeclareMathOperator{\fix}{fix} % fixpoint
-\newcommand{\env}{\sigma}
-\newcommand{\pplc}{\Uparrow_{\lambda}} % post-process lambda conversion operator
+\newcommand{\env}{\sigma}       % environment
+\newcommand{\pp}{\Uparrow}        % post-process
+\newcommand{\pplc}{\pp_{\lambda}} % post-process lambda conversion operator
+\newcommand{\ppn}{\pp_{i}} % post-process hole closure numbering
 \newcommand{\pplcl}{PP$_{\lambda}$} % post-process lambda conversion label
 \newcommand{\fin}[1][d]{#1\textsf{ final}} % final judgment
 

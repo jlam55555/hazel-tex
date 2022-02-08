@@ -2,5 +2,3 @@
 \contentsline {figure}{\numberline {2}{\ignorespaces Small-step semantics for the environment model of evaluation}}{9}{figure.2}%
 \contentsline {figure}{\numberline {3}{\ignorespaces Big-step semantics for the environment model of evaluation}}{10}{figure.3}%
 \contentsline {figure}{\numberline {4}{\ignorespaces Big-step semantics for $\lambda $-conversion post-processing within the evaluation boundary}}{11}{figure.4}%
-\contentsline {figure}{\numberline {5}{\ignorespaces A seemingly innocuous Hazel program}}{12}{figure.5}%
-\contentsline {figure}{\numberline {6}{\ignorespaces A Hazel program that generates an exponential ($2^N$) number of total hole instances}}{12}{figure.6}%
