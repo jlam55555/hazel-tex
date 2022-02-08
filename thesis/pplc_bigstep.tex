@@ -27,12 +27,12 @@
   }{d_1+d_2\pplc d_1'+d_2'}
   \and
   \Infer{\pplcl-EHole}{
-    \env'=\{\forall (x\leftarrow d)\in \env.(x\leftarrow d'):d\pplc d'\}
+    \env'=\{(x\leftarrow d'):(x\leftarrow d)\in\env,d\pplc d'\}
   }{\hehole_\env^u\pplc\hehole_{\env'}^u}
   \and
   \Infer{\pplcl-NEHole}{
     d\pplc d' \\
-    \env'=\{\forall (x\leftarrow d)\in\env.(x\leftarrow d'):d\pplc d'\}
+    \env'=\{(x\leftarrow d'):(x\leftarrow d)\in\env,d\pplc d'\}
   }{\hhole{d}_\env^u\pplc\hhole{d'}_{\env'}^u}
 \end{mathpar}
 
