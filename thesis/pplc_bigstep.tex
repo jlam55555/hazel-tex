@@ -1,0 +1,42 @@
+\judgbox{d\pplc d'}{$d$ postprocess-evaluates ($\lambda$-conversion) to $d'$ within the evaluation boundary}
+
+\begin{mathpar}
+  \Infer{\pplcl-Value}{
+    d\textsf{ value} \\
+    d\ne\fix f.d \\
+    d\ne [\env]\lambda x.d
+  }{d\pplc d}\\
+  \and
+  \Infer{\pplcl-Fix}{
+    \env\vdash d\pplc d'\\
+    \env,f\leftarrow (\fix f.\lambda x.d')\vdash d'\pplc d''
+  }{\fix f.([\env]\lambda x.d)\pplc \lambda x.d''}
+  \and
+  \Infer{\pplcl-Closure}{
+    \env\vdash d\pplc d'
+  }{[\env]\lambda x.d\pplc\lambda x.d'}
+  \and
+  \Infer{\pplcl-Ap}{
+    d_1\pplc d_1' \\
+    d_2\pplc d_2'
+  }{d_1(d_2)\pplc d_1'(d_2')}
+  \and
+  \Infer{\pplcl-Op}{
+    d_1\pplc d_1' \\
+    d_2\pplc d_2'
+  }{d_1+d_2\pplc d_1'+d_2'}
+  \and
+  \Infer{\pplcl-EHole}{
+    \env'=\{\forall (x\leftarrow d)\in \env.(x\leftarrow d'):d\pplc d'\}
+  }{\hehole_\env^u\pplc\hehole_{\env'}^u}
+  \and
+  \Infer{\pplcl-NEHole}{
+    d\pplc d' \\
+    \env'=\{\forall (x\leftarrow d)\in\env.(x\leftarrow d'):d\pplc d'\}
+  }{\hhole{d}_\env^u\pplc\hhole{d'}_{\env'}^u}
+\end{mathpar}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:
