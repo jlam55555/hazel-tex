@@ -8,6 +8,10 @@
   \and
   \Infer{\pplclo-Var}{}{\env,x\leftarrow d\vdash x\pplc d}
   \and
+  \Infer{\pplclo-Fix}{
+    \env\vdash d\pplc d'
+  }{\env\vdash\fix f.d\pplc\fix f.d'}
+  \and
   \Infer{\pplclo-Lam}{
     \env\vdash d\pplc d'
   }{\env\vdash\lambda x.d\pplc\lambda x.d'}
@@ -20,7 +24,7 @@
   \Infer{\pplclo-Op}{
     \env\vdash d_1\pplc d_1' \\
     \env\vdash d_2\pplc d_2'
-  }{\env\vdash d_1+d_2\pplc d_1'+d_2'} \\
+  }{\env\vdash d_1+d_2\pplc d_1'+d_2'}
   \and
   \Infer{\pplclo-EHole}{
   }{\env\vdash\hehole_\varnothing^u\pplc\hehole_\env^u}
