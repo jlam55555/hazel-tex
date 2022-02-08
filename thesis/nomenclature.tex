@@ -11,6 +11,19 @@
   \centering
   \begin{tabular}{\colwidths}
     \hline\hline
+    $\tau$ & Hazel type \\
+    $\Gamma$ & Typing context \\
+    $\Delta$ & Hole context \\
+    \hline\hline
+  \end{tabular}
+  \caption{Hazel expression and hole typing}
+  \label{tab:symb_elab_typing}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{\colwidths}
+    \hline\hline
     $d$ & Internal expression \\
     $\lambda x.d$ & Lambda abstraction \\
     $\fix f.d$ & Fixpoint function \\
@@ -22,7 +35,7 @@
     $\hhole{d}_\env^{u:i}$ & Non-empty hole expression \\
     \hline\hline
   \end{tabular}
-  \caption{Symbols relevant to the Hazel internal language}
+  \caption{Hazel internal language}
   \label{tab:symb_hazel_dhexp}
 \end{table}
 
@@ -39,7 +52,7 @@
     $\hhole{d}_\env^{u}\ppn\hhole{d'}_\env^{u:i}$ & Postprocessing (hole closure numbering) \\
     \hline\hline
   \end{tabular}
-  \caption{Judgments relevant to Hazel evaluation}
+  \caption{Hazel evaluation judgments}
   \label{tab:symb_hazel_dhexp}
 \end{table}
 

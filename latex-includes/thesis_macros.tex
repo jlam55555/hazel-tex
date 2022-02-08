@@ -73,10 +73,15 @@
 \newcommand{\env}{\sigma}       % environment
 \newcommand{\pp}{\Uparrow}        % post-process
 \newcommand{\pplc}{\pp_{\lambda}} % post-process lambda conversion operator
-\newcommand{\ppn}{\pp_{i}} % post-process hole closure numbering
+\newcommand{\ppn}{\pp_{i,d}} % post-process hole closure numbering (results only)
+\newcommand{\ppns}{\pp_{i,\env}} % post-process hole closure numbering (sigmas only)
 \newcommand{\pplcl}{PPI$_{\lambda}$} % post-process lambda within evaluation boundary conversion label
 \newcommand{\pplclo}{PPO$_{\lambda}$} % post-process lambda outside evaluation boundary conversion label
+\newcommand{\ppnl}{PP$_{i,d}$} % post-process hole closure numbering label
+\newcommand{\ppnsl}{PP$_{i,\env}$} % post-process hole closure numbering label
 \newcommand{\fin}[1][d]{#1\textsf{ final}} % final judgment
+\newcommand{\hci}{H}                       % hole instance/closure info
+\DeclareMathOperator{\hid}{hid}           % hole instance id generator
 
 % for use in Hazel listings
 \newcommand{\rar}{$\rightarrow$}

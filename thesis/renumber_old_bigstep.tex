@@ -1,0 +1,78 @@
+\judgbox{\hci\vdash d\ppn(\hci',d')}{
+  Holes directly in $d$ are numbered according to the hole instance info $\hci$, \\
+  generating $d'$ and a new hole instance info $\hci'$
+}
+
+\begin{mathpar}
+  \Infer{\ppnl-Value}{
+    d\textsf{ value} \\
+    d\ne\lambda x.d
+  }{\hci\vdash d\ppn(\hci,d)}
+  \and
+  \Infer{\ppnl-Var}{}{\hci\vdash x\ppn(\hci,x)}
+  \and
+  \Infer{\ppnl-Lam}{
+    \hci\vdash d\ppn(\hci',d')
+  }{\hci\vdash\lambda x.d\ppn(\hci',d')}
+  \and
+  \Infer{\ppnl-Ap}{
+    \hci\vdash d_1\ppn(\hci',d_1') \\
+    \hci'\vdash d_2\ppn(\hci'',d_2')
+  }{\hci\vdash\lambda d_1(d_2)\ppn (\hci'',d_1'(d_2'))}
+  \and
+  \Infer{\ppnl-Op}{
+    \hci\vdash d_1\ppn(\hci',d_1') \\
+    \hci'\vdash d_2\ppn(\hci'',d_2')
+  }{\hci\vdash\lambda d_1+d_2\ppn (\hci'',d_1'+d_2')} \\
+  \and
+  \Infer{\ppnl-EHole}{
+    \hid(\hci,u)=i \\
+    \hci'=\hci,(u,i,\_,p)
+  }{\hci\vdash\hehole_\env^u\ppn(\hci',\hehole_\env^{u:i})}
+  \and
+  \Infer{\ppnl-NEHole}{
+    \hid(\hci,u)=i \\
+    \hci'=\hci,(u,i,\_,p) \\
+    \hci'\vdash d\ppn(\hci'',d') \\
+  }{\hci\vdash\hhole{d}_\env^u\ppn(\hci'',\hhole{d'}_\env^{u:i})}
+\end{mathpar} \\
+
+\judgbox{\hci\vdash d\ppns(\hci',d')}{
+  Hole instances in hole instance environments are recursively numbered
+}
+
+\begin{mathpar}
+  \Infer{\ppnsl-Value}{
+    d\textsf{ value} \\
+    d\ne\lambda x.d
+  }{\hci\vdash d\ppns(\hci,d)}
+  \and
+  \Infer{\ppnsl-Var}{}{\hci\vdash x\ppns(\hci,x)}
+  \and
+  \Infer{\ppnsl-Lam}{
+    \hci\vdash d\ppns(\hci',d')
+  }{\hci\vdash\lambda x.d\ppns(\hci',d')}
+  \and
+  \Infer{\ppnsl-Ap}{
+    \hci\vdash d_1\ppns(\hci',d_1') \\
+    \hci'\vdash d_2\ppns(\hci'',d_2')
+  }{\hci\vdash\lambda d_1(d_2)\ppns (\hci'',d_1'(d_2'))}
+  \and
+  \Infer{\ppnsl-Op}{
+    \hci\vdash d_1\ppns(\hci',d_1') \\
+    \hci'\vdash d_2\ppns(\hci'',d_2')
+  }{\hci\vdash\lambda d_1+d_2\ppns (\hci'',d_1'+d_2')} \\
+  \and
+  \Infer{\ppnsl-EHole}{
+    TODO
+  }{TODO}
+  \and
+  \Infer{\ppnsl-NEHole}{
+    TODO
+  }{TODO}
+\end{mathpar}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:
