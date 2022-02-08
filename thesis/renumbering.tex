@@ -9,10 +9,10 @@ Consider the program shown in \Cref{fig:sample_hazel_program}.
 \begin{listing}
   \centering
   \begin{hminted}
-let a = |$\hehole^1$| in
-let b = |$\lambda$| x . { a + x + |$\hehole^2$| } in
-let c = |$\hehole^3$| in
-|$\hehole^4$| + b 1 + f |$\hehole^5$|
+let a = /\heh1/ in
+let b = /\lbd/ x . { a + x + /\heh2/ } in
+let c = /\heh3/ in
+/\heh4/ + b 1 + f /\heh5/
   \end{hminted}
   \caption{A seemingly innocuous Hazel program}
   \label{fig:sample_hazel_program}
@@ -30,16 +30,16 @@ A performance issue appears with the existing evaluator with the program shown i
 \begin{listing}
   \centering
   \begin{hminted}
-let a = |$\hehole^1$| in
-let b = |$\hehole^2$| in
-let c = |$\hehole^3$| in
-let d = |$\hehole^4$| in
-let e = |$\hehole^5$| in
-let f = |$\hehole^6$| in
-let g = |$\hehole^7$| in
-|\dots|
-let x = |$\hehole^{n}$| in
-|$\hehole^{n+1}$|
+let a = /\heh1/ in
+let b = /\heh2/ in
+let c = /\heh3/ in
+let d = /\heh4/ in
+let e = /\heh5/ in
+let f = /\heh6/ in
+let g = /\heh7/ in
+/\dots/
+let x = /\heh n/ in
+/\heh{n+1}/
   \end{hminted}
   \caption{A Hazel program that generates an exponential ($2^N$) number of total hole instances}
   \label{fig:hole_renumbering_problem}

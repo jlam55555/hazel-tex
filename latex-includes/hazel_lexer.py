@@ -20,7 +20,8 @@ class HazelLexer(RegexLexer):
             (r'\s+', Whitespace),
             # keywords
             (words(('let', 'in', 'of', 'case'), suffix=r'\b'), Keyword),
-            (r'inj\[R|L\]', Keyword),
+            (words(('Int', 'Bool'), suffix=r'\b'), Keyword.Type),
+            (r'inj\[(R|L)\]', Keyword),
             # literals
             (r'(true|false|\[\])\b', Keyword.Constant),
             (r'\d+', Number),
@@ -28,7 +29,7 @@ class HazelLexer(RegexLexer):
             (r'\d*\.\d+', Number),
             # Tokens
             (r'[+\-*/<>=]|<|>|==|\+.|\-.|\*.|\/.|<.|>.|==.|::', Operator),
-            (r'[.,<>(){}]', Punctuation),
+            (r'[.,<>(){}|:]', Punctuation),
             # identifier
             (r'[^\W\d]\w*', Name.Other),
         ]

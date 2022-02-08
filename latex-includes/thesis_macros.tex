@@ -63,7 +63,7 @@
 % https://tex.stackexchange.com/a/400115
 \newenvironment{hminted}
 {\VerbatimEnvironment
-\begin{minted}[escapeinside=||,frame=single,custom]{../latex-includes/hazel_lexer.py:HazelLexer}}
+\begin{minted}[escapeinside=//,frame=single,custom]{../latex-includes/hazel_lexer.py:HazelLexer}}
 {\end{minted}}
 
 % extra math operators
@@ -77,6 +77,12 @@
 \newcommand{\pplcl}{PPI$_{\lambda}$} % post-process lambda within evaluation boundary conversion label
 \newcommand{\pplclo}{PPO$_{\lambda}$} % post-process lambda outside evaluation boundary conversion label
 \newcommand{\fin}[1][d]{#1\textsf{ final}} % final judgment
+
+% for use in Hazel listings
+\newcommand{\rar}{$\rightarrow$}
+\newcommand{\Rar}{$\Rightarrow$}
+\newcommand{\lbd}{$\lambda$}
+\newcommand{\heh}[1]{$\hehole^{#1}$}
 
 %%% Local Variables:
 %%% mode: latex

@@ -1,6 +1,21 @@
 \section{Evaluation of methods}
 \label{sec:evaluation}
 
+\begin{listing}
+\begin{hminted}
+let f : Int /\rar/ Int =
+  /\lbd/ x . {
+    case x of
+    | 0 /\Rar/ 0
+    | 1 /\Rar/ 1
+    | n /\Rar/ f (n - 1) + f (n - 2)
+    end
+  }
+in f 25  
+\end{hminted}
+\caption{An evaluation-heavy Hazel program with no holes}
+\end{listing}
+
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "main"
