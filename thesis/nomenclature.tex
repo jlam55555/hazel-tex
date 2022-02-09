@@ -47,9 +47,8 @@
     $d\textsf{ final}$ & Final \\
     $\env\vdash d\Downarrow d'$ & Evaluation \\
     $d\pp d'$ & Postprocessing \\
-    $d\pplc d'$ & Postprocessing ($\lambda$-conversion inside evaluation boundary) \\
-    $\env\vdash d\pplc d'$ & Postprocessing ($\lambda$-conversion outside evaluation boundary) \\
-    $\hhole{d}_\env^{u}\ppn\hhole{d'}_\env^{u:i}$ & Postprocessing (hole closure numbering) \\
+    $d\pplc d'$ & Postprocessing ($\lambda$-conversion) \\
+    $d\ppn(\hci,d')$ & Postprocessing (hole closure numbering) \\
     \hline\hline
   \end{tabular}
   \caption{Hazel evaluation judgments}
