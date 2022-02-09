@@ -1,0 +1,39 @@
+\judgbox{\hci\vdash\env\ppnd(\hci',\env')}{
+  Hole instance numbering in hole environment $\sigma$ with hole instance info $\hci$
+}
+\begin{mathpar}
+  \Infer{\ppndl-TrivEnv}{}{\hci\vdash\varnothing\ppnd(\hci,\varnothing)}
+  \and
+  \Infer{\ppndl-Env}{
+    \hci\vdash\env\ppnd(\hci',\env') \\
+    \hci'\vdash d\ppnd(\hci'',d') \\
+  }{\hci\vdash\env,x\leftarrow d\ppnd(\hci'',(\env',x\leftarrow d'))}
+\end{mathpar}
+
+\judgbox{\hci\vdash\env\ppns(\hci',\env')}{
+  Hole instance numbering in hole environment $\sigma$ with hole instance info $\hci$
+}
+\begin{mathpar}
+  \Infer{\ppnsl-TrivEnv}{}{\hci\vdash\varnothing\ppns(\hci,\varnothing)}
+  \and
+  \Infer{\ppnsl-Env}{
+    \hci\vdash\env\ppns(\hci',\env') \\
+    \hci'\vdash d\ppns(\hci'',d') \\
+  }{\hci\vdash\env,x\leftarrow d\ppns(\hci'',(\env',x\leftarrow d'))}
+\end{mathpar}
+
+\judgbox{d\ppn(\hci',\env')}{
+  Hole instance numbering in expression $d$ and subexpressions
+}
+\begin{mathpar}
+  \Infer{PP$_i$-Root}{
+    \varnothing\vdash d\ppnd(\hci,d') \\
+    \hci\vdash d'\ppnd(\hci',d'')
+  }{d\ppn(\hci',d'')}
+\end{mathpar}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:

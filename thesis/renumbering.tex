@@ -1,16 +1,27 @@
 \section{Memoizing hole instance numbering using environments}
 \label{sec:renumbering}
 
-\begin{figure}
-  \centering
-  \begin{mdframed}
-    \begin{singlespace}
-      \input{renumber_old_bigstep}
-    \end{singlespace}
-  \end{mdframed}
-  \caption{Big-step semantics for the current hole instance numbering algorithm}
-  \label{fig:small-step-formal}
-\end{figure}
+\begin{singlespace}
+  % see: https://tex.stackexchange.com/a/110156
+  \begin{figure}
+    \centering
+    \begin{subfigure}{\textwidth}
+      \begin{mdframed}[bottomline=false]
+        \input{renumber_old_bigstep}
+      \end{mdframed}
+    \end{subfigure}
+  \end{figure}
+  \begin{figure}
+    \ContinuedFloat
+    \begin{subfigure}{\textwidth}
+      \begin{mdframed}[topline=false]
+        \input{renumber_old_bigstep2}
+      \end{mdframed}
+    \end{subfigure}
+    \caption{Big-step semantics for the current hole instance numbering algorithm}
+    \label{fig:small-step-formal}
+  \end{figure}
+\end{singlespace}
 
 \subsection{Issues with the current implementation}
 \label{sec:current_problems}

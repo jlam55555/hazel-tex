@@ -1,46 +1,43 @@
-\judgbox{\hci\vdash d\ppn(\hci',d')}{
-  Holes directly in $d$ are numbered according to the hole instance info $\hci$, \\
-  generating $d'$ and a new hole instance info $\hci'$
+\judgbox{\hci\vdash d\ppnd(\hci',d')}{
+  Hole instance numbering in expression $d$ with hole instance info $\hci$
 }
-
 \begin{mathpar}
-  \Infer{\ppnl-Value}{
+  \Infer{\ppndl-Value}{
     d\textsf{ value} \\
     d\ne\lambda x.d
-  }{\hci\vdash d\ppn(\hci,d)}
+  }{\hci\vdash d\ppnd(\hci,d)}
   \and
-  \Infer{\ppnl-Var}{}{\hci\vdash x\ppn(\hci,x)}
+  \Infer{\ppndl-Var}{}{\hci\vdash x\ppnd(\hci,x)}
   \and
-  \Infer{\ppnl-Lam}{
-    \hci\vdash d\ppn(\hci',d')
-  }{\hci\vdash\lambda x.d\ppn(\hci',d')}
+  \Infer{\ppndl-Lam}{
+    \hci\vdash d\ppnd(\hci',d')
+  }{\hci\vdash\lambda x.d\ppnd(\hci',d')}
   \and
-  \Infer{\ppnl-Ap}{
-    \hci\vdash d_1\ppn(\hci',d_1') \\
-    \hci'\vdash d_2\ppn(\hci'',d_2')
-  }{\hci\vdash\lambda d_1(d_2)\ppn (\hci'',d_1'(d_2'))}
+  \Infer{\ppndl-Ap}{
+    \hci\vdash d_1\ppnd(\hci',d_1') \\
+    \hci'\vdash d_2\ppnd(\hci'',d_2')
+  }{\hci\vdash\lambda d_1(d_2)\ppnd (\hci'',d_1'(d_2'))}
   \and
-  \Infer{\ppnl-Op}{
-    \hci\vdash d_1\ppn(\hci',d_1') \\
-    \hci'\vdash d_2\ppn(\hci'',d_2')
-  }{\hci\vdash\lambda d_1+d_2\ppn (\hci'',d_1'+d_2')} \\
+  \Infer{\ppndl-Op}{
+    \hci\vdash d_1\ppnd(\hci',d_1') \\
+    \hci'\vdash d_2\ppnd(\hci'',d_2')
+  }{\hci\vdash\lambda d_1+d_2\ppnd (\hci'',d_1'+d_2')} \\
   \and
-  \Infer{\ppnl-EHole}{
+  \Infer{\ppndl-EHole}{
     \hid(\hci,u)=i \\
     \hci'=\hci,(u,i,\_,p)
-  }{\hci\vdash\hehole_\env^u\ppn(\hci',\hehole_\env^{u:i})}
+  }{\hci\vdash\hehole_\env^u\ppnd(\hci',\hehole_\env^{u:i})}
   \and
-  \Infer{\ppnl-NEHole}{
+  \Infer{\ppndl-NEHole}{
     \hid(\hci,u)=i \\
     \hci'=\hci,(u,i,\_,p) \\
-    \hci'\vdash d\ppn(\hci'',d') \\
-  }{\hci\vdash\hhole{d}_\env^u\ppn(\hci'',\hhole{d'}_\env^{u:i})}
-\end{mathpar} \\
+    \hci'\vdash d\ppnd(\hci'',d') \\
+  }{\hci\vdash\hhole{d}_\env^u\ppnd(\hci'',\hhole{d'}_\env^{u:i})}
+\end{mathpar}
 
 \judgbox{\hci\vdash d\ppns(\hci',d')}{
-  Hole instances in hole instance environments are recursively numbered
+  Hole instance numbering in hole envs in $d$ with hole instance info $\hci$
 }
-
 \begin{mathpar}
   \Infer{\ppnsl-Value}{
     d\textsf{ value} \\
@@ -64,12 +61,15 @@
   }{\hci\vdash\lambda d_1+d_2\ppns (\hci'',d_1'+d_2')} \\
   \and
   \Infer{\ppnsl-EHole}{
-    TODO
-  }{TODO}
+    \hci\vdash\env\ppnd(\hci',\env') \\
+    \hci'\vdash\env'\ppns(\hci'',\env'') \\
+  }{\hci\vdash\hehole_\env^{u:i}\ppns (\hci'',\hehole_{\env''}^{u:i})}
   \and
   \Infer{\ppnsl-NEHole}{
-    TODO
-  }{TODO}
+    \hci\vdash d\ppns(\hci',d') \\
+    \hci'\vdash\env\ppnd(\hci'',\env') \\
+    \hci''\vdash\env'\ppns(\hci''',\env'')
+  }{\hci\vdash\hhole{d}_\env^{u:i}\ppns (\hci''',\hhole{d'}_{\env''}^{u:i})}
 \end{mathpar}
 
 %%% Local Variables:
