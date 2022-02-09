@@ -10,8 +10,8 @@ The implementation of evaluation in Hazel differs from a typical interpreter imp
 
 % TODO: describe why the result from substitution is better than the result from environments
 
-\subsection{Formalization}
-\label{sec:formalization}
+\subsubsection{Evaluation rules}
+\label{sec:evalenv-rules}
 
 Omar et al. \cite{conf/popl/HazelnutLive19} describes evaluation with the substitution model using a little-step semantics with an evaluation context $\mathcal{E}$, reproduced in TODOREF.
 
@@ -63,19 +63,8 @@ The Hazel implementation follows a big-step evaluation model, so a big-step form
       \input{pplc_bigstep}
     \end{singlespace}
   \end{mdframed}
-  \caption{Big-step semantics for $\lambda$-conversion post-processing inside the evaluation boundary}
+  \caption{Big-step semantics for $\lambda$-conversion post-processing}
   \label{fig:big-step-inside-formal}
-\end{figure}
-
-\begin{figure}
-  \centering
-  \begin{mdframed}
-    \begin{singlespace}
-      \input{pplc2_bigstep}
-    \end{singlespace}
-  \end{mdframed}
-  \caption{Big-step semantics for $\lambda$-conversion post-processing outside the evaluation boundary}
-  \label{fig:big-step-outside-formal}
 \end{figure}
 
 \subsection{A strict evaluation boundary}
@@ -83,6 +72,23 @@ The Hazel implementation follows a big-step evaluation model, so a big-step form
 
 \subsection{Post-processing memoization}
 \label{sec:memoization}
+
+\subsubsection{Modifications to the environment datatype}
+\label{sec:memoization-evalenv}
+
+\subsubsection{Modifications to the post-processing rules}
+\label{sec:memoization-postprocessing}
+
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \input{pplc_memoization_bigstep}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Big-step semantics modifications for environment memoization}
+  \label{fig:big-step-memoization-rules}
+\end{figure}
 
 \subsection{Purity of implementation}
 \label{sec:env_purity}

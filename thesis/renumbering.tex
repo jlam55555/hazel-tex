@@ -19,7 +19,7 @@
       \end{mdframed}
     \end{subfigure}
     \caption{Big-step semantics for the previous hole instance numbering algorithm}
-    \label{fig:small-step-formal}
+    \label{fig:big-step-renumber-old-rules}
   \end{figure}
 \end{singlespace}
 
@@ -60,7 +60,7 @@ let e = /\heh5/ in
 let f = /\heh6/ in
 let g = /\heh7/ in
 /\dots/
-let x = /\heh n/ in
+let x = /\heh{n}/ in
 /\heh{n+1}/
   \end{hminted}
   \caption{A Hazel program that generates an exponential ($2^N$) number of total hole instances}
@@ -70,8 +70,40 @@ let x = /\heh n/ in
 \subsection{Algorithmic concerns and a two-stage approach}
 \label{sec:two-stage-renumber}
 
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \input{ppn_bigstep}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Big-step semantics for hole closure numbering}
+  \label{fig:big-step-renumber-new-rules}
+\end{figure}
+
+
 \subsection{Memoization and unification with closure post-processing}
 \label{sec:renumbering_memoization}
+
+\subsubsection{Modifications to the instance numbering rules}
+\label{sec:memoization-instance-numbering}
+
+\subsubsection{Unification with closure post-processing}
+\label{sec:unification-postprocessing}
+
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \input{pp_bigstep}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Big-step semantics for post-processing}
+  \label{fig:big-step-postprocessing-rules}
+\end{figure}
+
+\subsubsection{Fast evaluation result structural equality checking}
+\label{sec:fast-equals}
 
 \subsection{Differences in the hole instance numbering}
 \label{sec:differences_numbering}
