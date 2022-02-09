@@ -13,6 +13,8 @@ The implementation of evaluation in Hazel differs from a typical interpreter imp
 \subsubsection{Evaluation rules}
 \label{sec:evalenv-rules}
 
+% TODO: walk through simple example
+
 Omar et al. \cite{conf/popl/HazelnutLive19} describes evaluation with the substitution model using a little-step semantics with an evaluation context $\mathcal{E}$, reproduced in TODOREF.
 
 % TODO: reproduce diagram below
@@ -54,6 +56,11 @@ The Hazel implementation follows a big-step evaluation model, so a big-step form
 \subsection{The evaluation boundary and post-processing}
 \label{sec:closures_to_lambdas}
 
+% TODO: example programs:
+% - lambda and fix forms
+% - holes inside and outside boundary
+% - recursion through hole environments
+
 % two-stage approach
 
 \begin{figure}
@@ -69,6 +76,8 @@ The Hazel implementation follows a big-step evaluation model, so a big-step form
 
 \subsection{A strict evaluation boundary}
 \label{sec:strict_eval_boundary}
+
+% TODO: example program: pattern doesn't match
 
 \subsection{Post-processing memoization}
 \label{sec:memoization}

@@ -1,6 +1,27 @@
 \section{Implementation of fill-and-resume}
 \label{sec:far_impl}
 
+% General steps:
+% Determine that the last edit action only involves changes within a hole
+% - May go multiple steps back (memoization)
+% Elaborate the expression to substitute in
+% Determine if the synthesized type of the expression matches that of the hole (from the hole context)
+% - Multiple cases here
+% Evaluate each instance of the hole
+% Update it in each of its parent hole closures
+% Update it in the result
+% Remove hole closure from HCC
+
+% More consistent to consider the end result as contained within a top-level hole,
+% as if our program were always incomplete (perhaps, philosophically)
+
+% TODO: walk through a few examples by hand
+% - Introduce new type inconsistencies
+% - Remove old type inconsistencies
+% - No new type (in)consistencies
+% - Multiple hole instances
+% - Multiple parent hole instances
+
 \subsection{CMTT interpretation of fill-and-resume}
 \label{sec:implementing_far}
 
