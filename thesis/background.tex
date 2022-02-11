@@ -13,8 +13,8 @@
 \subsubsection{Purity and statefulness}
 \label{sec:purity}
 
-\subsubsection{Comparison to other programming paradigms}
-\label{sec:fp_comp}
+\subsubsection{The ML family, Elm, and Hazel}
+\label{sec:ml_fam}
 
 \subsection{Implementations for programming languages}
 \label{sec:interpreters}
@@ -66,44 +66,37 @@ Note that the substitution model does not imply a lazy (i.e., normal-order, call
 
 The implementation of evaluation with environments differs from that of evaluation with substitution primarily in that: an evaluation environment is required to look up bound variables as evaluation reaches them; binding constructs extend the evaluation environment rather than performing substitution; and $\lambda$ abstractions are bound with their evaluation environment at runtime to form (lexical) closures.
 
-\subsection{Classifications of type systems}
-\label{sec:ts_classifications}
+\subsection{Programming language semantics}
+\label{sec:type_systems}
 
-\subsubsection{Primer on programming language semantics and reasoning}
-\label{sec:pl_semantics}
+\subsubsection{Notation}
+\label{sec:semantics_notation}
 
-\subsubsection{Static vs. dynamic typing}
-\label{sec:staticness}
+% little-step vs. big-step
 
-\subsubsection{Strong vs. weak typing}
-\label{sec:strength}
-
-\subsubsection{Inferred vs. manifold typing}
-\label{sec:inferred_vs_manifold}
+\subsubsection{Static and dynamic semantics}
+\label{sec:static_dynamic_semantics}
 
 \subsubsection{Gradual typing}
 \label{sec:gradual}
 
-\subsubsection{Other classifications}
-\label{sec:other_types}
+% \subsection{Approaches to programming interfaces}
+% \label{sec:prog_intf}
 
-\subsection{Approaches to programming interfaces}
-\label{sec:prog_intf}
+% \subsubsection{Structure editors}
+% \label{sec:structure_editors}
 
-\subsubsection{Structure editors}
-\label{sec:structure_editors}
+% \subsubsection{Graphical editors}
+% \label{sec:graphical_editors}
 
-\subsubsection{Graphical editors}
-\label{sec:graphical_editors}
+% \subsubsection{Intentional, generative, and meta-programming}
+% \label{sec:intentional_programming}
 
-\subsubsection{Intentional, generative, and meta-programming}
-\label{sec:intentional_programming}
+% \subsubsection{Applications to programming education}
+% \label{sec:programming_education}
 
-\subsubsection{Applications to programming education}
-\label{sec:programming_education}
-
-\subsubsection{Drawbacks of non-textual editors}
-\label{sec:textual_benefits}
+% \subsubsection{Drawbacks of non-textual editors}
+% \label{sec:textual_benefits}
 
 %%% Local Variables:
 %%% mode: latex

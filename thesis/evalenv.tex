@@ -15,25 +15,9 @@ The implementation of evaluation in Hazel differs from a typical interpreter imp
 
 % TODO: walk through simple example
 
-Omar et al. \cite{conf/popl/HazelnutLive19} describes evaluation with the substitution model using a little-step semantics with an evaluation context $\mathcal{E}$, reproduced in TODOREF.
+Omar et al. \cite{conf/popl/HazelnutLive19} describes evaluation with the substitution model using a little-step semantics with an evaluation context $\mathcal{E}$. 
 
-% TODO: reproduce diagram below
-
-\Cref{fig:small-step-formal} is an analogous small-step description of the substitution model, also using the little-step semantics.
-
-% TODO: introduce little-step formalization
-\begin{figure}
-  \centering
-  \begin{mdframed}
-    \begin{singlespace}
-      \input{evalenv_smallstep}
-    \end{singlespace}
-  \end{mdframed}
-  \caption{Small-step semantics for the environment model of evaluation}
-  \label{fig:small-step-formal}
-\end{figure}
-
-The Hazel implementation follows a big-step evaluation model, so a big-step formalization is also displayed in \Cref{fig:big-step-formal}.
+The Hazel implementation follows a big-step model for evaluation, which is simpler, more performant, and does not require the evaluation context. Thus it is more convenient to follow a big-step semantics as shown in \Cref{fig:big-step-formal}. An equivalent small-step semantics is described in \Cref{sec:small-step-evalenv} but will not be discussed further.
 
 % TODO: introduce big-step formalization
 \begin{figure}
