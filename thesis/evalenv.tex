@@ -6,9 +6,7 @@
 
 In the case of Hazel (which does not prioritize speed of evaluation in its implementation, and is not a compiled language), evaluation with (reified) environments offers an additional (performance) benefit over the substitution model: the ability to easily identify (and thus memoize) operations over environments. This is useful for the optimizations described later in this paper.
 
-The implementation of evaluation in Hazel differs from a typical interpreter implementation of evaluation with environments in three regards: we need to account for hole environments; environments are uniquely identified by an identifier for memoization (in turn for optimization); and any closures in the evaluation result should be converted back into plain $\lambda$ abstractions, for reasons that will be discussed later TODOREF.
-
-% TODO: describe why the result from substitution is better than the result from environments
+The implementation of evaluation in Hazel differs from a typical interpreter implementation of evaluation with environments in three regards: we need to account for hole environments; environments are uniquely identified by an identifier for memoization (in turn for optimization); and any closures in the evaluation result should be converted back into plain $\lambda$ abstractions.
 
 \subsubsection{Evaluation rules}
 \label{sec:evalenv-rules}
@@ -18,6 +16,11 @@ The implementation of evaluation in Hazel differs from a typical interpreter imp
 Omar et al. \cite{conf/popl/HazelnutLive19} describes evaluation with the substitution model using a little-step semantics with an evaluation context $\mathcal{E}$. 
 
 The Hazel implementation follows a big-step model for evaluation, which is simpler, more performant, and does not require the evaluation context. Thus it is more convenient to follow a big-step semantics as shown in \Cref{fig:big-step-formal}. An equivalent small-step semantics is described in \Cref{sec:small-step-evalenv} but will not be discussed further.
+
+The evaluation model threads a run-time environment $\env$\footnote{The symbol $\env$ was chosen to represent the environment as it was used to represent hole environments in \cite{conf/popl/HazelnutLive19}. The relationship between these two environments will be discussed in \Cref{sec:holeenv_evalenv_connection}.} throughout the evaluation process. An environment is conceptually a mapping $\env:x\mapsto d$, although it will later be augmented to be more amenable to memoization.
+
+% TODO: closure conversion
+% TODO: move discussion of closure conversion to background section
 
 % TODO: introduce big-step formalization
 \begin{figure}
@@ -32,13 +35,19 @@ The Hazel implementation follows a big-step model for evaluation, which is simpl
 \end{figure}
 
 % TODO: describe formalization
-
-% TODO: need justification that the two are equivalent
-
 % TODO: describe the implementation
+
+\subsubsection{Connection to hole environments}
+\label{sec:holeenv_evalenv_connection}
+
+\subsubsection{Differences to the substitution model of evaluation}
+\label{sec:differences_subst}
 
 \subsection{The evaluation boundary and post-processing}
 \label{sec:closures_to_lambdas}
+
+
+% TODO: describe why the result from substitution is better than the result from environments
 
 % TODO: example programs:
 % - lambda and fix forms
@@ -83,8 +92,21 @@ The Hazel implementation follows a big-step model for evaluation, which is simpl
   \label{fig:big-step-memoization-rules}
 \end{figure}
 
-\subsection{Purity of implementation}
-\label{sec:env_purity}
+\subsection{Purity}
+\label{sec:env-purity}
+
+% threading around state: technically still pure, represented very similar to rules
+% evalenv number generation is threaded around very similar to metavargen, but
+% somewhat unwieldy and 
+
+\subsubsection{Elegance and complexity of implementation}
+\label{sec:elegance-and-complexity}
+
+% purity is a technical term, elegance is not; unwieldiness
+% is the additional complexity worth it?
+% - nice benefits with memoization in specific cases (will see later)
+% - general linear speedup even with the overhead and without benefits of memoization
+% (e.g., see Fibonacci example)
 
 %%% Local Variables:
 %%% mode: latex
