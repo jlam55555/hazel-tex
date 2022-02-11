@@ -72,6 +72,13 @@ The evaluation model threads a run-time environment $\env$\footnote{The symbol $
 
 % TODO: example program: pattern doesn't match
 
+\subsubsection{Alternative evaluation strategies}
+\label{sec:pattern_nomatch_strategies}
+
+% two alternatives:
+% - create new "pseudo-hole" form like FailedCast, but one which stores environment
+% - speculatively evaluate, don't need to store environment and boundvar -> freevar if not bound (but bad for case)
+
 \subsection{Post-processing memoization}
 \label{sec:memoization}
 
@@ -99,7 +106,7 @@ The evaluation model threads a run-time environment $\env$\footnote{The symbol $
 % evalenv number generation is threaded around very similar to metavargen, but
 % somewhat unwieldy and 
 
-\subsubsection{Elegance and complexity of implementation}
+\subsubsection{Tradeoffs in elegance, complexity, runtime overhead}
 \label{sec:elegance-and-complexity}
 
 % purity is a technical term, elegance is not; unwieldiness
@@ -107,6 +114,15 @@ The evaluation model threads a run-time environment $\env$\footnote{The symbol $
 % - nice benefits with memoization in specific cases (will see later)
 % - general linear speedup even with the overhead and without benefits of memoization
 % (e.g., see Fibonacci example)
+
+\subsection{Implementation considerations}
+\label{sec:evalenv_impl_considerations}
+
+% considerations between different forms of the data structures
+% e.g., evalenv storing results vs. storing plain dhexp, unwrapping vs. rejudging indet/boxedvalue
+
+% TODO: discussion of data structures used in the implementation and theoretical bounds (appendix or not?)
+% - e.g., lists vs. maps vs. hashtables (structural sharing)
 
 %%% Local Variables:
 %%% mode: latex
