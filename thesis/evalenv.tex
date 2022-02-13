@@ -17,12 +17,6 @@ Omar et al. \cite{conf/popl/HazelnutLive19} describes evaluation with the substi
 
 The Hazel implementation follows a big-step model for evaluation, which is simpler, more performant, and does not require the evaluation context. Thus it is more convenient to follow a big-step semantics as shown in \Cref{fig:big-step-formal}. An equivalent small-step semantics is described in \Cref{sec:small-step-evalenv} but will not be discussed further.
 
-The evaluation model threads a run-time environment $\env$\footnote{The symbol $\env$ was chosen to represent the environment as it was used to represent hole environments in \cite{conf/popl/HazelnutLive19}. The relationship between these two environments will be discussed in \Cref{sec:holeenv_evalenv_connection}.} throughout the evaluation process. An environment is conceptually a mapping $\env:x\mapsto d$, although it will later be augmented to be more amenable to memoization.
-
-% TODO: closure conversion
-% TODO: move discussion of closure conversion to background section
-
-% TODO: introduce big-step formalization
 \begin{figure}
   \centering
   \begin{mdframed}
@@ -34,14 +28,39 @@ The evaluation model threads a run-time environment $\env$\footnote{The symbol $
   \label{fig:big-step-formal}
 \end{figure}
 
-% TODO: describe formalization
-% TODO: describe the implementation
+The evaluation model threads a run-time environment $\env$\footnote{The symbol $\env$ was chosen to represent the environment as it was used to represent hole environments in \cite{conf/popl/HazelnutLive19}. The relationship between these two environments will be discussed in \Cref{sec:holeenv_evalenv_connection}.} throughout the evaluation process. An environment is conceptually a mapping $\env:x\mapsto d$, although it will later be augmented to be more amenable to memoization.
 
-\subsubsection{Connection to hole environments}
+Evaluation judgments are shown for a subset of the Hazel language, similar to the internal language described in \cite{conf/popl/HazelnutLive19}. The expressions considered include a single base type $b$, variables $x$, $\lambda$ abstractions, function application, and hole expressions. Casts and type ascriptions, which are part of the internal language follow the same rules as described in the Hazelnut paper, and thus are omitted here. Additionally, a rule is included for \mintinline{ocaml}|let| bindings, even if not strictly necessary. There are additional forms in the Hazel external and internal languages that are omitted for brevity and whose rules are trivial: these include binary sum injections and tuples, for which evaluation recurses through subexpressions. \mintinline{ocaml}|case| expressions are also omitted: it acts like a sequence of \mintinline{ocaml}|let| bindings. This select subset of the Hazel language will be reused throughout this paper for judgment rules; the goal is to provide a practical intuition of the evaluation semantics of Hazel that is close to the implementation, and not to provide a minimal theoretic foundation or the complete set of rules for all Hazel expressions. The latter is deferred to the source code in the reference implementation.
+
+As always, elements of the base type are values and do not further evaluate. Bound variables evaluate to their value in the environment. (Unbound variables are marked as free during elaboration and do not further evaluate.)
+
+$\lambda$-abstractions $\lambda x.d$ are no longer final values; they evaluate further to the function closure $[\env]\lambda x.d$, which captures the lexical environment of the $\lambda$ expression\footnote{This step is conceptually similar to the first step of closure conversion, in which $\lambda$-abstractions are converted to functions that take two parameters: the argument and the environment.}.
+
+A description of recursive $\lambda$-abstractions (the fixpoint form) is described in \Cref{sec:rec_impl}.
+
+Function application is broken into two cases: if the expression in function position evaluates to a closure and the argument matches the argument pattern, then the evaluated expression in argument position extends the closure's environment, and that extended environment is used as the lexical environment in which to evaluate the $\lambda$ expression body. Otherwise, the expression in function position must evaluate to an indeterminate (failed cast) form, in which case evaluation cannot proceed further. The case of failed pattern matches is described in \Cref{sec:failed_pattern_match}.
+
+% TODO: lexical environment = current evaluation environment
+% TODO: reference specific rules
+% TODO: cite closure conversion
+% TODO: move discussion of closure conversion to background section
+
+\mintinline{ocaml}|let| bindings extend the current lexical environment with the bound variable. As with $\lambda$-abstractions, the case in which the pattern match fails is described in \Cref{sec:failed_pattern_match}.
+
+\subsubsection{Evaluation of holes}
 \label{sec:holeenv_evalenv_connection}
 
-\subsubsection{Differences to the substitution model of evaluation}
-\label{sec:differences_subst}
+Hole expressions are separated into the empty and non-empty cases due to the lack of empty exprsessions, as in the original Hazelnut and Hazelnut Live descriptions. When evaluation reaches a hole, the hole environment is simply set to be equal to the lexical environment. In this interpretation, free variables do not exist in the hole environment.
+
+Note that the initial hole environment is different than in the substitution model. When evaluating using the substitution model, the initial hole environment generated by elaboration is the identity substitution $\text{id}({\Gamma})$, and variable bindings are recursively substituted into the environment's bindings. This is not necessary anymore with the environment model, and the initial environment created by elaboration is not as important. In this interpretation, free variables exist in the hole environment as the identity substitution.
+
+It is convenient to replace the identity substitution with a distinguished empty environment (represented by $\varnothing$) that indicates that evaluation has not yet reached a hole. This will also be useful for detecting errors with the evaluation boundary discussed in \Cref{sec:eval_boundary}.
+
+\subsubsection{Evaluation of recursive functions}
+\label{sec:rec_impl}
+
+\subsubsection{Evaluation of failed pattern matching}
+\label{sec:failed_pattern_match}
 
 \subsection{The evaluation boundary and post-processing}
 \label{sec:closures_to_lambdas}
@@ -68,7 +87,7 @@ The evaluation model threads a run-time environment $\env$\footnote{The symbol $
 \end{figure}
 
 \subsection{A strict evaluation boundary}
-\label{sec:strict_eval_boundary}
+\label{sec:eval_boundary}
 
 % TODO: example program: pattern doesn't match
 

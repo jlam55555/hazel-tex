@@ -1,7 +1,7 @@
 \judgbox{\env\vdash d\Downarrow d'}{Internal expression $d$ evaluates to $d'$ given environment $\env$}
 
 \begin{mathpar}
-  \Infer{EvalB-Final}{E\vdash d\textsf{ final}}{\env\vdash d\Downarrow d}
+  \Infer{EvalB-Final\label{evalb-final}}{\env\vdash d\textsf{ final}}{\env\vdash d\Downarrow d}
   \and
   \Infer{EvalB-Var}{}{\env,x\leftarrow d\vdash x\Downarrow d}\\
   \and
@@ -32,17 +32,6 @@
     \env\vdash d_2\Downarrow d_2' \\
     \env,x\leftarrow d_2'\vdash d_1\Downarrow d
   }{\env\vdash\texttt{let }x=d_2\texttt{ in }d_1\Downarrow d}
-  \and
-  \Infer{EvalB-Op$_1$}{
-    \env\vdash d_1\Downarrow d_1' \\
-    \env\vdash d_2\Downarrow d_2' \\
-    (d_1\ne\hnum{n_1}\lor d_2\ne\hnum{n_2})
-  }{\env\vdash d_1+d_2\Downarrow d_1'+d_2'}  
-  \and
-  \Infer{EvalB-Op$_2$}{
-    \env\vdash d_1\Downarrow\hnum{n_1} \\
-    \env\vdash d_2\Downarrow\hnum{n_2}
-  }{\env\vdash d_1+d_2\Downarrow\hnum{n_1+n_2}} \\
   \and
   \Infer{EvalB-EHole}{}{\env\vdash\hehole_\varnothing^u\Downarrow\hehole_\env^u}
   \and
