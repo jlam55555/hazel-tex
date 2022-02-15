@@ -42,4 +42,4 @@ def run():
     plt.title('fib(n) evaluation times in Hazel')
     plt.grid()
 
-    plt.savefig(IMG_DIR + 'subst_evalenv_fib_perf.png')
+    plt.savefig(IMG_DIR + 'subst_evalenv_fib_perf.pdf')

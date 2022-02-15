@@ -59,6 +59,29 @@ It is convenient to replace the identity substitution with a distinguished empty
 \subsubsection{Evaluation of recursive functions}
 \label{sec:rec_impl}
 
+When evaluating with substitution, recursion needs to be explicitly handled using a fixpoint form that allows for self-recursion, otherwise inifinitely recursive substitution will occur.
+
+Recursion with the environment model also requires self-reference, but this can be achieved in two ways: by accounting for the fixpoint form, or by using self-referential data structures. In OCaml, self-referential (mutually recursive) data can be achieved using the \mintinline{ocaml}|let rec| keyword or by using \mintinline{ocaml}|ref|s (mutable data cells); however, the latter will affect the purity of the implementation, as discussed in \Cref{sec:purity}.
+
+% TODO: experiment with tying the knot
+
+% TODO: notes on current implementation only applying to annotated lambdas
+
+% sample figure
+% \begin{figure}
+%   \centering
+%   \begin{tikzpicture}[
+%     box/.style={rectangle,draw=green!60,fill=green!5,very thick,minimum size=7mm}
+%     ]
+%     \node[box] (ones) {ones};
+%     \node[rectangle] (one) [right=of ones] {$1::$};
+%     \draw[<-] (ones.east) -- (one.west);
+%     \draw[->,dashed] (one.east) .. controls +(right:10mm) and +(down:20mm) .. (ones.south);
+%   \end{tikzpicture}
+%   \caption{Tying the knot}
+%   \label{fig:tying-the-knot}
+% \end{figure}
+
 \subsubsection{Evaluation of failed pattern matching}
 \label{sec:failed_pattern_match}
 
