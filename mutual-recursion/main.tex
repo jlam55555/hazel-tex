@@ -1,0 +1,40 @@
+\documentclass{article}
+
+\usepackage{amsmath}
+\usepackage{minted}
+\usepackage{geometry}
+
+\DeclareMathOperator{\fix}{fix}
+
+\title{Mutual recursion}
+\author{Jonathan Lam}
+\date{2022/02/18}
+
+\begin{document}
+\maketitle{}
+
+I want to understand mutual recursion for myself, so here it is. Mutual recursion using a pair and fixpoint form.
+
+\begin{minted}{ocaml}
+let (a, b) = (fun x -> b x, fun x -> a x)
+\end{minted}
+
+\begin{align}
+  (a,b) &= \fix a.\fix b.(\lambda x.b\ x,\lambda x.a\ x) \\
+        &= \fix b.(\lambda x.b\ x,
+          \lambda x.(\fix a.\fix b.(\lambda x.b\ x,\lambda x.a\ x))\ x) \\
+        &= (\lambda x.(\fix b.(\lambda x.b\ x,\lambda x.(\fix a.\fix b.(\lambda x.b\ x,\lambda x.a\ x))\ x))\ x,
+          \lambda x.(\fix a.\fix b.(\lambda x.b\ x,\lambda x.a\ x))\ x)
+\end{align}
+or
+\begin{align}
+  a &= \lambda x.(\fix b.(\lambda x.b\ x,\lambda x.(\fix a.\fix b.(\lambda x.b\ x,\lambda x.a\ x))\ x))\ x \\
+  b &= \lambda x.(\fix a.\fix b.(\lambda x.b\ x,\lambda x.a\ x))\ x
+\end{align}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
