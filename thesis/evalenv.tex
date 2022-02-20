@@ -63,6 +63,10 @@ When evaluating with substitution, recursion needs to be explicitly handled usin
 
 Recursion with the environment model also requires self-reference, but this can be achieved in two ways: by accounting for the fixpoint form, or by using self-referential data structures. In OCaml, self-referential (mutually recursive) data can be achieved using the \mintinline{ocaml}|let rec| keyword or by using \mintinline{ocaml}|ref|s (mutable data cells); however, the latter will affect the purity of the implementation, as discussed in \Cref{sec:purity}.
 
+Both pure methods were implemented; their tradeoffs are described below. The final implementation arbitrarily uses the implementation with the fixpoint form.
+
+Performing evaluation with the fixpoint form follows very similar rules to the substitution model. Recursive $\lambda$ functions in the external language elaborate to a $\lambda$ function wrapped in a \mintinline{ocaml}|FixF| variant during elaboration in the internal language\footnote{The current implementation only allows recursion for type-ascribed \mintinline{ocaml}|let| expressions with a single $\lambda$ abstraction on the RHS. Mutual recursion is currently not supported, but is being worked on in the \href{https://github.com/hazelgrove/hazel/tree/mutual-rec}{mutual-rec} branch. The described implementation should extend cleanly to the case of mutual recursion.}. The evaluation of the \mintinline{ocaml}|FixF| form introduces the self-reference to the current environment. There is a nuance here: unlike in substitution, in which $\lambda$ functions are final (do not evaluate farther), $\lambda$ functions do evaluate further in the environment model to a closure, and the self-reference should include such a closure\footnote{There is a nuance in the implementation: in the case of a \mintinline{ocaml}|FixF| body expression being a $\lambda$ function, the fixpoint expression evaluates to a (function) closure whose captured environment contains the self-reference to the closure. However, in the more general case the \mintinline{ocaml}|FixF| body may not be a $\lambda$ function (e.g., in the case of mutual recursion it may be a pair of $\lambda$ functions). In this case, the \mintinline{ocaml}|FixF| body expression must be evaluated twice: once with the enclosing lexical environment (the value for the self-reference), and once with the self-reference added to the environment. Generalized closures are useful in this case to prevent }. Upon lookup of a \mintinline{ocaml}|FixF| form in the environment, it is immediately unwrapped
+
 % TODO: experiment with tying the knot
 
 % TODO: notes on current implementation only applying to annotated lambdas
@@ -85,7 +89,7 @@ Recursion with the environment model also requires self-reference, but this can 
 \subsubsection{Evaluation of failed pattern matching}
 \label{sec:failed_pattern_match}
 
-\subsection{The evaluation boundary and post-processing}
+\subsection{The evaluation boundary, general closures, and post-processing}
 \label{sec:closures_to_lambdas}
 
 

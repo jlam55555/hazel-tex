@@ -2,9 +2,13 @@
 
 \usepackage{amsmath}
 \usepackage{minted}
-\usepackage{geometry}
+% \usepackage{geometry}
 
 \DeclareMathOperator{\fix}{fix}
+\DeclareMathOperator{\self}{self}
+\DeclareMathOperator{\ife}{if}
+\DeclareMathOperator{\true}{T}
+\DeclareMathOperator{\false}{F}
 
 \title{Mutual recursion}
 \author{Jonathan Lam}
@@ -13,24 +17,54 @@
 \begin{document}
 \maketitle{}
 
-I want to understand mutual recursion for myself, so here it is. Mutual recursion using a pair and fixpoint form.
+\noindent{}
+I want to understand mutual recursion for myself, so here it is. Mutual recursion using a pair and fixpoint form. The part I was missing was having the projection out of the tuple. The fixpoint form is described in the following sections of Harper's PFPL: Chapter 10 (Plotkin's PCF) and section 11.3 (Primitive and Mutual Recursion).
 
 \begin{minted}{ocaml}
-let (a, b) = (fun x -> b x, fun x -> a x)
+let rec even x = if x = 0 then true  else odd  (x - 1)
+and     odd  x = if x = 0 then false else even (x - 1)
 \end{minted}
+This translates to the tuple of mutually-dependent functions:
+\begin{align}
+  e' &\equiv\lambda x.\ife x=0.\{\true|\self.1\ (x-1)\} \\
+  o' &\equiv\lambda x.\ife x=0.\{\false|\self.0\ (x-1)\} \\
+  \fix_{eo} &=\fix\self.(e',o') \\
+  (e,o) &\leftarrow\fix_{eo} \\
+     &\Downarrow(\lambda x.\ife x=0.\{\true|\fix_{eo}.1\ (x-1)\},
+       \lambda x.\ife x=0.\{\false|\fix_{eo}.0\ (x-1)\}) \\
+  e &\leftarrow\lambda x.\ife x=0.\{\true|\fix_{eo}.1\ (x-1)\} \\
+  o &\leftarrow\lambda x.\ife x=0.\{\false|\fix_{eo}.0\ (x-1)\}
+\end{align}
+Now, let us consider the evaluation of \mintinline{ocaml}|even 2|:
+\begin{gather}
+  e\ 2 \\
+  (\lambda x.\ife x=0.\{\true|\fix_{eo}.1\ (x-1)\})\ 2 \\
+  \ife 2=0.\{\true|\fix_{eo}.1\ (2-1)\} \\
+  \fix_{eo}.1\ 1 \\
+  (\lambda x.\ife x=0.\{\true|\fix_{eo}.1\ (x-1)\},
+  \lambda x.\ife x=0.\{\false|\fix_{eo}.0\ (x-1)\}).1\ 1 \\
+  (\lambda x.\ife x=0.\{\false|\fix_{eo}.0\ (x-1)\})\ 1 \\
+  \ife 1=0.\{\false|\fix_{eo}.0\ (1-1)\} \\
+  \fix_{eo}.0\ 0 \\
+  (\lambda x.\ife x=0.\{\true|\fix_{eo}.1\ (x-1)\},
+  \lambda x.\ife x=0.\{\false|\fix_{eo}.0\ (x-1)\}).0\ 0 \\
+  (\lambda x.\ife x=0.\{\true|\fix_{eo}.1\ (x-1)\})\ 0 \\
+  \ife 0=0.\{\true|\fix_{eo}.1\ (0-1)\} \\
+  \true
+\end{gather}
 
-\begin{align}
-  (a,b) &= \fix a.\fix b.(\lambda x.b\ x,\lambda x.a\ x) \\
-        &= \fix b.(\lambda x.b\ x,
-          \lambda x.(\fix a.\fix b.(\lambda x.b\ x,\lambda x.a\ x))\ x) \\
-        &= (\lambda x.(\fix b.(\lambda x.b\ x,\lambda x.(\fix a.\fix b.(\lambda x.b\ x,\lambda x.a\ x))\ x))\ x,
-          \lambda x.(\fix a.\fix b.(\lambda x.b\ x,\lambda x.a\ x))\ x)
-\end{align}
-or
-\begin{align}
-  a &= \lambda x.(\fix b.(\lambda x.b\ x,\lambda x.(\fix a.\fix b.(\lambda x.b\ x,\lambda x.a\ x))\ x))\ x \\
-  b &= \lambda x.(\fix a.\fix b.(\lambda x.b\ x,\lambda x.a\ x))\ x
-\end{align}
+% \begin{align}
+%   (a,b) &= \fix a.\fix b.(\lambda x.b\ x,\lambda x.a\ x) \\
+%         &= \fix b.(\lambda x.b\ x,
+%           \lambda x.(\fix a.\fix b.(\lambda x.b\ x,\lambda x.a\ x))\ x) \\
+%         &= (\lambda x.(\fix b.(\lambda x.b\ x,\lambda x.(\fix a.\fix b.(\lambda x.b\ x,\lambda x.a\ x))\ x))\ x,
+%           \lambda x.(\fix a.\fix b.(\lambda x.b\ x,\lambda x.a\ x))\ x)
+% \end{align}
+% or
+% \begin{align}
+%   a &= \lambda x.(\fix b.(\lambda x.b\ x,\lambda x.(\fix a.\fix b.(\lambda x.b\ x,\lambda x.a\ x))\ x))\ x \\
+%   b &= \lambda x.(\fix a.\fix b.(\lambda x.b\ x,\lambda x.a\ x))\ x
+% \end{align}
 
 \end{document}
 

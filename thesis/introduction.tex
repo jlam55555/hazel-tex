@@ -14,8 +14,28 @@
 % https://tex.stackexchange.com/a/10185
 \footnotetext{\url{https://hazel.org/build/dev/}}
 
+Unstructured plaintext editing has remained the dominant mode of programming for decades, but makes it more difficult to implement editor services to aid the process. Several structural editors, which only allow valid edit states, have been proposed to improve the programming experience and editor services, such as the elimination of syntax errors or graphical editing.
+
+% TODO: add citations
+
+Hazel is an experimental structural language definition and implementation that aims to solve the ``gap problem'': spatial and temporal holes that temporarily prevent code from being able to be compiled or evaluated. The structural editor is defined by a bidirectional edit calculus Hazelnut \cite{conf/popl/Hazelnut17}, which governs the structural editor and the static semantics (typing rules) of the language. The dynamic semantics (evaluation semantics) are described in \cite{conf/popl/HazelnutLive19}.
+
+Hazel is a relatively new research effort, with little effort placed on performance enhancements. This work attempts to achieve several modifications that will benefit the performance of evaluation and related tasks. Part of the work will be the standard conversion from evaluation using the substitution model (simpler to reason about) to the environment model (more performant). The latter parts of this work will use the environment model of evaluation to improve the memoization of certain tasks related to Hazel's structure (such as hole closure numbering), and also implement the fill-and-resume performance enhancement described in \cite{conf/popl/HazelnutLive19}. The novelty of this work lies in the novelty and optimization opportunity of Hazel's hole-based calculus.
+
 \subsection{The contribution of this work}
 \label{sec:contribution}
+
+This thesis presents several algorithms designed for Hazel's evaluation:
+\begin{itemize}
+\item The evaluation semantics of the Hazel language using the environment model (which replaces the substitution model as implemented on the trunk branch and described in \cite{conf/popl/HazelnutLive19}). While most of this is standard, we aim to keep the implementation pure (which is less trivial in the case of recursion), introduce uniquely-numbered environments (for later use in memoization), and describe the evaluation of holes (which are unique to Hazel).
+\item Postprocessing, which is memoized by environments and has the dual functions of converting the result to the equivalent result from evaluation with substitution, and performing hole closure numbering. Converting the result to the substitution model, hole closure numbering, and memoization are all described separately.
+\item Fill-and-resume, as originally proposed in \cite{conf/popl/HazelnutLive19}. This algorithm is described at a high level in the original description and not yet implemented until this thesis work. We provide the implementation and a lower-level description of said implementation.
+\end{itemize}
+The first two algorithms will be provided as a series of (big-step) inference rules, in the same style as the existing literature. Fill-and-resume will be presented at a higher level, being more of a composition of existing functions of the Hazel architecture.
+
+In addition to the algorithms above, several core concepts or data structures are introduced to Hazel, such as unique hole closures (as opposed to hole instances) and generalized closures. While the first one is specific to holes and thus specific to Hazel(nut), the latter is a concept that may be transferred to any live environment that may perform a similar conversion between evaluation with environments (for evaluation performance) to a result using substitution (for display and debugging purposes).
+
+The performance of this work is measured primarily in terms of empirical performance gains (via evaluation-step counting and benchmarking), and discussed with respect to the theoretical performance. This proof of correctness of the algorithms was not mechanized in the Agda proof assistant as was much of the core of Hazelnut and Hazelnut Live (and is deferred to future work); instead, correctness of implementation is validated by standard software testing procedures with manual test cases.
 
 \subsection{Structural overview}
 \label{sec:structural_overview}
