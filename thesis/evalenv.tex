@@ -30,7 +30,7 @@ The Hazel implementation follows a big-step model for evaluation, which is simpl
 
 The evaluation model threads a run-time environment $\env$\footnote{The symbol $\env$ was chosen to represent the environment as it was used to represent hole environments in \cite{conf/popl/HazelnutLive19}. The relationship between these two environments will be discussed in \Cref{sec:holeenv_evalenv_connection}.} throughout the evaluation process. An environment is conceptually a mapping $\env:x\mapsto d$, although it will later be augmented to be more amenable to memoization.
 
-Evaluation judgments are shown for a subset of the Hazel language, similar to the internal language described in \cite{conf/popl/HazelnutLive19}. The expressions considered include a single base type $b$, variables $x$, $\lambda$ abstractions, function application, and hole expressions. Casts and type ascriptions, which are part of the internal language follow the same rules as described in the Hazelnut paper, and thus are omitted here. Additionally, a rule is included for \mintinline{ocaml}|let| bindings, even if not strictly necessary. There are additional forms in the Hazel external and internal languages that are omitted for brevity and whose rules are trivial: these include binary sum injections and tuples, for which evaluation recurses through subexpressions. \mintinline{ocaml}|case| expressions are also omitted: it acts like a sequence of \mintinline{ocaml}|let| bindings. This select subset of the Hazel language will be reused throughout this paper for judgment rules; the goal is to provide a practical intuition of the evaluation semantics of Hazel that is close to the implementation, and not to provide a minimal theoretic foundation or the complete set of rules for all Hazel expressions. The latter is deferred to the source code in the reference implementation.
+Evaluation judgments are shown for a subset of the Hazel language, similar to the internal language described in \cite{conf/popl/HazelnutLive19}. The expressions considered include a single base type $b$, variables $x$, $\lambda$ abstractions, function application, and hole expressions. Casts and type ascriptions, which are part of the internal language follow the same rules as described in the Hazelnut paper, and thus are omitted here. Additionally, a rule is included for \mintinline{ocaml}|let| bindings, even if not strictly necessary. There are additional forms in the Hazel external and internal languages that are omitted for brevity and whose rules are trivial: these include binary sum injections and tuples, for which evaluation recurses through subexpressions. \mintinline{ocaml}|case| expressions are also omitted: it acts like a sequence of \mintinline{ocaml}|let| bindings. This select subset of the Hazel language will be reused throughout this paper for judgment rules; the goal is to provide a practical intuition of the evaluation semantics of Hazel that is close to the implementation, and not to provide a minimal theoretic foundation or the complete set of rules for all Hazel expressions. The latter is deferred to the source code in the reference implementation. Patterns and pattern holes will also be omitted from the rules, as they are not the focus of this work.
 
 As always, elements of the base type are values and do not further evaluate. Bound variables evaluate to their value in the environment. (Unbound variables are marked as free during elaboration and do not further evaluate.)
 
@@ -63,13 +63,44 @@ When evaluating with substitution, recursion needs to be explicitly handled usin
 
 Recursion with the environment model also requires self-reference, but this can be achieved in two ways: by accounting for the fixpoint form, or by using self-referential data structures. In OCaml, self-referential (mutually recursive) data can be achieved using the \mintinline{ocaml}|let rec| keyword or by using \mintinline{ocaml}|ref|s (mutable data cells); however, the latter will affect the purity of the implementation, as discussed in \Cref{sec:purity}.
 
-Both pure methods were implemented; their tradeoffs are described below. The final implementation arbitrarily uses the implementation with the fixpoint form.
+Both pure methods were implemented; their tradeoffs are described below. The final implementation (and the rules shown in \Cref{fig:big-step-formal}) uses the implementation with the fixpoint form, although the choice is somewhat arbitrary.
 
-Performing evaluation with the fixpoint form follows very similar rules to the substitution model. Recursive $\lambda$ functions in the external language elaborate to a $\lambda$ function wrapped in a \mintinline{ocaml}|FixF| variant during elaboration in the internal language\footnote{The current implementation only allows recursion for type-ascribed \mintinline{ocaml}|let| expressions with a single $\lambda$ abstraction on the RHS. Mutual recursion is currently not supported, but is being worked on in the \href{https://github.com/hazelgrove/hazel/tree/mutual-rec}{mutual-rec} branch. The described implementation should extend cleanly to the case of mutual recursion.}. The evaluation of the \mintinline{ocaml}|FixF| form introduces the self-reference to the current environment. There is a nuance here: unlike in substitution, in which $\lambda$ functions are final (do not evaluate farther), $\lambda$ functions do evaluate further in the environment model to a closure, and the self-reference should include such a closure\footnote{There is a nuance in the implementation: in the case of a \mintinline{ocaml}|FixF| body expression being a $\lambda$ function, the fixpoint expression evaluates to a (function) closure whose captured environment contains the self-reference to the closure. However, in the more general case the \mintinline{ocaml}|FixF| body may not be a $\lambda$ function (e.g., in the case of mutual recursion it may be a pair of $\lambda$ functions). In this case, the \mintinline{ocaml}|FixF| body expression must be evaluated twice: once with the enclosing lexical environment (the value for the self-reference), and once with the self-reference added to the environment. Generalized closures are useful in this case to prevent }. Upon lookup of a \mintinline{ocaml}|FixF| form in the environment, it is immediately unwrapped
+Performing evaluation with the fixpoint form follows very similar rules to the substitution model. Recursive $\lambda$ functions in the external language elaborate to a $\lambda$ function wrapped in a \mintinline{ocaml}|FixF| variant during elaboration in the internal language\footnote{The current implementation only allows recursion for type-ascribed \mintinline{ocaml}|let| expressions with a single $\lambda$ abstraction on the RHS. Mutual recursion is currently not supported, but is being worked on in the \href{https://github.com/hazelgrove/hazel/tree/mutual-rec}{mutual-rec} branch. The described implementation should extend straightforwardly to an implementation of mutual recursion involving self-reference of a tuple and projection out of the tuple.}. The evaluation of the \mintinline{ocaml}|FixF| form introduces the self-reference to the current environment. To do this, the body expression is first evaluated without the self-reference; that evaluated expression is added to the environment; and then the body expression is evaluated again, with the self-reference\footnote{Evaluating the body expression twice may seem expensive, except that the body is (in the current implementation) always a lambda function, which trivially evaluates to a closure by binding its environment. As a result, we can simplify the evaluation of a \mintinline{ocaml}|FixF| to one of the following forms. The first occurs when the recursive function is defined, and the second occurs when the recursive form is looked up in its environment (and unwrapped).
+  \begin{mathpar}
+    \Infer{EvalB-FixF$_1$}{}{
+      \env\vdash\fix f.\lambda x.d\Downarrow [\env,f\leftarrow \fix f.[\env]\lambda x.d]\lambda x.d
+    }
+    \and
+    \Infer{EvalB-FixF$_2$}{}{
+      \env\vdash\fix f.[\env']\lambda x.d\Downarrow [\env',f\leftarrow \fix f.[\env']\lambda x.d]\lambda x.d
+    }
+  \end{mathpar}
+  Mutual recursion can be implemented as a self-reference applied to a tuple of $\lambda$ functions, which requires the more general form presented in \Cref{fig:big-step-formal}. It also does not take many evaluation steps and is thus not an expensive operation.}. The unwrapping of the recursive function occurs when the recursive form is looked up in its environment, which is indicated by the special variable evaluation rule EvalB-Unwind.
 
-% TODO: experiment with tying the knot
+We may avoid the fixpoint form by using mutually-recursive data structures, so that a closure may contain an environment which contains itself as a binding. This is easy to implement in a language with pointers or mutable references, and how recursion is generally implemented. Mutually-recursive data in OCaml is somewhat tricky in the general case, as it requires statically-constructive forms\footnote{\href{https://ocaml.org/manual/letrecvalues.html}{\S10.1: Recursive definitions of values} of the OCaml reference describes this in greater detail. Simply put, this prevents recursive variables from being defined as arguments to functions, instead only allowing recursive forms to be arguments to data constructors.}. In the more general case of mutual recursion, this would likely make implementation very tricky, and it would be more practical to use impure \mintinline{ocaml}|ref|s to achieve self-reference. However, for the simple case of a simply recursive function, we may recognize \mintinline{ocaml}|let|-bindings which introduce a function, and statically construct the mutual recursion using the rule shown in \Cref{fig:rec-closures-let}. This is very similar to the way that \mintinline{ocaml}|FixF| expressions are inserted automatically during elaboration. This also eliminates the need for that elaboration step.
+
+% REF: ^ this is how recursion is generally implemented
+
+\begin{figure}
+  \centering
+  \begin{singlespace}
+    \begin{mathpar}
+      \Infer{EvalB-LetSimpleRec}{
+        \env'=\env,f\leftarrow d_1' \\
+        d_1'=[\env']\lambda x.d_1 \\
+        \env'\vdash d_2\Downarrow d
+      }{
+        \env\vdash\texttt{let }f=\lambda x.d_1\texttt{ in }d_2\Downarrow d
+      }
+    \end{mathpar}
+  \end{singlespace}
+  \caption{Evaluation rule for simple recursion using self-recursive data structures}
+  \label{fig:rec-closures-let}
+\end{figure}
 
 % TODO: notes on current implementation only applying to annotated lambdas
+
+% TODO: notes on recursive form not being able to distinguish between self references and non-self-references, leading to slightly different results in the context inspector
 
 % sample figure
 % \begin{figure}

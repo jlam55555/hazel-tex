@@ -3,35 +3,41 @@
 \begin{mathpar}
   \Infer{EvalB-Final\label{evalb-final}}{\env\vdash d\textsf{ final}}{\env\vdash d\Downarrow d}
   \and
-  \Infer{EvalB-Var}{}{\env,x\leftarrow d\vdash x\Downarrow d}\\
+  \Infer{EvalB-Lam}{}{\env\vdash(\lambda x:\tau.d)\Downarrow [\env](\lambda x:\tau.d')} \\
   \and
-  \Infer{EvalB-Fix}{\env\vdash d\Downarrow d'}{\env\vdash\fix f.d\Downarrow \fix f.d'}
+  \Infer{EvalB-Var}{d\ne\fix f.d'}{\env,x\leftarrow d\vdash x\Downarrow d}
   \and
-  \Infer{EvalB-Lam}{}{\env\vdash(\lambda x:\tau.d)\Downarrow [\env](\lambda x:\tau.d')}
+  \Infer{EvalB-Unwind}{
+    \env\vdash\fix f.d\Downarrow d'
+  }{\env,x\leftarrow\fix f.d\vdash x\Downarrow d'}\\
+  \and
+  \Infer{EvalB-Fix}{
+    \env\vdash d\Downarrow d' \\
+    \env,f\leftarrow\fix f.d'\vdash d\Downarrow d''
+  }{
+    \env\vdash\fix f.d\Downarrow d''
+  } \\
   \and
   \Infer{EvalB-Ap$_1$}{
     \env\vdash d_1\Downarrow d_1' \\
-    d_1'\ne([\env']\lambda x:\tau.d) \\
-    d_1'\ne\fix f.d \\
+    d_1'\ne([\env']\lambda x.d) \\
     \env\vdash d_2\Downarrow d_2'
-  }{\env\vdash d_1(d_2)\Downarrow d_1'(d_2')}
+  }{
+    \env\vdash d_1(d_2)\Downarrow d_1'(d_2'))
+  }
   \and
   \Infer{EvalB-Ap$_2$}{
-    \env\vdash d_1\Downarrow ([\env']\lambda x:\tau.d_1') \\
+    \env\vdash d_1\Downarrow ([\env']\lambda x.d_1') \\
     \env\vdash d_2\Downarrow d_2' \\
-    \env',x\leftarrow d_2'\vdash d_1'\Downarrow d
-  }{\env\vdash d_1(d_2)\Downarrow d}
-  \and
-  \Infer{EvalB-Ap$_3$}{
-    \env\vdash d_1\Downarrow(\fix f.([\env']\lambda x:\tau.d_1'))=d_1'' \\
-    \env\vdash d_2\Downarrow d_2' \\
-    \env',f\leftarrow d_1'',x\leftarrow d_2'\vdash d_1'\Downarrow d
-  }{\env\vdash d_1(d_2)\Downarrow d}
+    \env,x\leftarrow d_2'\vdash d_1'\Downarrow d
+  }{
+    \env\vdash d_1(d_2)\Downarrow d
+  }
   \and
   \Infer{EvalB-Let}{
     \env\vdash d_2\Downarrow d_2' \\
     \env,x\leftarrow d_2'\vdash d_1\Downarrow d
-  }{\env\vdash\texttt{let }x=d_2\texttt{ in }d_1\Downarrow d}
+  }{\env\vdash\texttt{let }x=d_2\texttt{ in }d_1\Downarrow d} \\
   \and
   \Infer{EvalB-EHole}{}{\env\vdash\hehole_\varnothing^u\Downarrow\hehole_\env^u}
   \and
