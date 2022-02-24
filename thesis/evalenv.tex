@@ -124,14 +124,35 @@ The performance improvement is described in \Cref{sec:evaluation}. The complexit
 %   \label{fig:tying-the-knot}
 % \end{figure}
 
-\subsubsection{Evaluation of failed pattern matching}
-\label{sec:failed_pattern_match}
-
 \subsection{The evaluation boundary, general closures, and post-processing}
 \label{sec:closures_to_lambdas}
 
+Evaluation with the environment model is ``lazy'' in that evaluation steps that require the environment (e.g., evaluation of holes, and evaluation of variables) are only performed when evaluation reaches the expression of interest. Evaluation with the substitution model is ``eager'' because variable variable values propagate through all subexpressions (even unevaluated ones) upon binding. While lazy evaluation is better for performance, in the Hazel environment we expect to see fully-substituted values in the context inspector for hole contexts environments. This means that we require a postprocessing step to perform substitution of bound variables in environments to achieve the same result as if we had evaluated by means of substitution.
 
-% TODO: describe why the result from substitution is better than the result from environments
+In other words, any unevaluated expression must be ``caught up'' to the substituted equivalent after evaluation. This requires that the environment be stored alongside the unevaluated expression, and that a postprocessing step should be taken to perform the substitution and discard the stored environment.
+
+We define the \textbf{evaluation boundary} to be the conceptual distinction between expressions for which evaluation has reached (``inside'' the boundary), and for those that remain unevaluated (``outside'' the boundary). This definition will be useful for describing the postprocessing algorithm.
+
+\subsubsection{Evaluation of failed pattern matching using generalized closures}
+\label{sec:failed_pattern_match}
+
+There are two cases where an expression in the evaluation result may lie outside the evaluation boundary. The first is in the body of a $\lambda$ expression. A $\lambda$ expression evaluates to a closure, and thus captures an environment with it. The second case is that of an unmatched \mintinline{ocaml}|let| or \mintinline{ocaml}|case| expression (in which the scrutinee matches none of the rules), for which the body expression(s) will remain unevaluated in the result without an associated environment\footnote{There is a third place where pattern-matching may fail: the pattern of an applied $\lambda$ abstraction may not match its argument. However, this is not an issue since there exists a function closure containing the unevaluated expression's environment.}. This is not captured in the original description of Hazelnut Live \cite{conf/popl/HazelnutLive19} or in this paper because pattern-matching is not a primary concern of either of these works. However, it is a practical concern that arises from the introduction of evaluation with environments.
+
+We solve this by introducing (lexical) \textbf{generalized closures}, the product of an arbitrary expression and its lexical environment. Traditionally, the term ``closure'' refers to \textbf{function closures}, which are the product of a $\lambda$ abstraction with its lexical environment. Hazelnut Live \cite{conf/popl/HazelnutLive19} introduces \textbf{hole closures}, which are the product of empty and non-empty holes with their lexical environments, and are fundamental to the Hazel live environment: they allow a user to inspect a hole's environment in the context inspector, and enable the fill-and-resume optimization. We propose generalizing the term ``closures'' to the definition stated above. Conceptually, all generalized closures represent a partial or stopped evaluation (using the environment model), as well as the state (the environment) that may be used to resume the evaluation.
+
+The application of generalized closures to the problem of unevaluated \mintinline{ocaml}|let| or \mintinline{ocaml}|case| bodies is straightforward: if there is a failed pattern match, wrap the entire expression in a (generalized) closure with the current lexical environment. Then, the postprocessing can successfully perform the substitution.
+
+% TODO: note that the expressions in non-empty holes do not lie outside the evaluation boundary
+
+% TODO: talk about the relationship to exhaustiveness checking
+
+% TODO: explain the potential issues of trying to compile with environments, since we have structural sharing
+
+% TODO: explain how generalized closures can be used to denote other expression types
+
+% TODO: explain alternative ways to implement failed pattern matching
+% - create new "pseudo-hole" form like FailedCast, but one which stores environment
+% - speculatively evaluate, don't need to store environment and boundvar -> freevar if not bound (but bad for case)
 
 % TODO: example programs:
 % - lambda and fix forms
@@ -150,18 +171,6 @@ The performance improvement is described in \Cref{sec:evaluation}. The complexit
   \caption{Big-step semantics for $\lambda$-conversion post-processing}
   \label{fig:big-step-inside-formal}
 \end{figure}
-
-\subsection{A strict evaluation boundary}
-\label{sec:eval_boundary}
-
-% TODO: example program: pattern doesn't match
-
-\subsubsection{Alternative evaluation strategies}
-\label{sec:pattern_nomatch_strategies}
-
-% two alternatives:
-% - create new "pseudo-hole" form like FailedCast, but one which stores environment
-% - speculatively evaluate, don't need to store environment and boundvar -> freevar if not bound (but bad for case)
 
 \subsection{Post-processing memoization}
 \label{sec:memoization}
