@@ -124,12 +124,12 @@ The performance improvement is described in \Cref{sec:evaluation}. The complexit
 %   \label{fig:tying-the-knot}
 % \end{figure}
 
-\subsection{The evaluation boundary, general closures, and post-processing}
+\subsection{The evaluation boundary and general closures}
 \label{sec:closures_to_lambdas}
 
 Evaluation with the environment model is ``lazy'' in that evaluation steps that require the environment (e.g., evaluation of holes, and evaluation of variables) are only performed when evaluation reaches the expression of interest. Evaluation with the substitution model is ``eager'' because variable variable values propagate through all subexpressions (even unevaluated ones) upon binding. While lazy evaluation is better for performance, in the Hazel environment we expect to see fully-substituted values in the context inspector for hole contexts environments. This means that we require a postprocessing step to perform substitution of bound variables in environments to achieve the same result as if we had evaluated by means of substitution.
 
-In other words, any unevaluated expression must be ``caught up'' to the substituted equivalent after evaluation. This requires that the environment be stored alongside the unevaluated expression, and that a postprocessing step should be taken to perform the substitution and discard the stored environment.
+In other words, any unevaluated expression must be ``caught up'' to the substituted equivalent after evaluation. This requires that the environment be stored alongside the unevaluated expression, and that a postprocessing step should be taken to perform the substitution and discard the stored environment. Note that this is essentially performing substitution pass after evaluation, but is preferred over substitution during evaluation because it is only performed on the result (rather than all the intermediate expressions during evaluation).
 
 We define the \textbf{evaluation boundary} to be the conceptual distinction between expressions for which evaluation has reached (``inside'' the boundary), and for those that remain unevaluated (``outside'' the boundary). This definition will be useful for describing the postprocessing algorithm.
 
@@ -142,17 +142,55 @@ We solve this by introducing (lexical) \textbf{generalized closures}, the produc
 
 The application of generalized closures to the problem of unevaluated \mintinline{ocaml}|let| or \mintinline{ocaml}|case| bodies is straightforward: if there is a failed pattern match, wrap the entire expression in a (generalized) closure with the current lexical environment. Then, the postprocessing can successfully perform the substitution.
 
-% TODO: note that the expressions in non-empty holes do not lie outside the evaluation boundary
+\subsubsection{Generalization of existing hole types}
+\label{sec:generalized-closures-datatypes}
 
-% TODO: talk about the relationship to exhaustiveness checking
+\begin{figure}
+  \centering
+  \begin{singlespace}
+    \makebox[\textwidth][c]{
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \inputominted{ungeneralized_closures}
+        \caption{Non-generalized closures}
+        \label[figure]{fig:ungeneralized-datatypes}
+      \end{subfigure}
+      \qquad
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \inputominted{generalized_closures}
+        \caption{Generalized closures}
+        \label[figure]{fig:generalized-datatypes}
+      \end{subfigure}
+    }
+  \end{singlespace}
+  \caption{Comparison of internal expression datatype definitions (in module \mintinline{ocaml}|DHExp|) for non-generalized and generalized closures.}
+  \label{fig:generalized-closures-datatypes}
+\end{figure}
 
-% TODO: explain the potential issues of trying to compile with environments, since we have structural sharing
+Consider the abbreviated definition of the internal expression variant type in \Cref{fig:generalized-closures-datatypes}. In \Cref{fig:ungeneralized-datatypes} the previous implementation is shown (when evaluating using the substitution model), augmented with a type for function closures. There are ordinary \mintinline{ocaml}|Let| and \mintinline{ocaml}|Case| variants, which do not contain an environment. In this version, each expression variant that requires an environment has the environment hardcoded into the variant. In \Cref{fig:generalized-datatypes} the proposed version with generalized closures is shown. The \mintinline{ocaml}|Lam|, \mintinline{ocaml}|Let|, and \mintinline{ocaml}|Case| variants are unchanged. Importantly, the environments are removed from the hole types and a new generalized \mintinline{ocaml}|Closure| is introduced. In this model, a hole, $\lambda$ abstraction, unmatched \mintinline{ocaml}|let|, or unmatched \mintinline{ocaml}|case| expression is wrapped in the \mintinline{ocaml}|Closure| variant when evaluated.
 
-% TODO: explain how generalized closures can be used to denote other expression types
+The notation used to express a function closure may be extended to all generalized closure types. In particular, the environment for a hole changes from the initial notation used in \cite{conf/popl/HazelnutLive19}:
+\begin{align}
+  \label{eq:generalized-closure-notation}
+  &[\env]\lambda x.d\tag{function closure} \\
+  &[\env]\hhole{d}^u\tag{hole closure} \\
+  &[\env](\texttt{let }x=d_1\texttt{ in }d_2)\tag{closure around \texttt{let}} \\
+  &[\env](\texttt{case }x\texttt{ of }\text{rules})\tag{closure around \texttt{case}}
+\end{align}
 
-% TODO: explain alternative ways to implement failed pattern matching
-% - create new "pseudo-hole" form like FailedCast, but one which stores environment
-% - speculatively evaluate, don't need to store environment and boundvar -> freevar if not bound (but bad for case)
+This implementation of closures is an improvement in two ways. Firstly, it simplifies the variant types by factoring out the environment, separating the ``core'' expression from the environment coupled with it. Secondly, it allows for a more intuitive understanding of holes in the environment model of evaluation. This solves the question of what environment to initialize a hole with when it is created during the elaboration phase: a hole is simply initialized without a hole environment, much as a function closure is initially without an environment (a plain syntactical $\lambda$ abstraction).
+
+Note that while the generalized closures for the body expressions of $\lambda$ abstractions, unmatched \mintinline{ocaml}|let| expressions, and unmatched \mintinline{ocaml}|case| expressions represent expressions outside of the evaluation boundary, the expressions within non-empty holes (which also are bound to a hole closure) lie within the evaluation boundary. This shows the two goal that generalized closures achieve; to encapsulate a stopped expression (which is used during postprocessing to perform substitution), and to encapsulate an expression to be fill-and-resumed.
+
+\subsubsection{Alternative strategies for evaluating past the evaluation boundary}
+\label{sec:alt_strat_unevaluated}
+
+Without generalized closures, unevaluated expressions (body expressions of $\lambda$ abstractions, unmatched \mintinline{ocaml}|let| expressions, and unmatched \mintinline{ocaml}|case| expressions) may be filled by a modified form of evaluation, which is only different in that a failed lookup (due to unmatched variables) will leave the variable unchanged\footnote{Ordinarily, a lookup on a \mintinline{ocaml}|BoundVar| (a variable which is in scope) should never fail during evaluation, and thus throws an exception during evaluation.}. However, this is essentially the same as substitution, and is expensive to do during evaluation. Also, while this speculative execution would be reasonable for \mintinline{ocaml}|let| expressions, it would be highly undesirable for \mintinline{ocaml}|case| expression, where it is easy to imagine an example where speculative execution leads to infinite recursion.
+
+Another way to eliminate the case of unmatched expressions is to introduce an exhaustiveness checker to Hazel; then, we can guarantee (at run-time) that a pattern will never fail to match. This would also require changing the semantics of pattern holes, which always fail to match; the behavior may be changed so that pattern holes always match, but do not introduce new bindings. Since the focus of this work is not on patterns, these ideas were not explored and are left for future work in the Hazel project.
+
+\subsection{The postprocessing substitution algorithm}
+\label{sec:postprocessing-substitution}
+
 
 % TODO: example programs:
 % - lambda and fix forms

@@ -66,7 +66,12 @@
 \begin{minted}[escapeinside=//,frame=single,custom]{../latex-includes/hazel_lexer.py:HazelLexer}}
 {\end{minted}}
 
+% hazel inputminted
 \newcommand{\inputhminted}[1]{\inputminted[escapeinside=//,frame=single,custom]{../latex-includes/hazel_lexer.py:HazelLexer}{lstings/#1.hz}}
+
+% ocaml inputminted
+\newcommand{\inputominted}[1]{\inputminted[escapeinside=//,frame=single]{ocaml}{lstings/#1.ml}}
+
 
 % extra math operators
 % especially for math operators that are introduced in this paper, want to
