@@ -1,0 +1,2 @@
+let f = /\lbd/ x . { /\heh1/ } in
+f f
