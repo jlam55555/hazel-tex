@@ -13,9 +13,7 @@ The implementation of evaluation in Hazel differs from a typical interpreter imp
 
 % TODO: walk through simple example
 
-Omar et al. \cite{conf/popl/HazelnutLive19} describes evaluation with the substitution model using a little-step semantics with an evaluation context $\mathcal{E}$. 
-
-The Hazel implementation follows a big-step model for evaluation, which is simpler, more performant, and does not require the evaluation context. Thus it is more convenient to follow a big-step semantics as shown in \Cref{fig:big-step-formal}. An equivalent small-step semantics is described in \Cref{sec:small-step-evalenv} but will not be discussed further.
+Omar et al. \cite{conf/popl/HazelnutLive19} describes evaluation with the substitution model using a little-step semantics with an evaluation context $\mathcal{E}$. The Hazel implementation follows a big-step model for evaluation, which is simpler, more performant, and does not require the evaluation context. Thus it is more convenient to follow a big-step semantics as shown in \Cref{fig:big-step-formal}.
 
 \begin{figure}
   \centering
@@ -177,7 +175,7 @@ The notation used to express a function closure may be extended to all generaliz
   &[\env](\texttt{case }x\texttt{ of }\text{rules})\tag{closure around \texttt{case}}
 \end{align}
 
-This implementation of closures is an improvement in two ways. Firstly, it simplifies the variant types by factoring out the environment, separating the ``core'' expression from the environment coupled with it. Secondly, it allows for a more intuitive understanding of holes in the environment model of evaluation. This solves the question of what environment to initialize a hole with when it is created during the elaboration phase: a hole is simply initialized without a hole environment, much as a function closure is initially without an environment (a plain syntactical $\lambda$ abstraction).
+This implementation of closures is an improvement in two ways. Firstly, it simplifies the variant types by factoring out the environment, separating the ``core'' expression from the environment coupled with it. Secondly, it allows for a more intuitive understanding of holes in the environment model of evaluation. This solves the question of what environment to initialize a hole with when it is created during the elaboration phase: a hole is simply initialized without a hole environment, much as a function closure is initially without an environment (a plain syntactical $\lambda$ abstraction). It also removes the ambiguity of the notation $\hhole{d}_\varnothing$, which could intuitively mean either a hole that has not been evaluated (if initialized during elaboration with a special empty environment) or a hole that has been evaluated in the empty environment.
 
 Note that while the generalized closures for the body expressions of $\lambda$ abstractions, unmatched \mintinline{ocaml}|let| expressions, and unmatched \mintinline{ocaml}|case| expressions represent expressions outside of the evaluation boundary, the expressions within non-empty holes (which also are bound to a hole closure) lie within the evaluation boundary. This shows the two goal that generalized closures achieve; to encapsulate a stopped expression (which is used during postprocessing to perform substitution), and to encapsulate an expression to be fill-and-resumed.
 
@@ -232,28 +230,19 @@ Another way to eliminate the case of unmatched expressions is to introduce an ex
 
 \subsection{Purity}
 \label{sec:env-purity}
+The purity of implementation is a recurring theme. While it should not affect the capability of the implementation, there is a strong urge to keep the implementation pure. Elegance, complexity, and runtime overhead is traded off for purity. The main decisions regarding purity are summarized here, and left for the consideration of future implementors.
 
-% threading around state: technically still pure, represented very similar to rules
-% evalenv number generation is threaded around very similar to metavargen, but
-% somewhat unwieldy and 
+One offender of performance is the use of the fixpoint form when evaluating recursive functions. This involves extra evaluation steps for unwrapping fixpoints, and can be avoided with self-referential data structures, and more easily implemented using \mintinline{ocaml}|ref|s.
 
-\subsubsection{Tradeoffs in elegance, complexity, runtime overhead}
-\label{sec:elegance-and-complexity}
-
-% purity is a technical term, elegance is not; unwieldiness
-% is the additional complexity worth it?
-% - nice benefits with memoization in specific cases (will see later)
-% - general linear speedup even with the overhead and without benefits of memoization
-% (e.g., see Fibonacci example)
+An offender of elegance is the threading of the identifier generator around for memoized environments (\mintinline{ocaml}|EvalIdGen.t|). This can be much more easily implemented as a simple global counter; instead, it is passed to and returned from every call of the the core evaluator function (\mintinline{ocaml}|Evaluator.evaluate|), adding much clutter. The same is true for the generator for hole identifiers (\mintinline{ocaml}|MetaVarGen.t|).
 
 \subsection{Implementation considerations}
 \label{sec:evalenv_impl_considerations}
 
+As is common in functional programming, the most common data structures used are (linked) lists and maps (binary search trees). The standard library modules \mintinline{ocaml}|List| and \mintinline{ocaml}|Map| are used for these. In particular, the original implementation uses linked-lists for the implementation of environments, and we have not modified this decision. In Hazel, The hole closure storage data structures \mintinline{ocaml}|HoleClosureInfo_.t| and \mintinline{ocaml}|HoleClosureInfo.t| use a combination of maps and lists. Hashtables were not used at all in the implementation; their effect on performance is unknown and is reserved for future work.
+
 % considerations between different forms of the data structures
 % e.g., evalenv storing results vs. storing plain dhexp, unwrapping vs. rejudging indet/boxedvalue
-
-% TODO: discussion of data structures used in the implementation and theoretical bounds (appendix or not?)
-% - e.g., lists vs. maps vs. hashtables (structural sharing)
 
 %%% Local Variables:
 %%% mode: latex

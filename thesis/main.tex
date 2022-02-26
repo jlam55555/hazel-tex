@@ -20,14 +20,19 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{stmaryrd}
-\usepackage{hyperref}
 \usepackage{geometry}
 \usepackage{setspace}
-\usepackage{cleveref}
 \usepackage{mdframed}
 \usepackage{subcaption}
 \usepackage{placeins}
 \usepackage[utf8]{inputenc}
+
+% https://tex.stackexchange.com/a/72691
+\usepackage[hang, flushmargin]{footmisc}
+\usepackage{hyperref}
+
+% must be loaded after hyperref
+\usepackage{cleveref}
 
 % tikz diagrams
 \usepackage{tikz}
@@ -98,19 +103,18 @@
 
 % bibliography
 \clearpage{}
-\addcontentsline{toc}{section}{References}
-\pt{References}
+\section{References}
+\label{sec:references}
+
 \bibliographystyle{plain}
 \bibliography{refs}
 
 % appendices
-\clearpage{}
 \appendix{}
 \addcontentsline{toc}{section}{Appendices}
-\pt{Appendices}
 % TODO: put this header on the same page as the first appendix
 
-\include{additional_rules}
+% \include{additional_rules}
 \include{contributions}
 \include{correspondence}
 \include{concurrent_work}
