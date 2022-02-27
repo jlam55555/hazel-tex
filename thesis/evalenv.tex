@@ -200,18 +200,29 @@ When inside the evaluation boundary, all (bound) variables have been looked up a
 
 For primary expressions (expressions without subexpressions), the expression is returned unchanged; there is nothing to do. For other non-closure expression types, $\pplco$ recurses through any subexpressions.
 
-For closure types, we first need to recusively apply $\pplco$ to all bindings in the closure environment.
-% TODO: working here
+For closure types, we first need to recusively apply $\pplco$ to all bindings in the closure environment. For (non-empty) holes, the body is inside the evaluation boundary and thus $\pplco$ is applied. For other expressions, the body expression is outside the evaluation boundary, and thus $\pplct$ is applied to the body expression, using the closure environment. The closure is then removed.
+
+A $\lambda$ abstraction, \mintinline{ocaml}|let| expression, \mintinline{ocaml}|case| expression, or hole outside of a closure, or a bound variable that has not been looked up, will never exist outside of a closure within the evaluation boundary, so these cases need not be handled.
+
+Note that in the implementation with recursive data structures used to represent environments as described in \Cref{sec:rec_impl}, an additional step must be taken before recursing into function closures. Recursive function bindings must be detected and converted to \mintinline{ocaml}|FixF| expressions to prevent infinite recursion.
+
+% TODO: are the other hole types all considered non-empty holes?
 
 \subsubsection{Substitution outside the evaluation boundary ($\pplct$)}
 \label{sec:postprocessing-subst-outside}
+
+When outside the evaluation boundary (and inside a closure), we need to substitute bound variables\footnote{The wording is a little tricky here, since there are the \mintinline{ocaml}|BoundVar| and \mintinline{ocaml}|FreeVar| internal expression variants, which refer to variables which are in scope or not in scope. However, we may only substitute variables which are in-scope (\mintinline{ocaml}|BoundVar|) and bound; some instances may not yet be bound.} and assign an environment to holes.
+
+Bound variables are looked up in the environment; this lookup may fail if the variable does not exist in the environment, in which case the variable is left unchanged. For other primary expressions, the expression is left unchanged. When a hole is encountered, it is wrapped using the closure environment. A closure will never exist outside the evaluation boundary in the evaluation result.
+
+% TODO: formalize these as metatheorems
+
+Note that the $\pplco$ algorithm only takes an internal expression $d$ as its input, whereas the $\pplct$ algorithm takes an internal expression $d$ and a (closure) environment $\env$ as inputs.
 
 % TODO: example programs:
 % - lambda and fix forms
 % - holes inside and outside boundary
 % - recursion through hole environments
-
-% two-stage approach
 
 \begin{figure}
   \centering
@@ -255,7 +266,28 @@ An offender of elegance is the threading of the identifier generator around for 
 \subsection{Implementation considerations}
 \label{sec:evalenv_impl_considerations}
 
+This section details various design decisions and tradeoffs of the current implementation; some parts of this may require an understanding of the hole closure numbering postprocessing step described in \Cref{sec:renumbering}.
+
+\subsubsection{Data structures}
+\label{sec:data-structures}
+
 As is common in functional programming, the most common data structures used are (linked) lists and maps (binary search trees). The standard library modules \mintinline{ocaml}|List| and \mintinline{ocaml}|Map| are used for these. In particular, the original implementation uses linked-lists for the implementation of environments, and we have not modified this decision. In Hazel, The hole closure storage data structures \mintinline{ocaml}|HoleClosureInfo_.t| and \mintinline{ocaml}|HoleClosureInfo.t| use a combination of maps and lists. Hashtables were not used at all in the implementation; their effect on performance is unknown and is reserved for future work.
+
+\subsubsection{Additional constraints due to hole closure numbering}
+\label{sec:difficulties-hole-numbering}
+
+The introduction of hole closure parents in \Cref{sec:closure-parents} makes closure memoization more difficult for environments in non-hole closures. In particular, adding a new parent to a hole requires that the hole postprocessing (the hole closure numbering operation) be re-run on a hole. Memoizing the hole prevents a hole closure in an environment from being assigned multiple closure parents.
+
+In fact, the memoization operation is only implemented on a per-hole-closure basis. This is due to a number of factors: an additional data structure is required to keep track of memeoized environments, and a very similar data structure to \mintinline{ocaml}|HoleClosureInfo.t| (\mintinline{ocaml}|HoleInstanceInfo.t|) already existed in the codebase for the hole instance numbering operation; memoization of environments was initially intended to solve the performance issue for hole numbering postprocessing step described in \Cref{sec:current-problems}, and memoization was bootstrapped to the substitution postprocessing step as well; and the issue with hole parents mentioned in the previous paragraph.
+
+To summarize, the current state of the implementation involves environments with unique identifiers so as to be more amenable to memoization, but the memoization during postprocessing is only performed for hole closures (i.e., the postprocessing will only not be repeated if the same hole number and environment are encountered multiple times, but will be repeated if the same environment occurs in different holes or in non-hole closures). For the sake of time, fully memoizing all environments and investigating the effects is left for future work, although the marginal benefit may not be very great\footnote{We may offer the following intuition for this claim. The issue of exponential hole instance exponential blowup is a known issue that is solved by memoizing hole environments, so the benefit here is clear. TODO WORKING HERE}.
+
+% TODO: working here
+
+\subsubsection{Storing evaluation results versus internal expressions}
+\label{sec:result-vs-dhexp}
+
+
 
 % considerations between different forms of the data structures
 % e.g., evalenv storing results vs. storing plain dhexp, unwrapping vs. rejudging indet/boxedvalue
