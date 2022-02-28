@@ -244,15 +244,19 @@ We may wonder if there is repeated processing if the same closure environment is
 
 Memoization of environments requires a unique key for each environment. The existing environment type \mintinline{ocaml}|Environment.t| is a map $\env=x\mapsto d$. We introduce a new environment type \mintinline{ocaml}|EvalEnv.t|\footnote{This is the name in the current implementation (due to this environment type being specialized for evaluation), but perhaps a better name is \mintinline{ocaml}|MemoEnv.t|.} that is the product of an identifier and the variable map $\env=(\text{id}_\env,x\mapsto d)$, in which $\text{id}_\env$ indicates a unique environment identifier.
 
-To ensure that there is a bijection between environment identifiers and environments, a new unique identifier must be generated each time an environment is extended. An instance of \mintinline{ocaml}|EvalEnvIdGen.t| is used to generate a new unique identifier, and is required as an additional argument to functions in the \mintinline{ocaml}|EvalEnv| module that modify the environment.
+To ensure that there is a bijection between environment identifiers and environments, a new unique identifier must be generated each time an environment is extended. An instance of \mintinline{ocaml}|EvalEnvIdGen.t| is used to generate a new unique identifier, and is required as an additional argument to functions in the \mintinline{ocaml}|EvalEnv| module that modify the environment\footnote{
+  In the same manner as \mintinline{ocaml}|MetaVarGen.t|, \mintinline{ocaml}|EvalEnvId.t| is implemented as type \mintinline{ocaml}|int| and \mintinline{ocaml}|EvalEnvIdGen.t| is implemented as a simple counter. To keep the implementation pure, the instance of \mintinline{ocaml}|EvalEnvIdGen.t| needs to be threaded through all calls of \mintinline{ocaml}|Evaluator.evaluate| to avoid a global mutable state, and is discussed in \Cref{sec:purity}.
+}.
 
-Note that while physical identity may be used to distinguish between different environments, it is difficult to use for efficient lookups due to the abstraction of pointers in a high-level language like OCaml or Javascript. We may think of numeric identifiers (in general) as high-level pointers. We may state this property of environment identifiers as a metatheorem.
+Note that while physical identity may be used to distinguish between different environments, it is difficult to use for efficient lookups due to the abstraction of pointers in a high-level language like OCaml or Javascript. We may think of numeric identifiers (in general) as high-level pointers. We may state this property of environment identifiers as a metatheorem, which allows us to use environment identifiers as a key for environments.
 
 \begin{theorem}[Use of $\text{id}_\env$ as an identifier]
-  The mapping $i_\env:\sigma\mapsto\text{id}_\env$ that maps environments (identified up to physical equality) to their assigned environment identifiers is a bijection.
+  The mapping $i_\env:\sigma\mapsto\text{id}_\env$ that maps an environment (identified up to physical equality) to its assigned environment identifier is a bijection.
 \end{theorem}
 
-The proof of injectivity and surjectivity may both be shown trivially by construction. This theorem allows us to use environment identifiers as a key for environments.
+\begin{proof}
+  The proof of injectivity and surjectivity are shown by construction. The relation is surjective because a new identifier is only assigned when a new environment is created. To prove injectivity, we intuit that $\env_i\ne\env_j$ implies that there is a series of modified environments $\{\env_i,\env_{i+1},\dots,\env_{j-1},\env_j\}$ (without loss of generality, assume $\env_i$ is an earlier environment than $\env_j$). By construction, each element of the set $\{i_\env(\env_i),i_\env(\env_{i+1}),\dots,i_\env(\env_j)\}$ is unique. Thus $i_\env(\env_1)\ne i_\env(\env_2)$.
+\end{proof}
 
 \subsubsection{Modifications to the post-processing rules}
 \label{sec:memoization-postprocessing}
