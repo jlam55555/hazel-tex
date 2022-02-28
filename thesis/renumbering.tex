@@ -1,17 +1,45 @@
 \section{Memoizing hole instance numbering using environments}
 \label{sec:renumbering}
 
-TODO: this is currently a quick dump of handwritten stuff to typed text; need to partition this into sections
+TODO: this chapter is currently a quick dump of handwritten stuff to typed text; need to partition this into sections
 
-Consider the following program.
+\subsection{Rationale behind hole instances and unique hole closures}
+\label{sec:instance-illustration}
+
+% TODO: address the fact that this is not covered in detail in the Hazelnut paper, so we'll flesh it out here
+% was really glossed over
 
 \begin{listing}
 \inputhminted{instance_illustration}
 \caption{Illustration of hole instances}
-\label[figure]{fig:instance-illustration}
+\label{fig:instance-illustration}
 \end{listing}
 
-\hmintinline{let a = /\lbd/ x . { x + 2 } in 2 + a}
+Consider the program displayed in \Cref{fig:instance-illustration}. The evaluation result of the program is \[
+[a\leftarrow[\varnothing]\hehole^1,x\leftarrow 3]\hehole^2
++ [a\leftarrow[\varnothing]\hehole^1,x\leftarrow 4]\hehole^2
+\] Note that the two instances of \heh2 have different environments, adn we thus distinguish between the two occurrences of \heh2 as separate \textbf{instances} of a hole. However, note that while there are also two instances of the hole \heh1 in the result, these share the same (physically equal) environment. No matter what expression we fill hole \heh1 with (for example, using the fill-and-resume operation) the hole will evaluate to the same value. This differs from the hole \heh2, whose filling may cause different instances to evaluate to different values due to non-capture-avoiding substitution. For example, filling hole \heh2 with the expression $x+2$ will cause the instances to resolve to $5$ and $6$, respectively.
+
+The current implementation assigns an identifier $i$ to each instance of a hole, and the instance number is unique between all instances of a hole. While this makes perfect sense for \heh2, the assignment of two separate holes to \heh1 may confuse Hazel users, since these hole instances are identical and filling them with any value will result in the same value. The solution is to unify all instances of a hole which share the same (physically equal) environment, and thus identify hole instances by hole number and environment. A set of hole instances that share the same environment will be called a \textbf{unique hole closure}, or simply \textbf{hole closure}\footnote{``Hole closure'' also is used to describe the generalized closure around hole expressions as described in \Cref{sec:env_model_evaluation}. Here we are referring to the set of instances of the same hole that share the same physical environment. Hence we call this interpretation ``unique hole closure'' to distinguish it from the former interpretation, but the interpretation should be clear from context.}.
+
+To illustrate why physical equality is used to identify environments, consider the case shown in \Cref{fig:physical-equality-illustration}. This simpler program evaluates to \[
+  [x\leftarrow 2]\hehole^1 + [x\leftarrow 2]\hehole^1
+\] In this case, hole 1 has two instances with two environments with structurally equal bindings. If the argument to the second invocation of $f$ is changed to $3$, then the holes will have different environments and may thus fill to different values. This may be confusing to the Hazel user; what appears to be a single hole closure is actually two different hole closures which incidentally have the same values bound to its variables.
+
+An intuitive way of understanding the use of physical equality is that separate \textit{instantiations} of the same hole should be distinguished. This is highly related to function applications. A hole may only appear multiple times in the result in two different ways: it may exist in the body of a function that is multiple times (multiple hole instantiations), or it may appear in a hole that is referenced from other holes (shared hole instantiation). An implication of this is that the values bound to an environment do not affect whether it is distinguished from another hole closure.
+
+\begin{listing}
+\inputhminted{physical_equality_illustration}
+\caption{Illustration of physical equality for environment memoization}
+\label{fig:physical-equality-illustration}
+\end{listing}
+
+% TODO: describe current hole instance numbering
+% TODO: describe hole blowup problem
+% TODO: explain "renumbering" word (used in code)
+% TODO: discuss hole numbering order (old/new)
+% TODO: describe solution with memoization of environments
+% TODO: describe why hole parents breaks some memoization (again)
 
 \begin{singlespace}
   % see: https://tex.stackexchange.com/a/110156
