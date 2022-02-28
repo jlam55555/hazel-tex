@@ -1,20 +1,36 @@
 \section{Background}
 \label{sec:background}
 
+This chapter is intended to provide a practical introduction to the theory of functional programming and programming languages, as relevant to this work on Hazel. It is in particular geared towards engineers with a general programming background, and especially a background programming in imperative languages.
+
 \subsection{Functional programming}
 \label{sec:fp}
 
-\subsubsection{Recursion and mathematical induction}
-\label{sec:recursion}
+Functional programming is a programming paradigm tat is highly involved with function application, function composition, and first-class functions. It is generally a subtype of, and often associated with, the declarative programming paradigm, which is concerned with expression-based computation, often without mutable state or side-effects. Declarative programming is often considered the complement of imperative programming, which may be characterized as programming with mutable state, side effects, or statements. Purely functional programming is a subset of functional programming that deals solely with pure functions; non-pure languages may allow varying degrees of mutable state but typically encourage the use of pure functions.
+
+Functional languages are based on Church's $\lambda$ calculus as its core evaluation and typing semantics, which provides a minimal foundation for computation. Functional programming's syntax is based off the $\lambda$ calculus. This, along with the lack of mutable state and side effects, allows functional programming to be easily mathematically modeled and reasoned about, making it particularly amenable to proofs about programming languages and programming language research. This is as opposed to in imperative programming, in which the mutable ``memory cell'' interpretation of variables and side-effects complicates formalizations.
+
+Hazel is one such (purely) functional programming languages. Other languages that are classified as functional include the ML family of languages, Haskell, Elm, and the LISP family of languages. Examples of imperative programming languages include C, C++, FORTRAN, Java, and Golang. A number of languages incorporate both functional and imperative styles, such as Javascript, Python, Scala, and Rust.
+
+% TODO: show a simple example of programs in these paradigms
 
 \subsubsection{The $\lambda$-calculus}
-\label{sec:lambda_calculus}
+\label{sec:lambda-calculus}
+
+% TODO: merge this section, the one above, the two below
+
+In any computer program, complexity is built through the use of algorithmic and data abstractions. The type of data abstractions in the ML family is described in \Cref{sec:ml-fam}.
+
+Algorithmic abstraction and Turing-completeness in the $\lambda$ calculus is requires function recursion. Recursion closely corresponds to mathematical induction, which allows us to elegantly model algorithms using the judgment-rule style notation described in \Cref{sec:semantics-notation}.
 
 \subsubsection{Purity and statefulness}
 \label{sec:purity}
 
 \subsubsection{The ML family, Elm, and Hazel}
-\label{sec:ml_fam}
+\label{sec:ml-fam}
+
+% ADTs
+% typing system
 
 \subsection{Implementations for programming languages}
 \label{sec:interpreters}
@@ -24,7 +40,7 @@ In order for a programming language to be practical, it must not only be defined
 It is important to note that the definition of a language (its syntax and semantics) are largely orthogonal to its implementation. In other words, a programming language does not dictate whether it requires a compiler or interpreter implementation, and languages sometimes have multiple implementations.
 
 \subsubsection{Compiler vs. interpreter implementations}
-\label{sec:comp_vs_interp}
+\label{sec:comp-vs-interp}
 
 % TODO: need citations for these definitions
 
@@ -43,9 +59,7 @@ The distinction between compiled and interpreted languages is not a very clear l
 Hazel is a purely interpreted language implementation, as optimizations for speed are not among its main concerns. However, performance is clearly one of the main concerns of this thesis project, but the gains will be algorithmic and use the nature of Hazel's structural editing and hole calculus to benefit performance, rather than changing the fundamental implementation. There is, however, a separate endeavor to write a compiled interpretation of Hazel\footnote{\url{https://github.com/hazelgrove/hazel/tree/hazelc}}, which is outside the scope of this project.
 
 \subsubsection{The substitution and environment models of evaluation}
-\label{sec:sub_vs_eval}
-
-% TODO: move the non-Hazel related parts of this to the background section
+\label{sec:sub-vs-eval}
 
 % REF: https://cs.brown.edu/courses/cs173/2012/book/From_Substitution_to_Environments.html
 % REF: https://www.cs.bham.ac.uk/research/projects/poplog/paradigms_lectures/lecture18.html
@@ -67,15 +81,15 @@ Note that the substitution model does not imply a lazy (i.e., normal-order, call
 The implementation of evaluation with environments differs from that of evaluation with substitution primarily in that: an evaluation environment is required to look up bound variables as evaluation reaches them; binding constructs extend the evaluation environment rather than performing substitution; and $\lambda$ abstractions are bound with their evaluation environment at runtime to form (lexical) closures.
 
 \subsection{Programming language semantics}
-\label{sec:type_systems}
+\label{sec:type-systems}
 
 \subsubsection{Notation}
-\label{sec:semantics_notation}
+\label{sec:semantics-notation}
 
 % little-step vs. big-step
 
 \subsubsection{Static and dynamic semantics}
-\label{sec:static_dynamic_semantics}
+\label{sec:static-dynamic-semantics}
 
 \subsubsection{Gradual typing}
 \label{sec:gradual}
