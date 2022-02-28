@@ -237,11 +237,29 @@ Note that the $\pplco$ algorithm only takes an internal expression $d$ as its in
 \subsection{Post-processing memoization}
 \label{sec:memoization}
 
+We may wonder if there is repeated processing if the same closure environment is encountered multiple times in the evaluation result. If we can identify and look up environments, then we can memoize their postprocessing.
+
 \subsubsection{Modifications to the environment datatype}
 \label{sec:memoization-evalenv}
 
+Memoization of environments requires a unique key for each environment. The existing environment type \mintinline{ocaml}|Environment.t| is a map $\env=x\mapsto d$. We introduce a new environment type \mintinline{ocaml}|EvalEnv.t|\footnote{This is the name in the current implementation (due to this environment type being specialized for evaluation), but perhaps a better name is \mintinline{ocaml}|MemoEnv.t|.} that is the product of an identifier and the variable map $\env=(\text{id}_\env,x\mapsto d)$, in which $\text{id}_\env$ indicates a unique environment identifier.
+
+To ensure that there is a bijection between environment identifiers and environments, a new unique identifier must be generated each time an environment is extended. An instance of \mintinline{ocaml}|EvalEnvIdGen.t| is used to generate a new unique identifier, and is required as an additional argument to functions in the \mintinline{ocaml}|EvalEnv| module that modify the environment.
+
+Note that while physical identity may be used to distinguish between different environments, it is difficult to use for efficient lookups due to the abstraction of pointers in a high-level language like OCaml or Javascript. We may think of numeric identifiers (in general) as high-level pointers. We may state this property of environment identifiers as a metatheorem.
+
+\begin{theorem}[Use of $\text{id}_\env$ as an identifier]
+  The mapping $i_\env:\sigma\mapsto\text{id}_\env$ that maps environments (identified up to physical equality) to their assigned environment identifiers is a bijection.
+\end{theorem}
+
+The proof of injectivity and surjectivity may both be shown trivially by construction. This theorem allows us to use environment identifiers as a key for environments.
+
 \subsubsection{Modifications to the post-processing rules}
 \label{sec:memoization-postprocessing}
+
+During substitution postprocessing ($\pplc$), a mapping $\text{id}_\env\mapsto\env$ stores the set of substituted (postprocessed) environments. Upon encountering a closure in the evaluation result, it is looked up in this map. If it is found, the stored result is used. If it is not found, the environment is recursively substituted by applying $\pplco$ to each binding.
+
+% TODO: need to update these diagrams
 
 \begin{figure}
   \centering
@@ -254,18 +272,18 @@ Note that the $\pplco$ algorithm only takes an internal expression $d$ as its in
   \label{fig:big-step-memoization-rules}
 \end{figure}
 
-\subsection{Purity}
+\subsection{Implementation considerations}
+\label{sec:evalenv_impl_considerations}
+
+This section details various design decisions and tradeoffs of the current implementation; some parts of this may require an understanding of the hole closure numbering postprocessing step described in \Cref{sec:renumbering}.
+
+\subsubsection{Purity}
 \label{sec:env-purity}
 The purity of implementation is a recurring theme. While it should not affect the capability of the implementation, there is a strong urge to keep the implementation pure. Elegance, complexity, and runtime overhead is traded off for purity. The main decisions regarding purity are summarized here, and left for the consideration of future implementors.
 
 One offender of performance is the use of the fixpoint form when evaluating recursive functions. This involves extra evaluation steps for unwrapping fixpoints, and can be avoided with self-referential data structures, and more easily implemented using \mintinline{ocaml}|ref|s.
 
 An offender of elegance is the threading of the identifier generator around for memoized environments (\mintinline{ocaml}|EvalIdGen.t|). This can be much more easily implemented as a simple global counter; instead, it is passed to and returned from every call of the the core evaluator function (\mintinline{ocaml}|Evaluator.evaluate|), adding much clutter. The same is true for the generator for hole identifiers (\mintinline{ocaml}|MetaVarGen.t|).
-
-\subsection{Implementation considerations}
-\label{sec:evalenv_impl_considerations}
-
-This section details various design decisions and tradeoffs of the current implementation; some parts of this may require an understanding of the hole closure numbering postprocessing step described in \Cref{sec:renumbering}.
 
 \subsubsection{Data structures}
 \label{sec:data-structures}

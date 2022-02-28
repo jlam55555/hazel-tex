@@ -12,6 +12,7 @@ _region*
 *.lol
 *.lot
 *.toc
+*.loe
 
 # biblatex
 *.bbl

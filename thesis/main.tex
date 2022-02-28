@@ -27,6 +27,12 @@
 \usepackage{placeins}
 \usepackage[utf8]{inputenc}
 
+% https://www.overleaf.com/learn/latex/Theorems_and_proofs
+\usepackage{amsthm}
+\usepackage{thmtools}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+
 % https://tex.stackexchange.com/a/72691
 \usepackage[hang, flushmargin]{footmisc}
 \usepackage{hyperref}
@@ -53,6 +59,7 @@
 \renewcommand{\contentsname}{\vspace{-40pt}}
 \renewcommand{\listfigurename}{\vspace{-40pt}}
 \renewcommand{\listtablename}{\vspace{-40pt}}
+\renewcommand{\listtheoremname}{\vspace{-40pt}}
 
 % https://stackoverflow.com/a/32388972
 \renewcommand{\listoflistingscaption}{\vspace{-40pt}}
@@ -83,6 +90,10 @@
 \clearpage{}
 \pt{List of listings}
 \listoflistings{}
+
+\clearpage{}
+\pt{List of theorems}
+\listoftheorems{}
 
 % list of nomenclature/terminology/notation
 \clearpage
