@@ -1,6 +1,18 @@
 \section{Memoizing hole instance numbering using environments}
 \label{sec:renumbering}
 
+TODO: this is currently a quick dump of handwritten stuff to typed text; need to partition this into sections
+
+Consider the following program.
+
+\begin{listing}
+\inputhminted{instance_illustration}
+\caption{Illustration of hole instances}
+\label[figure]{fig:instance-illustration}
+\end{listing}
+
+\hmintinline{let a = /\lbd/ x . { x + 2 } in 2 + a}
+
 \begin{singlespace}
   % see: https://tex.stackexchange.com/a/110156
   \begin{figure}
