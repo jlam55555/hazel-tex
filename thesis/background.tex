@@ -167,12 +167,12 @@ The implementation of an evaluator with a program stepper capability (as is comm
 
 The big-step semantics is often simpler because it involves fewer rules, and is more efficient to implement. As a result, the implementation of evaluation in Hazel more closely follows the big-step semantics, and it is the notation used predominantly throughout this work.
 
-% TODO: make this its own subsection
-\subsection{Gradual typing}
-\label{sec:gradual}
+\section{Introduction to functional programming and the $\lambda$-calculus}
+\label{sec:fp-lc}
 
+To understand this work, one must have a satisfactory understanding of Hazel. Understanding Hazel requires some understanding of the \textit{functional programming paradigm}, as it is a stereotypical functional language. One must also have some knowledge of the \textit{gradually-typed $\lambda$-calculus} (GTLC) introduced by Siek \cite{Siek06gradualtyping,siek2015refined}. This itself is an extension of the simply-typed $\lambda$-calculus (STLC), which is an extension of the untyped $\lambda$-calculus (ULC), the simplest implementation of Church's $\lambda$-calculus. The STLC, the untyped $\lambda$-calculus, and Church's $\lambda$-calculus are standard textbook material in programming language theory \cite{harper2016practical}, but a brief overview will be provided here.
 
-\section{Functional programming}
+\subsection{Introduction to functional programming}
 \label{sec:fp}
 
 Functional programming \todoref{functional programming} is a programming paradigm that is highly involved with function application, function composition, and first-class functions. It is generally a subtype of, and often associated with, the declarative programming paradigm, which is concerned with expression-based computation, often without mutable state or side-effects. Declarative programming is often considered the complement of imperative programming, which may be characterized as programming with mutable state, side effects, or statements. Purely functional programming is a subset of functional programming that deals solely with pure functions; non-pure languages may allow varying degrees of mutable state but typically encourage the use of pure functions.
@@ -184,9 +184,16 @@ Hazel is one such (purely) functional programming languages. Other languages tha
 % TODO: show a simple example of programs in these paradigms
 
 \subsection{The $\lambda$-calculus}
+\label{sec:lambda-calc-intro}
+
+% TODO: purity and statefulness
+
+\todo{write this section, reference PFPL}
+
+\subsection{The untyped $\lambda$-calculus}
 \label{sec:lambda-calculus}
 
-\todo{this section is a mess at the moment; sorry}
+\todo{rewrite this section, reference PFPL}
 
 The simplest form of the $\lambda$ calculus, the \textit{untyped $\lambda$ calculus}, comprises only three expression forms:
 \begin{align}
@@ -196,6 +203,11 @@ The simplest form of the $\lambda$ calculus, the \textit{untyped $\lambda$ calcu
   e_1\ e_2\tag{Function application}
 \end{align}
 where $e$, $e_1$, and $e_2$ are also expressions of one of these three forms. A $\lambda$ abstraction is also known as a $\lambda$ expression, $\lambda$ function, anonymous function, or simply function, and function application is also known as function invocation or $\beta$-reduction\footnote{A few notes for the imperative programmer: $\lambda$ functions only take a single parameter. A function of multiple parameters may be constructed as a series of recursive functions, each taking a single parameter -- a process known as \textit{currying}. Similarly, function application comprises two expressions, the first in \textit{function position} (which must evaluate to a $\lambda$ function), and the second in \textit{argument position}. Function application is traditionally (e.g., in the ML and Haskell families of programming languages, although LISP is an exception) denoted using the infix operator `` '' (space), which has the highest precedence of any infix operator; parentheses are only used to indicate order of operations and typically omitted when not necessary.}. The only reduction in the untyped $\lambda$ calculus is $\beta$-reduction, which is stated as follows.\[(\lambda x.e_1)\ e_2\to [e_1/x]e_2\] The notation $[x/y]z$ indicates substitution, and may be pronounced ``the substitution of $x$ for $y$ in $z$.'' According to computability theory, since the untyped $\lambda$ calculus supports general recursion (through the use of a fixpoint operator), it is Turing-complete.
+
+\subsection{The simply-typed $\lambda$-calculus}
+\label{sec:stlc}
+
+\todo{rewrite this section, reference pfpl}
 
 While the untyped $\lambda$ calculus is Turing-complete and thus as expressive as any other Turing-complete programming language, this is far too tedious to be of any practical use. In this minimal foundation, we do not have base types such as integers or booleans\footnote{In the untyped $\lambda$ calculus, the only value type are $\lambda$ abstractions. Any other data type, such as the set of natural numbers or booleans, may be represented using $\lambda$ abstractions via \textit{Church encoding}.} or a typing system. The typical formulation of the \textit{simply-typed $\lambda$ calculus} extends the untyped $\lambda$ calculus with a (non-$\lambda$ abstraction) base type $b$ of type $B$, and a type $\tau\in $ TODO: working here; this is a mess
 
@@ -207,18 +219,12 @@ While the untyped $\lambda$ calculus is Turing-complete and thus as expressive a
 
 % TODO: for practical purposes, let and case expressions
 
-% TODO: introduce gradually-typed lambda calculus
+\subsection{The gradually-typed $\lambda$-calculus}
+\label{sec:gradual}
 
-\subsection{Purity and statefulness}
-\label{sec:purity}
+\todo{write this section, reference Siek06gradualtyping,siek2015refined}
 
-\subsection{The ML family, Elm, and Hazel}
-\label{sec:ml-fam}
-
-% ADTs
-% typing system
-
-\section{Implementations for programming languages}
+\section{Implementations of programming languages}
 \label{sec:interpreters}
 
 In order for a programming language to be practical, it must not only be defined as a set of syntax and semantics, but also have an \textit{implementation} to run programs in the language. Hazel is implemented as an interpreted language, whose runtime is transpiled to Javascript so that it may be run as a client-side web application in the browser.
@@ -262,23 +268,25 @@ Note that the substitution model does not imply a lazy (i.e., normal-order, call
 
 The implementation of evaluation with environments differs from that of evaluation with substitution primarily in that: an evaluation environment is required to look up bound variables as evaluation reaches them; binding constructs extend the evaluation environment rather than performing substitution; and $\lambda$ abstractions are bound with their evaluation environment at runtime to form (lexical) closures.
 
-% \subsection{Approaches to programming interfaces}
-% \label{sec:prog-intf}
+\section{Approaches to programming interfaces}
+\label{sec:prog-intf}
 
-% \subsubsection{Structure editors}
-% \label{sec:structure-editors}
+\todo{need to fill out this section}
 
-% \subsubsection{Graphical editors}
-% \label{sec:graphical-editors}
+\subsection{Structure editors}
+\label{sec:structure-editors}
+
+\subsection{Graphical editors}
+\label{sec:graphical-editors}
 
 % \subsubsection{Intentional, generative, and meta-programming}
 % \label{sec:intentional-programming}
 
-% \subsubsection{Applications to programming education}
-% \label{sec:programming-education}
+\subsection{Applications to programming education}
+\label{sec:programming-education}
 
-% \subsubsection{Drawbacks of non-textual editors}
-% \label{sec:textual-benefits}
+\subsection{Criticisms of non-textual editors}
+\label{sec:textual-benefits}
 
 %%% Local Variables:
 %%% mode: latex
