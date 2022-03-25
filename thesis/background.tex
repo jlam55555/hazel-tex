@@ -34,6 +34,66 @@ To ensure that the system of inference rules covers the entire semantics of a la
 \subsection{Static semantics}
 \label{sec:static-semantics}
 
+The \textit{static semantics} of a programming language describes specifications of a language that occur prior to program evaluation. Static semantics typically primarily refers to \textit{type checking}. In Hazelnut Live, we have the process of \textit{elaboration} that transforms the \textit{external language} (a program expressed in the syntax of Hazel) to the \textit{internal language} (an intermediate representation more amenable to evaluation), which occurs before evaluation and incorporates the type checking rules. Elaboration and the internal language will be discussed further in \Cref{sec:comp-vs-interp}. The type checking and elaboration algorithms form the static semantics of Hazel.
+
+The elaboration process will not be discussed here, as it is well-described in the formulation of Hazelnut Live \cite{conf/popl/HazelnutLive19}. On the other hand, it is formative to provide an overview of type checking. While the static semantics is not very important to the core work in this thesis, a fundamental understanding is key to understanding the motivation and bidirectionally-typed action calculus behind Hazel, as well as understanding the formulation of gradual typing described in \Cref{sec:gradual}.
+
+The \textit{typing judgment} $\Gamma\vdash e:\tau$ states that, with respect to the typing context $\Gamma$, the expression $e$ is well-typed with type $\tau$. The typing context is a set of variable typing judgments $\{x:\tau\}$. A few sample typing judgments are shown below.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{TNum}{}{\Gamma\vdash\hnum{n}:\tnum}
+    \and
+    \Infer{TVar}{}{\Gamma,x:\tau\vdash x:\tau}
+    \and
+    \Infer{TAnnArr}{
+      \Gamma,x:\tau_1\vdash e:\tau_2
+    }{\Gamma\vdash(\lambda x:\tau_1.e):\tau_1\to\tau_2}
+    \and
+    \Infer{TAp}{
+      \Gamma\vdash e_2:\tau_1 \\
+      \Gamma\vdash e_1:\tau_1\to\tau_2
+    }{\Gamma\vdash e_1\ e_2:\tau_2}
+  \end{mathpar}
+\end{singlespace}
+
+There are a few noteworthy items here. The syntax $\Gamma,x:\tau$ indicates that the typing context $\Gamma$ extended with the binding $x:\tau$. Thus, when it is part of the consequent, it means that we are stating the typing judgment with respect to a different typing context $\Gamma'=\Gamma,x:\tau$. The type of a number is always $\tnum$. The type of a variable may only be determined if its type exists in the typing context (which, according to this limited set of rules, may only be extended during a function application). Lambda expressions can only be typed if they are fully-annotated: i.e., if the argument's type is annotated and the body is also assigned a type. This example typing system is very minimal and not practical for larger systems: every $\lambda$-abstraction would have to be typed for the entire expression to be well-typed. Consider even the simple example $(\lambda x.x)\ 2$, which cannot be typed according to the simple system above due to the unannotated $\lambda$-abstraction.
+
+A type system that allows for fewer type annotations, while remaining reasonably simple to formulate and implement, is \textit{bidirectional typing} \cite{Dunfield_2022,chlipala2005strict,pierce2000local}, or \textit{local type inference}. Bidirectional typing involves two typing judgments: the \textit{typing synthesis judgment} $\Gamma\vdash e\Rightarrow\tau$ (pronounced ``given typing context $\Gamma$, expression $e$ synthesizes type $\tau$), and the \textit{type analysis judgment} $\Gamma\vdash e\Leftarrow\tau$ (pronounced ``given typing context $\Gamma$, expression $e$ analyzes against type $\tau$). The type synthesis judgment outputs a type (the exact or ``narrowest'' type of the expression), whereas the type analysis judgment takes a type as an input and ``checks'' the expression against that (``wider'') type. With these two judgments, we may be able to loosen the antecedant judgments when synthesizing a type. We may re-express the above type system into a similar (and incomplete) bidirectional type system.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{TSynNum}{}{\Gamma\vdash\hnum{n}\Rightarrow\tnum}
+    \and
+    \Infer{TSynVar}{}{\Gamma,x:\tau\vdash x\Rightarrow\tau}
+    \and
+    \Infer{TSynAnnArr}{
+      \Gamma,x:\tau_1\vdash e\Rightarrow\tau_2
+    }{\Gamma\vdash(\lambda x:\tau_1.e)\Rightarrow\tau_1\to\tau_2}
+    \and
+    \Infer{TSynAp}{
+      \Gamma\vdash e_2\Rightarrow\tau_1 \\
+      \Gamma\vdash e_1\Leftarrow\tau_1\to\tau_2
+    }{\Gamma\vdash e_1\ e_2\Rightarrow\tau_2}
+    \and
+    \Infer{TAnaArr}{
+      \Gamma,x:\tau_1\vdash e\Leftarrow\tau_2
+    }{\Gamma\vdash\lambda x.e\Leftarrow\tau_1\to\tau_2}
+    \and
+    \Infer{TAnaSubsume}{
+      \Gamma\vdash e\Rightarrow\tau
+    }{\Gamma\vdash e\Leftarrow\tau}
+  \end{mathpar}
+\end{singlespace}
+
+Now, we may synthesize the type of $(\lambda x.x)\ 2$; the derivation uses all of the rules above. Note the presence of the last rule; \textit{subsumption} states that an expression analyzes against its synthesized type, which should fit the earlier intuition of type synthesis producing the ``narrowest'' type and type analysis checking against a ``wider'' type. Subsumption allows us to avoid manually writing type analysis rules for most types.
+
+Algorithmically, bidirectional typing begins by synthesizing the type of the top-level expression; if it successfully synthesizes, then the expression is well-typed. A more complete discussion of bidirectional typing is left to Dunfield \cite{Dunfield_2022}, who provides an overview of bidirectional typing, or to the formulation of Hazel's bidirectional typing \cite{conf/popl/Hazelnut17}. Hazelnut is at its core a bidirectionally-typed ``edit calculus'' \cite{conf/popl/Hazelnut17}, citing the balance of usability and simplicity of implementation.
+
+More advanced type inference algorithms such as type unification are used in the highly advanced type systems of languages such as Haskell \cite{gundry2013type}, and are out of scope for this work.
+
+\todo{maybe discuss elaboration, at least the form of the judgment and explain the hole context?}
+
 \subsection{Dynamic semantics}
 \label{sec:dynamic-semantics}
 
@@ -51,7 +111,7 @@ In Hazel, we have other base types such as integers, floats, and booleans, which
 
 The rules that are used to define the dynamic semantics of a programming language are called \textit{operational semantics}, because they model the operation of a computer when compiling or evaluating a programming language. There are two major styles of operational semantics.
 
-The first of these styles is \textit{structural operational semantics} as introduced by Plotkin \cite{plotkin1981structural} (alternatively, \textit{small-step semantics}). In the small-step semantics, the judgments are of the form $e_1\to e_2$, where $e_1$ and $e_2$ are expressions in the language, and $\to$ is the operation being defined.
+The first of these styles is \textit{structural operational semantics} as introduced by Plotkin \cite{plotkin1981structural} (alternatively, \textit{small-step semantics}). In the small-step semantics, the \textit{evaluation judgment} is $e_1\to e_2$, where $e_1$ and $e_2$ are expressions in the language, and $\to$ is the operation being defined.
 
 For example, let us describe the dynamic semantics of an addition operation using a small-step semantics. This is described using the following three rules:
 
@@ -67,7 +127,7 @@ For example, let us describe the dynamic semantics of an addition operation usin
 
 The algorithm carries itself out as follows: while $e_1$ is reducible, reduce it using some applicable evaluation rule. Once $e_1$ becomes a value, the first rule is no longer applicable (as $e_1$ cannot further reduce) and $e_2$ reduces until it too is a value. Finally, the third rule is applicable, and reduces the expression down to a single number literal. Note that if either $e_1$ or $e_2$ do not reduce down to a number literal, then the expression will not evaluate fully; this kind of failure cannot happen in a strongly-typed language due to typing rules.
 
-The second of these styles is \textit{natural operational semantics} as introduced by Kahn \cite{Kahn1987NaturalS} (alternatively, \textit{big-step semantics}). In the big-step semantics, the judgments are of the general form $e\Downarrow v$, where $e$ is an expression in the language, $\Downarrow$ represents some operation that is being defined, and $v\textsf{ value}$.
+The second of these styles is \textit{natural operational semantics} as introduced by Kahn \cite{Kahn1987NaturalS} (alternatively, \textit{big-step semantics}). In the big-step semantics, the evaluation judgment is $e\Downarrow v$, where $e$ is an expression in the language, $\Downarrow$ represents some operation that is being defined, and $v\textsf{ value}$.
 
 To express the evaluation of addition in the big-step semantics, we need only a single rule. In this case, the antecedants indicate that the subexpressions must be recursively evaluated, but (as noted earlier) this notably doesn't specify the order of evaluation of the antecedants, unlike the small-step notation.
 

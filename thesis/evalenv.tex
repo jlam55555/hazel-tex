@@ -1,14 +1,14 @@
-\section{Implementing the environment model of evaluation}
+\chapter{Implementing the environment model of evaluation}
 \label{sec:env_model_evaluation}
 
-\subsection{Hazel-specific implementation}
+\section{Hazel-specific implementation}
 \label{sec:eval_with_envs}
 
 In the case of Hazel (which does not prioritize speed of evaluation in its implementation, and is not a compiled language), evaluation with (reified) environments offers an additional (performance) benefit over the substitution model: the ability to easily identify (and thus memoize) operations over environments. This is useful for the optimizations described later in this paper.
 
 The implementation of evaluation in Hazel differs from a typical interpreter implementation of evaluation with environments in three regards: we need to account for hole environments; environments are uniquely identified by an identifier for memoization (in turn for optimization); and any closures in the evaluation result should be converted back into plain $\lambda$ abstractions.
 
-\subsubsection{Evaluation rules}
+\subsection{Evaluation rules}
 \label{sec:evalenv-rules}
 
 % TODO: walk through simple example
@@ -45,7 +45,7 @@ Function application is broken into two cases: if the expression in function pos
 
 \mintinline{ocaml}|let| bindings extend the current lexical environment with the bound variable. As with $\lambda$-abstractions, the case in which the pattern match fails is described in \Cref{sec:failed_pattern_match}.
 
-\subsubsection{Evaluation of holes}
+\subsection{Evaluation of holes}
 \label{sec:holeenv_evalenv_connection}
 
 Hole expressions are separated into the empty and non-empty cases due to the lack of empty exprsessions, as in the original Hazelnut and Hazelnut Live descriptions. When evaluation reaches a hole, the hole environment is simply set to be equal to the lexical environment. In this interpretation, free variables do not exist in the hole environment.
@@ -54,7 +54,7 @@ Note that the initial hole environment is different than in the substitution mod
 
 It is convenient to replace the identity substitution with a distinguished empty environment (represented by $\varnothing$) that indicates that evaluation has not yet reached a hole. This will also be useful for detecting errors with the evaluation boundary discussed in \Cref{sec:closures_to_lambdas}.
 
-\subsubsection{Evaluation of recursive functions}
+\subsection{Evaluation of recursive functions}
 \label{sec:rec_impl}
 
 When evaluating with substitution, recursion needs to be explicitly handled using a fixpoint form that allows for self-recursion, otherwise inifinitely recursive substitution will occur.
@@ -121,7 +121,7 @@ The performance improvement is described in \Cref{sec:evaluation}. The complexit
 %   \label{fig:tying-the-knot}
 % \end{figure}
 
-\subsection{The evaluation boundary and general closures}
+\section{The evaluation boundary and general closures}
 \label{sec:closures_to_lambdas}
 
 Evaluation with the environment model is ``lazy'' in that evaluation steps that require the environment (e.g., evaluation of holes, and evaluation of variables) are only performed when evaluation reaches the expression of interest. Evaluation with the substitution model is ``eager'' because variable variable values propagate through all subexpressions (even unevaluated ones) upon binding. While lazy evaluation is better for performance, in the Hazel environment we expect to see fully-substituted values in the context inspector for hole contexts environments. This means that we require a postprocessing step to perform substitution of bound variables in environments to achieve the same result as if we had evaluated by means of substitution.
@@ -130,7 +130,7 @@ In other words, any unevaluated expression must be ``caught up'' to the substitu
 
 We define the \textbf{evaluation boundary} to be the conceptual distinction between expressions for which evaluation has reached (``inside'' the boundary), and for those that remain unevaluated (``outside'' the boundary). This definition will be useful for describing the postprocessing algorithm.
 
-\subsubsection{Evaluation of failed pattern matching using generalized closures}
+\subsection{Evaluation of failed pattern matching using generalized closures}
 \label{sec:failed_pattern_match}
 
 There are two cases where an expression in the evaluation result may lie outside the evaluation boundary. The first is in the body of a $\lambda$ expression. A $\lambda$ expression evaluates to a closure, and thus captures an environment with it. The second case is that of an unmatched \mintinline{ocaml}|let| or \mintinline{ocaml}|case| expression (in which the scrutinee matches none of the rules), for which the body expression(s) will remain unevaluated in the result without an associated environment\footnote{There is a third place where pattern-matching may fail: the pattern of an applied $\lambda$ abstraction may not match its argument. However, this is not an issue since there exists a function closure containing the unevaluated expression's environment.}. This is not captured in the original description of Hazelnut Live \cite{conf/popl/HazelnutLive19} or in this paper because pattern-matching is not a primary concern of either of these works. However, it is a practical concern that arises from the introduction of evaluation with environments.
@@ -139,7 +139,7 @@ We solve this by introducing (lexical) \textbf{generalized closures}, the produc
 
 The application of generalized closures to the problem of unevaluated \mintinline{ocaml}|let| or \mintinline{ocaml}|case| bodies is straightforward: if there is a failed pattern match, wrap the entire expression in a (generalized) closure with the current lexical environment. Then, the postprocessing can successfully perform the substitution.
 
-\subsubsection{Generalization of existing hole types}
+\subsection{Generalization of existing hole types}
 \label{sec:generalized-closures-datatypes}
 
 \begin{figure}
@@ -178,21 +178,21 @@ This implementation of closures is an improvement in two ways. Firstly, it simpl
 
 Note that while the generalized closures for the body expressions of $\lambda$ abstractions, unmatched \mintinline{ocaml}|let| expressions, and unmatched \mintinline{ocaml}|case| expressions represent expressions outside of the evaluation boundary, the expressions within non-empty holes (which also are bound to a hole closure) lie within the evaluation boundary. This shows the two goal that generalized closures achieve; to encapsulate a stopped expression (which is used during postprocessing to perform substitution), and to encapsulate an expression to be fill-and-resumed.
 
-\subsubsection{Alternative strategies for evaluating past the evaluation boundary}
+\subsection{Alternative strategies for evaluating past the evaluation boundary}
 \label{sec:alt_strat_unevaluated}
 
 Without generalized closures, unevaluated expressions (body expressions of $\lambda$ abstractions, unmatched \mintinline{ocaml}|let| expressions, and unmatched \mintinline{ocaml}|case| expressions) may be filled by a modified form of evaluation, which is only different in that a failed lookup (due to unmatched variables) will leave the variable unchanged\footnote{Ordinarily, a lookup on a \mintinline{ocaml}|BoundVar| (a variable which is in scope) should never fail during evaluation, and thus throws an exception during evaluation.}. However, this is essentially the same as substitution, and is expensive to do during evaluation. Also, while this speculative execution would be reasonable for \mintinline{ocaml}|let| expressions, it would be highly undesirable for \mintinline{ocaml}|case| expression, where it is easy to imagine an example where speculative execution leads to infinite recursion.
 
 Another way to eliminate the case of unmatched expressions is to introduce an exhaustiveness checker to Hazel; then, we can guarantee (at run-time) that a pattern will never fail to match. This would also require changing the semantics of pattern holes, which always fail to match; the behavior may be changed so that pattern holes always match, but do not introduce new bindings. Since the focus of this work is not on patterns, these ideas were not explored and are left for future work in the Hazel project.
 
-\subsection{The postprocessing substitution algorithm ($\pplc$)}
+\section{The postprocessing substitution algorithm ($\pplc$)}
 \label{sec:postprocessing-substitution}
 
 The postprocessing process aims to perform substitution on expressions that lie outside the evaluation boundary in the evaluation result (an internal expression). The algorithm works in two stages: first inside the evaluation boundary, and then proceeding outside when necessary in closures.
 
 The symbol chosen to denote postprocessing is $\pplc$. The choice of symbol is somewhat arbitrary, but we may read it as ``reverting'' some expressions generated by and useful for evaluation (i.e., closures) to a more context-inspector-friendly form, which is in some sense the opposite of evaluation ($\Downarrow$). The bracket subscript indicates that this post-processing step is intended to remove closure expressions. The two stages of this algorithm will be denoted $\pplco$ and $\pplct$, respectively.
 
-\subsubsection{Substitution within the evaluation boundary ($\pplco$)}
+\subsection{Substitution within the evaluation boundary ($\pplco$)}
 \label{sec:postprocessing-subst-inside}
 
 When inside the evaluation boundary, all (bound) variables have been looked up and all hole environments assigned, so there is no need for a stored environment (as there is in a closure). The main point of this step is to recurse through the expression until a closure is found, at which point we enter the second stage.
@@ -207,7 +207,7 @@ Note that in the implementation with recursive data structures used to represent
 
 % TODO: are the other hole types all considered non-empty holes?
 
-\subsubsection{Substitution outside the evaluation boundary ($\pplct$)}
+\subsection{Substitution outside the evaluation boundary ($\pplct$)}
 \label{sec:postprocessing-subst-outside}
 
 When outside the evaluation boundary (and inside a closure), we need to substitute bound variables\footnote{The wording is a little tricky here, since there are the \mintinline{ocaml}|BoundVar| and \mintinline{ocaml}|FreeVar| internal expression variants, which refer to variables which are in scope or not in scope. However, we may only substitute variables which are in-scope (\mintinline{ocaml}|BoundVar|) and bound; some instances may not yet be bound.} and assign an environment to holes.
@@ -234,12 +234,12 @@ Note that the $\pplco$ algorithm only takes an internal expression $d$ as its in
   \label{fig:big-step-inside-formal}
 \end{figure}
 
-\subsection{Post-processing memoization}
+\section{Post-processing memoization}
 \label{sec:memoization}
 
 We may wonder if there is repeated processing if the same closure environment is encountered multiple times in the evaluation result. If we can identify and look up environments, then we can memoize their postprocessing.
 
-\subsubsection{Modifications to the environment datatype}
+\subsection{Modifications to the environment datatype}
 \label{sec:memoization-evalenv}
 
 Memoization of environments requires a unique key for each environment. The existing environment type \mintinline{ocaml}|Environment.t| is a map $\env=x\mapsto d$. We introduce a new environment type \mintinline{ocaml}|EvalEnv.t|\footnote{This is the name in the current implementation (due to this environment type being specialized for evaluation), but perhaps a better name is \mintinline{ocaml}|MemoEnv.t|.} that is the product of an identifier and the variable map $\env=(\text{id}_\env,x\mapsto d)$, in which $\text{id}_\env$ indicates a unique environment identifier.
@@ -258,7 +258,7 @@ Note that while physical identity may be used to distinguish between different e
   The proof of injectivity and surjectivity are shown by construction. The relation is surjective because a new identifier is only assigned when a new environment is created. To prove injectivity, we intuit that $\env_i\ne\env_j$ implies that there is a series of modified environments $\{\env_i,\env_{i+1},\dots,\env_{j-1},\env_j\}$ (without loss of generality, assume $\env_i$ is an earlier environment than $\env_j$). By construction, each element of the set $\{i_\env(\env_i),i_\env(\env_{i+1}),\dots,i_\env(\env_j)\}$ is unique. Thus $i_\env(\env_1)\ne i_\env(\env_2)$.
 \end{proof}
 
-\subsubsection{Modifications to the post-processing rules}
+\subsection{Modifications to the post-processing rules}
 \label{sec:memoization-postprocessing}
 
 During substitution postprocessing ($\pplc$), a mapping $\text{id}_\env\mapsto\env$ stores the set of substituted (postprocessed) environments. Upon encountering a closure in the evaluation result, it is looked up in this map. If it is found, the stored result is used. If it is not found, the environment is recursively substituted by applying $\pplco$ to each binding.
@@ -276,12 +276,12 @@ During substitution postprocessing ($\pplc$), a mapping $\text{id}_\env\mapsto\e
   \label{fig:big-step-memoization-rules}
 \end{figure}
 
-\subsection{Implementation considerations}
+\section{Implementation considerations}
 \label{sec:evalenv_impl_considerations}
 
 This section details various design decisions and tradeoffs of the current implementation; some parts of this may require an understanding of the hole closure numbering postprocessing step described in \Cref{sec:renumbering}.
 
-\subsubsection{Purity}
+\subsection{Purity}
 \label{sec:env-purity}
 The purity of implementation is a recurring theme. While it should not affect the capability of the implementation, there is a strong urge to keep the implementation pure. Elegance, complexity, and runtime overhead is traded off for purity. The main decisions regarding purity are summarized here, and left for the consideration of future implementors.
 
@@ -289,12 +289,12 @@ One offender of performance is the use of the fixpoint form when evaluating recu
 
 An offender of elegance is the threading of the identifier generator around for memoized environments (\mintinline{ocaml}|EvalIdGen.t|). This can be much more easily implemented as a simple global counter; instead, it is passed to and returned from every call of the the core evaluator function (\mintinline{ocaml}|Evaluator.evaluate|), adding much clutter. The same is true for the generator for hole identifiers (\mintinline{ocaml}|MetaVarGen.t|).
 
-\subsubsection{Data structures}
+\subsection{Data structures}
 \label{sec:data-structures}
 
 As is common in functional programming, the most common data structures used are (linked) lists and maps (binary search trees). The standard library modules \mintinline{ocaml}|List| and \mintinline{ocaml}|Map| are used for these. In particular, the original implementation uses linked-lists for the implementation of environments, and we have not modified this decision. In Hazel, The hole closure storage data structures \mintinline{ocaml}|HoleClosureInfo_.t| and \mintinline{ocaml}|HoleClosureInfo.t| use a combination of maps and lists. Hashtables were not used at all in the implementation; their effect on performance is unknown and is reserved for future work.
 
-\subsubsection{Additional constraints due to hole closure numbering}
+\subsection{Additional constraints due to hole closure numbering}
 \label{sec:difficulties-hole-numbering}
 
 The introduction of hole closure parents in \Cref{sec:closure-parents} makes closure memoization more difficult for environments in non-hole closures. In particular, adding a new parent to a hole requires that the hole postprocessing (the hole closure numbering operation) be re-run on a hole. Memoizing the hole prevents a hole closure in an environment from being assigned multiple closure parents.
@@ -307,7 +307,7 @@ To summarize, the current state of the implementation involves environments with
   Let us consider the other cases of repeated environments. Note that these include non-hole closures with the same environment or in hole closures with a different hole number. Also, note that an environment may only be shared by expressions which are not separated by any binders, which can be very roughly characterized as the length of an infix expression omitting \mintinline{ocaml}|\lambda| abstraction, \mintinline{ocaml}|let| expression, and \mintinline{ocaml}|case| expression bodies. Firstly, we do not expect such expressions to be very long for a user prototyping a program in Hazel (rather, long expressions are more likely to be broken down into a series of \mintinline{ocaml}|let| expressions), whereas a long linear set of \mintinline{ocaml}|let| expressions to store intermediate values is very common in scripting. Secondly, the number of repetitions is only linear with respect to the number of times the environment is repeated, as opposed to the issue with non-memoized hole environments, in which the issue is exponential with respect to the level of repeated bindings. This is due to the fact that repeated hole closures in the environment will still be memoized, so the amount of repeated postprocessing does not recurse into children holes and cause the exponential blowup.
 }.
 
-\subsubsection{Storing evaluation results versus internal expressions}
+\subsection{Storing evaluation results versus internal expressions}
 \label{sec:result-vs-dhexp}
 
 The evaluation takes as input an internal expression and returns the evaluated internal expression along with a \textsf{final} judgment (either \mintinline{ocaml}|BoxedValue| or \mintinline{ocaml}|Indet|).
