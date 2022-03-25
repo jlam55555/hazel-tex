@@ -1,7 +1,7 @@
-\section{Introduction}
+\chapter{Introduction}
 \label{sec:introduction}
 
-\subsection{Problem statement}
+\section{Problem statement}
 \label{sec:prob_stmt}
 
 \begin{figure}
@@ -17,7 +17,7 @@ Hazel \cite{Hazel2022} is an experimental structural language definition and imp
 
 Hazel is a relatively new research effort by the University of Michigan's Future of Programming Lab (FPLab), with little effort placed on performance optimizations. This work attempts to achieve several enhancements that will benefit the performance of evaluation and related tasks. Part of the work will be the standard conversion from evaluation using the substitution model (simpler to reason about) to the environment model (more performant) \todoref{standard conversion}, with emphasis on evaluation of holes and postprocessing of the evaluation result to match the result from evaluation with substitution. The latter parts of this work will use the environment model of evaluation to improve the memoization of certain tasks related to Hazel's structure (such as hole closure numbering), and also implement the fill-and-resume performance enhancement described in \cite{conf/popl/HazelnutLive19}. The novelty of this work lies in the novelty and optimization opportunity of Hazel's hole-based static and dynamic semantics.
 
-\subsection{The contribution of this work}
+\section{The contribution of this work}
 \label{sec:contribution}
 
 This thesis presents several algorithms designed for Hazel's evaluation:
@@ -32,10 +32,8 @@ In addition to the algorithms above, several core concepts or data structures ar
 
 The performance of this work is measured primarily in terms of empirical performance gains (via evaluation-step counting and benchmarking), and discussed with respect to the theoretical performance. This proof of correctness of the algorithms was not mechanized in the Agda proof assistant as was much of the core of Hazelnut \cite{conf/popl/Hazelnut17} and Hazelnut Live \cite{conf/popl/HazelnutLive19}. Instead, correctness of implementation is validated by standard software testing procedures with manual test cases, and a mechanized proof is deferred for future work.
 
-\subsection{Structural overview}
+\section{Structural overview}
 \label{sec:structural_overview}
-
-\todo{Will change Section to Chapter (documentclass from article to book) at some later time}
 
 \Cref{sec:prog_lang_principles} provides a background on necessary topics in programming language (PL) theory and programming language implementations, in order to frame understanding for the Hazel live programming environment. \Cref{sec:hazel} provides an overview of Hazel, in order to frame the work completed for this thesis project. \Crefrange{sec:env_model_evaluation}{sec:far_impl} describe the primary work completed for this project, as described in \Cref{sec:contribution}. \Cref{sec:evaluation} comprises an assessment of the work completed in terms of correctness and the theoretical performance. \Cref{sec:future_work} is a discussion of future research directions that may be spawned off from this work. \Cref{sec:concl} concludes with a summary of findings and future work. The Appendices contain additional information about the Hazel project not directly related to the primary contribution of this project, as well as selected source code snippets.
 

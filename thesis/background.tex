@@ -1,9 +1,95 @@
-\section{Programming language principles}
+\chapter{Programming language principles}
 \label{sec:prog_lang_principles}
 
 This chapter is intended to provide a primer to the theory of functional programming and programming languages, as relevant to this work on Hazel.
 
-\subsection{Functional programming}
+\section{Specifications of programming languages}
+\label{sec:prog-lang-def}
+
+To be able to rigorously work with programming languages, as like any mathematical activity, we need to be able to precisely define the behavior of programming languages that serve as our interface to computation. We typically define the definition (or specification) of a programming language as the combination of its \textit{syntax} and \textit{semantics}, which will be discussed below.
+
+Note that the specification of a programming language is orthogonal to its \textit{implementation(s)}; a single programming language may have several implementations of the specification, which may have differing support for language features and different performance characteristics. Common classifications of programming language implementations are discussed in \Cref{sec:comp-vs-interp}.
+
+\subsection{Syntax}
+\label{sec:syntax}
+
+\todo{this section}
+
+\subsection{Notation for semantics}
+\label{sec:semantics-notation}
+In formal logic, a standard notation for \textit{rules of inference} is shown below.
+\begin{singlespace}
+  \[\Infer{SampleRule}{p_1 \\ p_2 \\ \dots \\ p_n}{q}\]
+\end{singlespace}
+$p_1,p_2,\dots,p_n$ are the \textit{antecedents} (alternatively, \textit{premises}) and $q$ is the (single) \textit{consequent} (alternatively, \textit{conclusion}). Each of $p_1,p_2,\dots,p_n,q$ is a \textit{judgment} (alternatively, \textit{proposition} or \textit{statement}); we may interpret the rule as: ``if all of $p_1,p_2,\dots,p_n$ are true, then $q$ must be true'' (the antecedent of the rule is the logical conjunction of the antecedants $\bigwedge_{i=1}^n p_i$). The logical disjunction of antecedants $\bigvee_{i=1}^n p_i$ is expressed by writing separate rules with the same consequent. A rule with zero premises is an \textit{axiom}, i.e., the conclusion is vacuously true. We may build up a formal logic system using such rules; in our case the formal specification of the static and dynamic semantics of a programming language. Note that the set of judgments that form the consequents of a rule, as well as the set of rules in a formal system, are both unordered; however, any computer program that carries out these judgments must choose some order in which to evaluate the set of antecedents or the order in which to evaluate a set of equally-viable rules.
+
+A derivation of a statement in such a system by chaining together inference rules, such that the final consequent is the statement to be proved.
+
+\todo{example of a derivation in a simple fabricated system}
+
+To ensure that the system of inference rules covers the entire semantics of a language, to ensure that rules to not conflict, and to ensure that rules give the language the desired behavior, we may establish additional metatheorems, which must be proved for all of the inference rules in the logic system. In the foundational papers for Hazel's core semantics \cite{conf/popl/Hazelnut17,conf/popl/HazelnutLive19}, metatheorems are amply used to justify and verify the correctness of the rules. Agda \cite{bove2009brief}, an interactive proof checker and dependently-typed programming language, is used for these proofs \cite{agda2017,agda-dynamics}.
+
+\todo{example of a metatheorem (from the original papers?)}
+
+\subsection{Static semantics}
+\label{sec:static-semantics}
+
+\subsection{Dynamic semantics}
+\label{sec:dynamic-semantics}
+
+The \textit{dynamic semantics} (alternatively, \textit{evaluation semantics}) of a programming language describes the evaluation process. Evaluation is the algorithmic reduction of an language expression to a \textit{value}, an irreducible expression.
+
+Let us consider values in some more detail. Values are distinguished by the judgment $v\Downarrow v$; i.e., values evaluate to themselves. Following the notation from \cite{conf/popl/Hazelnut17,conf/popl/HazelnutLive19}, we can alternatively write this using the equivalent judgment $v\textsf{ value}$. In the stereotypical untyped $\lambda$-calculus, the only values are $\lambda$-abstractions. We can denote this using the axiom:
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{Val-$\lambda$}{}{\lambda x.e\textsf{ value}}
+  \end{mathpar}
+\end{singlespace}
+
+In Hazel, we have other base types such as integers, floats, and booleans, which also have axiomatic $\textsf{value}$ judgments. For composite data such as pairs or injections (binary sum type constructors), the expression is a value iff its subexpression(s) are values.
+
+The rules that are used to define the dynamic semantics of a programming language are called \textit{operational semantics}, because they model the operation of a computer when compiling or evaluating a programming language. There are two major styles of operational semantics.
+
+The first of these styles is \textit{structural operational semantics} as introduced by Plotkin \cite{plotkin1981structural} (alternatively, \textit{small-step semantics}). In the small-step semantics, the judgments are of the form $e_1\to e_2$, where $e_1$ and $e_2$ are expressions in the language, and $\to$ is the operation being defined.
+
+For example, let us describe the dynamic semantics of an addition operation using a small-step semantics. This is described using the following three rules:
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{EvalS-Plus$_1$}{e_1\to e_1'}{e_1+e_2\to e_1'+e_2}
+    \and
+    \Infer{EvalS-Plus$_2$}{e_2\to e_2'}{\hnum{n_1}+e_2\to \hnum{n_1}+e_2'}
+    \and
+    \Infer{EvalS-Plus$_3$}{}{\hnum{n_1}+\hnum{n_2}\to\hnum{n_1+n_2}}
+  \end{mathpar}
+\end{singlespace}
+
+The algorithm carries itself out as follows: while $e_1$ is reducible, reduce it using some applicable evaluation rule. Once $e_1$ becomes a value, the first rule is no longer applicable (as $e_1$ cannot further reduce) and $e_2$ reduces until it too is a value. Finally, the third rule is applicable, and reduces the expression down to a single number literal. Note that if either $e_1$ or $e_2$ do not reduce down to a number literal, then the expression will not evaluate fully; this kind of failure cannot happen in a strongly-typed language due to typing rules.
+
+The second of these styles is \textit{natural operational semantics} as introduced by Kahn \cite{Kahn1987NaturalS} (alternatively, \textit{big-step semantics}). In the big-step semantics, the judgments are of the general form $e\Downarrow v$, where $e$ is an expression in the language, $\Downarrow$ represents some operation that is being defined, and $v\textsf{ value}$.
+
+To express the evaluation of addition in the big-step semantics, we need only a single rule. In this case, the antecedants indicate that the subexpressions must be recursively evaluated, but (as noted earlier) this notably doesn't specify the order of evaluation of the antecedants, unlike the small-step notation.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{EvalB-Plus}{
+      e_1\Downarrow\hnum{n_1} \\
+      e_2\Downarrow\hnum{n_2} \\
+    }{e_1+e_2\Downarrow\hnum{n_1+n_2}}
+  \end{mathpar}
+\end{singlespace}
+
+The implementation of an evaluator with a program stepper capability (as is commonly found in programming language debuggers) is more amenable to implementation using a small-step operational semantics, since it precisely details the sub-reductions when evaluating an expression. The evaluation semantics of Hazelnut Live are originally described using a small-step semantics in \cite{conf/popl/HazelnutLive19}. To simplify the rules, the concept of an \textit{evaluation context} $\mathcal{E}$ is used to recurse through subexpressions.
+
+The big-step semantics is often simpler because it involves fewer rules, and is more efficient to implement. As a result, the implementation of evaluation in Hazel more closely follows the big-step semantics, and it is the notation used predominantly throughout this work.
+
+% TODO: make this its own subsection
+\subsection{Gradual typing}
+\label{sec:gradual}
+
+
+\section{Functional programming}
 \label{sec:fp}
 
 Functional programming \todoref{functional programming} is a programming paradigm that is highly involved with function application, function composition, and first-class functions. It is generally a subtype of, and often associated with, the declarative programming paradigm, which is concerned with expression-based computation, often without mutable state or side-effects. Declarative programming is often considered the complement of imperative programming, which may be characterized as programming with mutable state, side effects, or statements. Purely functional programming is a subset of functional programming that deals solely with pure functions; non-pure languages may allow varying degrees of mutable state but typically encourage the use of pure functions.
@@ -14,7 +100,7 @@ Hazel is one such (purely) functional programming languages. Other languages tha
 
 % TODO: show a simple example of programs in these paradigms
 
-\subsubsection{The $\lambda$-calculus}
+\subsection{The $\lambda$-calculus}
 \label{sec:lambda-calculus}
 
 \todo{this section is a mess at the moment; sorry}
@@ -40,23 +126,23 @@ While the untyped $\lambda$ calculus is Turing-complete and thus as expressive a
 
 % TODO: introduce gradually-typed lambda calculus
 
-\subsubsection{Purity and statefulness}
+\subsection{Purity and statefulness}
 \label{sec:purity}
 
-\subsubsection{The ML family, Elm, and Hazel}
+\subsection{The ML family, Elm, and Hazel}
 \label{sec:ml-fam}
 
 % ADTs
 % typing system
 
-\subsection{Implementations for programming languages}
+\section{Implementations for programming languages}
 \label{sec:interpreters}
 
 In order for a programming language to be practical, it must not only be defined as a set of syntax and semantics, but also have an \textit{implementation} to run programs in the language. Hazel is implemented as an interpreted language, whose runtime is transpiled to Javascript so that it may be run as a client-side web application in the browser.
 
 It is important to note that the definition of a language (its syntax and semantics) are largely orthogonal to its implementation. In other words, a programming language does not dictate whether it requires a compiler or interpreter implementation, and languages sometimes have multiple implementations.
 
-\subsubsection{Compiler vs. interpreter implementations}
+\section{Compiler vs. interpreter implementations}
 \label{sec:comp-vs-interp}
 
 There are two general classes of programming language implementations: \textit{interpreters} and \textit{compilers} \cite{aho86}. Both types of implementations share the function of taking a program as input, and should be able to produce the same result (assuming an equal and determinstic machine state, equal inputs, correct implementations, and no exceptional behavior due to differences in resource usage).
@@ -71,7 +157,7 @@ The distinction between compiled and interpreted languages is not a very clear l
 
 Hazel is a purely interpreted language implementation, as optimizations for speed are not among its main concerns. However, performance is clearly one of the main concerns of this thesis project, but the gains will be algorithmic and use the nature of Hazel's structural editing and hole calculus to benefit performance, rather than changing the fundamental implementation. There is, however, a separate endeavor to write a compiled interpretation of Hazel \cite{hazelc}, which is outside the scope of this project.
 
-\subsubsection{The substitution and environment models of evaluation}
+\subsection{The substitution and environment models of evaluation}
 \label{sec:sub-vs-eval}
 
 % REF: https://cs.brown.edu/courses/cs173/2012/book/From_Substitution_to_Environments.html
@@ -92,20 +178,6 @@ Note that the substitution model does not imply a lazy (i.e., normal-order, call
 %   will find out more later due to this independent study
 
 The implementation of evaluation with environments differs from that of evaluation with substitution primarily in that: an evaluation environment is required to look up bound variables as evaluation reaches them; binding constructs extend the evaluation environment rather than performing substitution; and $\lambda$ abstractions are bound with their evaluation environment at runtime to form (lexical) closures.
-
-\subsection{Programming language semantics}
-\label{sec:type-systems}
-
-\subsubsection{Notation}
-\label{sec:semantics-notation}
-
-% little-step vs. big-step
-
-\subsubsection{Static and dynamic semantics}
-\label{sec:static-dynamic-semantics}
-
-\subsubsection{Gradual typing}
-\label{sec:gradual}
 
 % \subsection{Approaches to programming interfaces}
 % \label{sec:prog_intf}

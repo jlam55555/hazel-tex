@@ -1,9 +1,9 @@
-\section{Memoizing hole instance numbering using environments}
+\chapter{Memoizing hole instance numbering using environments}
 \label{sec:renumbering}
 
 TODO: this chapter is currently a quick dump of handwritten stuff to typed text; need to partition this into sections
 
-\subsection{Rationale behind hole instances and unique hole closures}
+\section{Rationale behind hole instances and unique hole closures}
 \label{sec:instance-illustration}
 
 % TODO: address the fact that this is not covered in detail in the Hazelnut paper, so we'll flesh it out here
@@ -63,7 +63,7 @@ An intuitive way of understanding the use of physical equality is that separate 
   \end{figure}
 \end{singlespace}
 
-\subsection{Issues with the current implementation}
+\section{Issues with the current implementation}
 \label{sec:current-problems}
 
 Consider the program shown in \Cref{fig:sample_hazel_program}.
@@ -86,7 +86,7 @@ A performance issue appears with the existing evaluator with the program shown i
 
 % TODO: describe the existing hole renumbering implementation
 
-\subsection{Hole instances and closures}
+\section{Hole instances and closures}
 \label{sec:hole_instances_and_closures}
 
 \begin{listing}
@@ -107,12 +107,12 @@ let x = /\heh{n}/ in
   \label{fig:hole_renumbering_problem}
 \end{listing}
 
-\subsubsection{Hole instance path versus hole closure parents}
+\subsection{Hole instance path versus hole closure parents}
 \label{sec:closure-parents}
 
 
 
-\subsection{Algorithmic concerns and a two-stage approach}
+\section{Algorithmic concerns and a two-stage approach}
 \label{sec:two-stage-renumber}
 
 \begin{figure}
@@ -127,13 +127,13 @@ let x = /\heh{n}/ in
 \end{figure}
 
 
-\subsection{Memoization and unification with closure post-processing}
+\section{Memoization and unification with closure post-processing}
 \label{sec:renumbering_memoization}
 
-\subsubsection{Modifications to the instance numbering rules}
+\subsection{Modifications to the instance numbering rules}
 \label{sec:memoization-instance-numbering}
 
-\subsubsection{Unification with closure post-processing}
+\subsection{Unification with closure post-processing}
 \label{sec:unification-postprocessing}
 
 \begin{figure}
@@ -147,10 +147,10 @@ let x = /\heh{n}/ in
   \label{fig:big-step-postprocessing-rules}
 \end{figure}
 
-\subsubsection{Fast evaluation result structural equality checking}
+\subsection{Fast evaluation result structural equality checking}
 \label{sec:fast-equals}
 
-\subsection{Differences in the hole instance numbering}
+\section{Differences in the hole instance numbering}
 \label{sec:differences_numbering}
 
 % two-stage to one-stage approach

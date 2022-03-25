@@ -1,7 +1,7 @@
 % for print: https://tex.stackexchange.com/q/113567
 % \documentclass[a4paper,twoside,openright,titlepage]{book}
 
-\documentclass{article}
+\documentclass[12pt,letter]{book}
 
 % NOTES:
 % This is a bad naming 
@@ -20,7 +20,7 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{stmaryrd}
-\usepackage{geometry}
+\usepackage[margin=1in]{geometry}
 \usepackage{setspace}
 \usepackage{mdframed}
 \usepackage{subcaption}
@@ -77,23 +77,43 @@
 
 % toc and lof
 \pt{Table of contents}
+\begingroup
+\let\clearpage\relax
+\let\cleardoublepage\relax
 \tableofcontents{}
+\endgroup
 
 \clearpage{}
 \pt{List of figures}
+\begingroup
+\let\clearpage\relax
+\let\cleardoublepage\relax
 \listoffigures{}
+\endgroup
 
 \clearpage{}
 \pt{List of tables}
+\begingroup
+\let\clearpage\relax
+\let\cleardoublepage\relax
 \listoftables{}
+\endgroup
 
 \clearpage{}
 \pt{List of listings}
+\begingroup
+\let\clearpage\relax
+\let\cleardoublepage\relax
 \listoflistings{}
+\endgroup
 
 \clearpage{}
+\begingroup
 \pt{List of theorems}
+\let\clearpage\relax
+\let\cleardoublepage\relax
 \listoftheorems{}
+\endgroup
 
 % list of nomenclature/terminology/notation
 \clearpage
@@ -114,7 +134,7 @@
 
 % bibliography
 \clearpage{}
-\section{References}
+\chapter{References}
 \label{sec:references}
 
 \bibliographystyle{unsrt}
@@ -122,7 +142,7 @@
 
 % appendices
 \appendix{}
-\addcontentsline{toc}{section}{Appendices}
+\addcontentsline{toc}{chapter}{Appendices}
 % TODO: put this header on the same page as the first appendix
 
 % \include{additional_rules}
