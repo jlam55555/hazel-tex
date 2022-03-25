@@ -13,7 +13,30 @@ Note that the specification of a programming language is orthogonal to its \text
 \subsection{Syntax}
 \label{sec:syntax}
 
-\todo{this section}
+The syntax of a programming language is defined by a grammar. The grammar described in the original paper on Hazelnut \cite{conf/popl/Hazelnut17} is reproduced below as an example.
+
+\begin{singlespace}
+  \begin{align*}
+    \tau &::= \tau\to\tau
+         \mid\tnum
+         \mid\hehole \\
+    e &::= x
+         \mid\lambda x.e
+         \mid e\ e
+         \mid e+e
+         \mid e:\tau
+         \mid\hehole
+         \mid\hhole{e}
+  \end{align*}
+\end{singlespace}
+
+In this simple grammar, we have two productions: types and expressions. A type may have one of three forms: the $\tnum$ type, an arrow (function) type, or the hole type (similar to the \texttt{?} type from the GTLC described in \Cref{sec:gradual}). An expression may be a variable; a $\lambda$-abstraction (function literal); the primitive addition operation; a type ascription; an empty hole; or a non-empty hole. The latter two types are Hazel specific, as is the hole type.
+
+Parentheses are not shown in this grammar, but they are optional except to affect order of operations.
+
+Parts of this grammar will be revisited when discussing the $\lambda$-calculus described in \Cref{sec:lambda-calculus}, and when discussing Hazel's grammar described in \Cref{sec:hazel}. In particular, this Hazelnut grammar is a superset of the grammar of the GTLC described in \Cref{sec:gradual}, and a subset of the grammar in the implementation of Hazel, which includes additional forms such as \texttt{let}, \texttt{case}, and pair expressions. Some of these forms will be important cases for our study of evaluation.
+
+Due to Hazelnut being a structural edit calculus (as described in \Cref{sec:structure-editors}), there is no need to worry about syntax errors. The syntax describes the external language of Hazel, which will be translated into the internal language via the elaboration algorithm prior to evaluation.
 
 \subsection{Notation for semantics}
 \label{sec:semantics-notation}
@@ -36,7 +59,7 @@ To ensure that the system of inference rules covers the entire semantics of a la
 
 The \textit{static semantics} of a programming language describes specifications of a language that occur prior to program evaluation. Static semantics typically primarily refers to \textit{type checking}. In Hazelnut Live, we have the process of \textit{elaboration} that transforms the \textit{external language} (a program expressed in the syntax of Hazel) to the \textit{internal language} (an intermediate representation more amenable to evaluation), which occurs before evaluation and incorporates the type checking rules. Elaboration and the internal language will be discussed further in \Cref{sec:comp-vs-interp}. The type checking and elaboration algorithms form the static semantics of Hazel.
 
-The elaboration process will not be discussed here, as it is well-described in the formulation of Hazelnut Live \cite{conf/popl/HazelnutLive19}. On the other hand, it is formative to provide an overview of type checking. While the static semantics is not very important to the core work in this thesis, a fundamental understanding is key to understanding the motivation and bidirectionally-typed action calculus behind Hazel, as well as understanding the formulation of gradual typing described in \Cref{sec:gradual}.
+It is formative to provide an overview of type checking. While the static semantics is not very important to the core work in this thesis, a fundamental understanding is key to understanding the motivation and bidirectionally-typed action calculus behind Hazel, as well as understanding the formulation of gradual typing described in \Cref{sec:gradual}.
 
 The \textit{typing judgment} $\Gamma\vdash e:\tau$ states that, with respect to the typing context $\Gamma$, the expression $e$ is well-typed with type $\tau$. The typing context is a set of variable typing judgments $\{x:\tau\}$. A few sample typing judgments are shown below.
 
@@ -90,9 +113,9 @@ Now, we may synthesize the type of $(\lambda x.x)\ 2$; the derivation uses all o
 
 Algorithmically, bidirectional typing begins by synthesizing the type of the top-level expression; if it successfully synthesizes, then the expression is well-typed. A more complete discussion of bidirectional typing is left to Dunfield \cite{Dunfield_2022}, who provides an overview of bidirectional typing, or to the formulation of Hazel's bidirectional typing \cite{conf/popl/Hazelnut17}. Hazelnut is at its core a bidirectionally-typed ``edit calculus'' \cite{conf/popl/Hazelnut17}, citing the balance of usability and simplicity of implementation.
 
-More advanced type inference algorithms such as type unification are used in the highly advanced type systems of languages such as Haskell \cite{gundry2013type}, and are out of scope for this work.
+The elaboration algorithm is bidirectionally-typed and fairly specific to Hazel and described in \Cref{sec:dynamics}. It is based off of the cast calculus from the GTLC.
 
-\todo{maybe discuss elaboration, at least the form of the judgment and explain the hole context?}
+More advanced type inference algorithms such as type unification are used in the highly advanced type systems of languages such as Haskell \cite{gundry2013type}, and are out of scope for this work.
 
 \subsection{Dynamic semantics}
 \label{sec:dynamic-semantics}
@@ -240,22 +263,22 @@ Note that the substitution model does not imply a lazy (i.e., normal-order, call
 The implementation of evaluation with environments differs from that of evaluation with substitution primarily in that: an evaluation environment is required to look up bound variables as evaluation reaches them; binding constructs extend the evaluation environment rather than performing substitution; and $\lambda$ abstractions are bound with their evaluation environment at runtime to form (lexical) closures.
 
 % \subsection{Approaches to programming interfaces}
-% \label{sec:prog_intf}
+% \label{sec:prog-intf}
 
 % \subsubsection{Structure editors}
-% \label{sec:structure_editors}
+% \label{sec:structure-editors}
 
 % \subsubsection{Graphical editors}
-% \label{sec:graphical_editors}
+% \label{sec:graphical-editors}
 
 % \subsubsection{Intentional, generative, and meta-programming}
-% \label{sec:intentional_programming}
+% \label{sec:intentional-programming}
 
 % \subsubsection{Applications to programming education}
-% \label{sec:programming_education}
+% \label{sec:programming-education}
 
 % \subsubsection{Drawbacks of non-textual editors}
-% \label{sec:textual_benefits}
+% \label{sec:textual-benefits}
 
 %%% Local Variables:
 %%% mode: latex

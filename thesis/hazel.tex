@@ -22,6 +22,14 @@ Hazel's syntax and semantics resembles languages in the ML (Meta Language) famil
 \section{Hazelnut Live dynamic semantics}
 \label{sec:dynamics}
 
+\todo{fit this description into the rest of the sections}
+
+The internal language is highly similar to the external language. The primary difference is the introduction of the cast calculus taken from the GTLC described in \Cref{sec:gradual}. Practically, there is also the introduction of the fixpoint to allow for recursion, as the fixpoint is not exposed to users in the external language.
+
+\textit{Elaboration} is the process of converting an expression from the external language to the internal language. Notably, both the external and internal languages share the same type system.
+
+The elaboration algorithm is bidirectionally-typed, and thus involves two mutually-recursive judgments: a \textit{synthetic elaboration judgment} $\Gamma\vdash e\Rightarrow\tau\leadsto d:\tau\dashv\Delta$, and an \textit{analytic elaboration judgment} $\Gamma\vdash e\Leftarrow\tau\leadsto d:\tau'\dashv\Delta$. $\Delta$ is the \textit{hole context}, used to store the typing context and actual type of each hole, and is an output of the judgments. As with bidirectional typing, the synthetic judgment outputs the synthesized type alongside the elaborated internal expression $d$; the analyzed judgment takes a type $\tau$ to analyze against, and returns the elaborated internal expression $d$ along with its actual type $\tau'$. Having the actual type of analyzed expressions is useful for generating dynamic casts as described in the GTLC.
+
 \subsection{Example of elaboration}
 \label{sec:elaboration_example}
 
