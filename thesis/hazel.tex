@@ -1,11 +1,25 @@
 \chapter{An overview of the Hazel programming environment}
 \label{sec:hazel}
 
-% TODO: define holes and the gap problem
+Hazel is the reference implementation for the Hazelnut bidirectionally-typed action semantics and the Hazelnut Live dynamic semantics. It is intended to serve as a proof-of-concept of the semantics with static holes that attempt to mitigate the gap problem; however, the implementation is becoming increasingly practical with additional research efforts. The reference implementation is an interpreter written in OCaml and transpiled to Javascript using the \mintinline{text}|js_of_ocaml| (JSOO) library \cite{vouillon2014bytecode} so that it may be run client-side in the browser. A screenshot of the reference implementation is shown in \Cref{fig:screenshot-hazel-ui} \cite{HazelDemo2022}. The source code may be found on GitHub \cite{Hazel2022}. As a programming language, Hazel can be characterized as a purely functional, statically-typed, bidirectionally-typed, strict-order evaluation, structured editor language.
 
-Hazel is the experimental language that implements the Hazelnut bidirectionally-typed edit static semantics with holes and the Hazelnut Live dynamic semantics, and it is also the name of the reference implementation. It is intended to serve as a proof-of-concept of the semantics with holes that attempt to mitigate the gap problem; however, the implementation is becoming increasingly practical with additional research efforts. The reference implementation is an interpreter written in OCaml and transpiled to Javascript using the \mintinline{text}|js_of_ocaml| (JSOO) library \cite{vouillon2014bytecode} so that it may be run client-side in the browser. A screenshot of the reference implementation is shown in \Cref{fig:screenshot-hazel-ui} \cite{HazelDemo2022}. The source code may be found on GitHub \cite{Hazel2022}.
+\section{Motivation for Hazel}
+\label{sec:hazel-motivation}
 
-Hazel's syntax and semantics resembles languages in the ML (Meta Language) family of languages \cite{macqueen2020history} such as OCaml or SML/NJ, although Hazel does not support polymorphism at this time. Hazel can be characterized as a purely functional, statically-typed, bidirectionally-typed, strict-order evaluation, structured editor language. Hazel semantically differs most significantly from other ML languages in the last respect due to its theoretic foundations in solving the gap problem.
+\subsection{The gap problem}
+\label{sec:gap-problem}
+
+\subsection{An intuitive introduction to typed holes}
+\label{sec:typed-holes}
+
+\section{The Hazel live programming environment}
+\label{sec:hazel-online}
+
+\subsection{Explanation of interface}
+\label{sec:hazel-interface}
+
+\subsection{Implications of Hazel}
+\label{sec:hazel-implications}
 
 \section{Introduction to OCaml and Reason}
 \label{sec:ocaml-intro}
@@ -14,22 +28,14 @@ Previously, we have been introducing concepts using a pseudo-mathematical notati
 
 \todo{describe syntax of OCaml/Reason, e.g., modules, types}
 
-\section{Hazelnut static semantics}
-\label{sec:statics}
+\section{Hazel semantics}
+\label{sec:hazel-semantics}
 
-\subsection{Expression and type holes}
-\label{sec:holes}
+\subsection{Statics: Hazelnut action and typing semantics}
+\label{sec:hazel-statics}
 
-\subsection{Bidirectional typing}
-\label{sec:bidirectional_typing}
-
-\subsection{Example of bidirectional type derivation}
-\label{sec:typing_example}
-
-\section{Hazelnut Live dynamic semantics}
-\label{sec:dynamics}
-
-\todo{fit this description into the rest of the sections}
+\subsection{Dynamics: Hazelnut Live dynamic semantics}
+\label{sec:hazel-dynamics}
 
 The internal language is highly similar to the external language. The primary difference is the introduction of the cast calculus taken from the GTLC described in \Cref{sec:gradual}. Practically, there is also the introduction of the fixpoint to allow for recursion, as the fixpoint is not exposed to users in the external language.
 
@@ -37,23 +43,11 @@ The internal language is highly similar to the external language. The primary di
 
 The elaboration algorithm is bidirectionally-typed, and thus involves two mutually-recursive judgments: a \textit{synthetic elaboration judgment} $\Gamma\vdash e\Rightarrow\tau\leadsto d:\tau\dashv\Delta$, and an \textit{analytic elaboration judgment} $\Gamma\vdash e\Leftarrow\tau\leadsto d:\tau'\dashv\Delta$. $\Delta$ is the \textit{hole context}, used to store the typing context and actual type of each hole, and is an output of the judgments. As with bidirectional typing, the synthetic judgment outputs the synthesized type alongside the elaborated internal expression $d$; the analyzed judgment takes a type $\tau$ to analyze against, and returns the elaborated internal expression $d$ along with its actual type $\tau'$. Having the actual type of analyzed expressions is useful for generating dynamic casts as described in the GTLC.
 
-\subsection{Example of elaboration}
-\label{sec:elaboration_example}
+\section{An overview of the evaluator implementation}
+\label{sec:evaluator-overview}
 
-\subsection{Example of evaluation}
-\label{sec:evaluation_example}
-
-\subsection{Example of hole instance numbering}
-\label{sec:hole_instance_example}
-
-\section{Hazel programming environment}
-\label{sec:hazel_online}
-
-\subsection{Explanation of interface}
-\label{sec:hazel_interface}
-
-\subsection{Implications of Hazel}
-\label{sec:hazel_implications}
+\subsection{Hole instance numbering}
+\label{sec:hole-instance-numbering}
 
 %%% Local Variables:
 %%% mode: latex

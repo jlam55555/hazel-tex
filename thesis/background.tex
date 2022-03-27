@@ -117,7 +117,7 @@ Now, we may synthesize the type of $(\lambda x.x)\ 2$; the derivation uses all o
 
 Algorithmically, bidirectional typing begins by synthesizing the type of the top-level expression; if it successfully synthesizes, then the expression is well-typed. A more complete discussion of bidirectional typing is left to Dunfield \cite{Dunfield_2022}, who provides an overview of bidirectional typing, or to the formulation of Hazel's bidirectional typing \cite{conf/popl/Hazelnut17}. Hazelnut is at its core a bidirectionally-typed ``edit calculus'' \cite{conf/popl/Hazelnut17}, citing the balance of usability and simplicity of implementation.
 
-The elaboration algorithm is bidirectionally-typed and fairly specific to Hazel and described in \Cref{sec:dynamics}. It is based off of the cast calculus from the GTLC.
+The elaboration algorithm is bidirectionally-typed and fairly specific to Hazel and described in \Cref{sec:hazel-dynamics}. It is based off of the cast calculus from the GTLC.
 
 More advanced type inference algorithms such as type unification are used in the highly advanced type systems of languages such as Haskell \cite{gundry2013type}, and are out of scope for this work.
 
@@ -490,6 +490,10 @@ The implementation of evaluation with environments differs from that of evaluati
 \subsection{Graphical editors}
 \label{sec:graphical-editors}
 
+\subsection{Notebook editors}
+\label{sec:notebook_editors}
+
+
 % \subsubsection{Intentional, generative, and meta-programming}
 % \label{sec:intentional-programming}
 
@@ -499,10 +503,10 @@ The implementation of evaluation with environments differs from that of evaluati
 \subsection{Criticisms of non-textual editors}
 \label{sec:textual-benefits}
 
-\section{Contextual Modal Type Theory}
+\section{Contextual modal type theory}
 \label{sec:cmtt}
 
-\todo{implemen this section; background for hole filling}
+\todo{implement this section; background for hole filling}
 
 %%% Local Variables:
 %%% mode: latex
