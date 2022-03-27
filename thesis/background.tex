@@ -3,6 +3,10 @@
 
 This chapter is intended to provide a primer to the theory of functional programming and programming languages, as relevant to this work on Hazel.
 
+In particular, the work performed for this thesis focuses on rewriting the dynamic semantics of Hazel to use an environment-based evaluation rather than a substitution-based evaluation. Hazel's internal language and evaluation semantics heavily borrow from the gradually-typed $\lambda$-calculus, which are incrementally introduced in this section. Introductory programming language material is typically presented using a substitution-based semantics, and we reproduce this here. Much of this material is condensed from introductory programming-language texts such as \cite{harper2016practical}.
+
+After describing programming language specifications, an overview of programming language implementations is provided. Lastly, we present related structural editors.
+
 \section{Specifications of programming languages}
 \label{sec:prog-lang-def}
 
@@ -181,41 +185,122 @@ Functional languages are based on Alonzo Church's $\lambda$ calculus \todoref{la
 
 Hazel is one such (purely) functional programming languages. Other languages that are classified as functional include the ML family of languages, Haskell, Elm, and the LISP family of languages. Examples of imperative programming languages include C, C++, FORTRAN, Java, and Golang. A number of languages incorporate both functional and imperative styles, such as Javascript, Python, Scala, and Rust \todoref{all of these languages and their classifications}.
 
-% TODO: show a simple example of programs in these paradigms
-
-\subsection{The $\lambda$-calculus}
-\label{sec:lambda-calc-intro}
-
-% TODO: purity and statefulness
-
-\todo{write this section, reference PFPL}
+\todo{show a simple example of programs in these paradigms?}
 
 \subsection{The untyped $\lambda$-calculus}
 \label{sec:lambda-calculus}
 
-\todo{rewrite this section, reference PFPL}
+Church introduced the \textit{untyped $\lambda$-calculus} $\Lambda$ as an example of a simple universal language of computable functions, and it forms the foundation for the syntax and evaluation semantics of functional programming languages.
 
-The simplest form of the $\lambda$ calculus, the \textit{untyped $\lambda$ calculus}, comprises only three expression forms:
-\begin{align}
-  \label{eq:untyped-lambda-calculus}
-  x\tag{Variable} \\
-  \lambda x.e\tag{$\lambda$ abstraction} \\
-  e_1\ e_2\tag{Function application}
-\end{align}
-where $e$, $e_1$, and $e_2$ are also expressions of one of these three forms. A $\lambda$ abstraction is also known as a $\lambda$ expression, $\lambda$ function, anonymous function, or simply function, and function application is also known as function invocation or $\beta$-reduction\footnote{A few notes for the imperative programmer: $\lambda$ functions only take a single parameter. A function of multiple parameters may be constructed as a series of recursive functions, each taking a single parameter -- a process known as \textit{currying}. Similarly, function application comprises two expressions, the first in \textit{function position} (which must evaluate to a $\lambda$ function), and the second in \textit{argument position}. Function application is traditionally (e.g., in the ML and Haskell families of programming languages, although LISP is an exception) denoted using the infix operator `` '' (space), which has the highest precedence of any infix operator; parentheses are only used to indicate order of operations and typically omitted when not necessary.}. The only reduction in the untyped $\lambda$ calculus is $\beta$-reduction, which is stated as follows.\[(\lambda x.e_1)\ e_2\to [e_1/x]e_2\] The notation $[x/y]z$ indicates substitution, and may be pronounced ``the substitution of $x$ for $y$ in $z$.'' According to computability theory, since the untyped $\lambda$ calculus supports general recursion (through the use of a fixpoint operator), it is Turing-complete.
+The grammar of $\Lambda$ is very simple, only comprising three forms (excluding parentheses\footnote{The imperative programmer with a background in a C-family language be warned: parentheses are not required for function application. Rather, space (\textvisiblespace) is an infix operator that represents function application in $\Lambda$ and many functional languages. It traditionally is left-associative and has the highest precedence of any infix operator. Parentheses around function arguments are only required when it affects the order of operations. An exception to this rule in functional programming is in the LISP family of languages, in which parentheses specify function application rather than operator precedence, but that is not the interpretation here.}), shown below.
+
+\begin{singlespace}
+  \begin{align*}
+    e &::= x\tag{variable}\\
+      &\mid \lambda x.e\tag{$\lambda$-abstraction}\\
+      &\mid e\ e\tag{function application}
+  \end{align*}
+\end{singlespace}
+
+The static semantics of this syntax are very simple: every expression in $\Lambda$ is well-fromed if all variables are bound by some binder\footnote{There are no typing rules in the static semantics, because there is only a single type: the recursive arrow type $\tau::=\tau\to\tau$. Thus, it may be more correct to say that $\Lambda$ is ``uni-typed'' as opposed to ``untyped,'' as noted in \cite{harper2016practical}. Thus no type errors will occur when evaluating a (well-formed) expression in $\Lambda$.}.
+
+The dynamic semantics are similarly simple, shown below using a big-step semantics. $\lambda$-abstractions are values (expressions that evaluate to themselves), and application is applied by substituting variables \footnote{The substitution of the function variable during function application is known as $\beta$-reduction. Renaming of bound variables (a process known as $\alpha$-conversion) is used to avoid substituting variables of the same name bound by a different binder.}.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{$\Lambda$-ELam}{}{\lambda x.e\Downarrow\lambda x.e}
+    \and
+    \Infer{$\Lambda$-EAp}{
+      e_1\Downarrow\lambda x.e_1'
+    }{e_1\ e_2\Downarrow [e_2/x]e_1'}
+  \end{mathpar}
+\end{singlespace}
+
+$\Lambda$ is an example of a Turing-complete language. One of the key characteristics to this is the ability to compute recursive algorithms. To implement recursion, a function must be able to refer to itself. Since there is no construct to bind an expression to a variables other than function binders (i.e., there is no construct such as OCaml's \mintinline{ocaml}|let rec| expressions), one must pass a self-reference of a function to itself. For example, let us consider the example of a factorial function in $\Lambda$ (for sake of illustration, extended with a conditional statement, integers, and simple integer operators).
+
+\[\text{fact'}\equiv\lambda f.\lambda x.\text{if }x=0\text{ then }1\text{ else }x*f(x-1)\]
+
+To facilitate the recursion, we need the help of an auxiliary operator which converts a recursive function formulated with a self-reference parameter as shown above. The Y-combinator is such an operator. The operation of this operator is made clear by working through the $\beta$-reduction of the \texttt{fact} function.
+
+\begin{singlespace}
+  \begin{gather*}
+    Y\equiv\lambda f.(\lambda x.f(x\ x))\ (\lambda x.f(x\ x)) \\
+    \text{fact}\equiv Y\ \text{fact'}
+  \end{gather*}
+\end{singlespace}
+
+A more thorough discussion of $\Lambda$ and the Y-combinator is left to standard material on programming language theory, such as \cite{harper2016practical}.
 
 \subsection{The simply-typed $\lambda$-calculus}
 \label{sec:stlc}
 
-\todo{rewrite this section, reference pfpl}
+While the $\lambda$ calculus is Turing complete and sufficient to represent any computation, it is not practical in terms of efficiency or usability if all data is represented with functions\footnote{The stereotypical example of representing data using functions is called the Church encoding. For example, there are standard Church encodings for natural numbers, for boolean values and conditionals, and for pairs (\texttt{cons}), which can be used to construct structured data.}.
 
-While the untyped $\lambda$ calculus is Turing-complete and thus as expressive as any other Turing-complete programming language, this is far too tedious to be of any practical use. In this minimal foundation, we do not have base types such as integers or booleans\footnote{In the untyped $\lambda$ calculus, the only value type are $\lambda$ abstractions. Any other data type, such as the set of natural numbers or booleans, may be represented using $\lambda$ abstractions via \textit{Church encoding}.} or a typing system. The typical formulation of the \textit{simply-typed $\lambda$ calculus} extends the untyped $\lambda$ calculus with a (non-$\lambda$ abstraction) base type $b$ of type $B$, and a type $\tau\in $ TODO: working here; this is a mess
+The \textit{simply-typed $\lambda$-calculus} (STLC) $\Lambda^\to$ extends $\Lambda$ with one or more base types $b_i$, such as integers, booleans, or floating-point numbers. Consider the case of a single base type $b$. The extended grammar is shown below.
 
-% TODO: describe these using syntax and semantics
+\begin{singlespace}
+  \begin{align*}
+    \tau &::=\tau\to\tau\tag{function type} \\
+         &\mid b\tag{base type} \\
+    e &::= c\tag{constant} \\
+         &\mid x\tag{variable} \\
+         &\mid\lambda x:\tau.e\tag{type-annotated function} \\
+         &\mid e\ e\tag{function application} \\
+         &\mid \fix f:\tau.e\tag{fixpoint}
+  \end{align*}
+\end{singlespace}
 
-% TODO: move syntax and semantics and notation to here
+The grammar is extended to include constants of the base type. The type of functions parameters must be annotated\footnote{This is in the simplest case of type-assignment. With a type inference system such as bidirectional typing as described in \Cref{sec:static-semantics}, some type annotations may be optional.}.
 
-% TODO: describe typing rules
+We now define what it means for a program in $\Lambda^\to$ to be well-typed. The following typing judgments assign a type to a $\Lambda^\to$ program.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{$\Lambda^\to$-TConst}{}{\Gamma\vdash c:b}
+    \and
+    \Infer{$\Lambda^\to$-TVar}{}{\Gamma,x:\tau\vdash x:\tau}
+    \and
+    \Infer{$\Lambda^\to$-TLam}{
+      \Gamma,x:\tau_1\vdash e:\tau_2
+    }{\Gamma\vdash(\lambda x:\tau_1.e):\tau_2}
+    \and
+    \Infer{$\Lambda^\to$-TAp}{
+      \Gamma\vdash e_1:\tau_1\to\tau \\
+      \Gamma\vdash e_2:\tau_1
+    }{\Gamma\vdash e_1\ e_2:\tau}
+    \and
+    \Infer{$\Lambda^\to$-TFix}{}{\Gamma\vdash(\fix f:\tau.e):\tau}
+  \end{mathpar}
+\end{singlespace}
+
+The dynamic semantics are not much different than $\Lambda$. Additional evaluation rules are defined for constants and fixpoints; evaluation of $\lambda$-abstractions and function application remains the same.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{$\Lambda^\to$-EConst}{}{c\Downarrow c}
+    \and
+    \Infer{$\Lambda^\to$-ELam}{}{\lambda x:\tau.e \Downarrow \lambda x:\tau.e}
+    \and
+    \Infer{$\Lambda^\to$-EAp}{
+      e_1\Downarrow\lambda x:\tau.e
+    }{e_1\ e_2\Downarrow [e_2/x]e}
+    \and
+    \Infer{$\Lambda^\to$-EFix}{}{\fix f:\tau.e \Downarrow[\fix f:\tau.e/f]e}
+    \and
+  \end{mathpar}
+\end{singlespace}
+
+We may characterize type systems by establishing certain desirable properties. One such property is \textit{soundness}. Soundness means that if a program in $\Lambda^\to$ type-checks, then it will not fail with a type error at run-time. This property is not necessary to prove for $\Lambda$ because there is only one type in $\Lambda$, the recursive type $\tau::=\tau\to\tau$.
+
+There is an additional expression form in $\Lambda^\to$. This is the \textit{fixpoint form}, $\fix f:\tau.e$. The fixpoint is a primitive operator with the same purpose and evaluation behavior as the Y-combinator: it allows for self-reference, and thus general recursion. The reason for the explicit fixpoint operator is that the Y-combinator is ill-typed. Self-reference is inherently poorly-typed and requires a primitive operator, since it involves a function which takes itself as a parameter (leading to an infinitely-recursive arrow type). With the $\fix$ operator, we may express the factorial function as shown below. In this example, we assume that the base type $b\equiv\text{int}$, and that conditionals and primitive integer operations extend $\Lambda^\to$.
+
+\begin{equation*}
+  \text{fact}\equiv\fix f:\text{int}\to \text{int}.\lambda x:\text{int}.\text{if }x=0\text{ then }1\text{ else }x*f(x-1)
+\end{equation*}
+
+The fixpoint operator is introduced in Plotkin's System PCF \todoref{can cite PFPL, also get citation for original pcf?}, and is used to implement recursion in Hazel's evaluator, which uses a substitution-based evaluation.
+
+$\Lambda^\to$ is a practical foundation for many functional languages. Standard exercises include extending $\Lambda^\to$ with multiple common base types (integers and booleans), conditional expressions, \texttt{let}-expressions, and \texttt{case}-expressions. The basic type system can be extended to use type inference algorithms or support more advanced types.
 
 % TODO: for practical purposes, let and case expressions
 
