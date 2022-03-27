@@ -211,8 +211,9 @@ The dynamic semantics are similarly simple, shown below using a big-step semanti
     \Infer{\ulc{}-ELam}{}{\lambda x.e\Downarrow\lambda x.e}
     \and
     \Infer{\ulc{}-EAp}{
-      e_1\Downarrow\lambda x.e_1'
-    }{e_1\ e_2\Downarrow [e_2/x]e_1'}
+      e_1\Downarrow\lambda x.e_1' \\
+      [e_2/x]e_1'\Downarrow e
+    }{e_1\ e_2\Downarrow e}
   \end{mathpar}
 \end{singlespace}
 
@@ -282,10 +283,11 @@ The dynamic semantics are not much different than \ulc{}. Additional evaluation 
     \Infer{\stlc{}-ELam}{}{\lambda x:\tau.e \Downarrow \lambda x:\tau.e}
     \and
     \Infer{\stlc{}-EAp}{
-      e_1\Downarrow\lambda x:\tau.e
-    }{e_1\ e_2\Downarrow [e_2/x]e}
+      e_1\Downarrow\lambda x:\tau.e_1' \\
+      [e_2/x]e_1'\Downarrow e
+    }{e_1\ e_2\Downarrow e}
     \and
-    \Infer{\stlc{}-EFix}{}{\fix f:\tau.e \Downarrow[\fix f:\tau.e/f]e}
+    \Infer{\stlc{}-EFix}{[\fix f:\tau.e/f]e\Downarrow e'}{\fix f:\tau.e \Downarrow e'}
     \and
   \end{mathpar}
 \end{singlespace}
@@ -358,7 +360,7 @@ The second new judgment is the \textit{type consistency judgment} $\tau_1^-\sim\
   \end{mathpar}
 \end{singlespace}
 
-Evaluation of a gradually-typed language introduces a cast calculus, which performs run-time type checking. To do this, we design another language, \gtclc, whose grammar is identical to \gtlc except for the introduction of a new expression form indicating a run-time cast, $e\langle\tau\Rightarrow\tau'\rangle$. We refer to \gtlc as the \textit{external language} and \gtclc as the \textit{internal language}. We denote expressions in \gtlc with the letter $e$ and expressions in \gtclc with the letter $d$. We only define static semantics on \gtlc and only define dynamic semantics on \gtclc. The process of converting from the external language to the internal language (i.e., the process of cast-insertion) is called \textit{elaboration}.
+Evaluation of a gradually-typed language introduces a cast calculus, which performs run-time type checking. To do this, we design another language, \gtclc, whose grammar is identical to \gtlc except for the introduction of a new expression form indicating a run-time cast, $d\langle\tau\Rightarrow\tau'\rangle$. We also define the notation $d\langle\tau\Rightarrow\tau'\Rightarrow\tau''\rangle\equiv d\langle\tau\Rightarrow\tau'\rangle\langle\tau'\Rightarrow\tau''\rangle$. We refer to \gtlc as the \textit{external language} and \gtclc as the \textit{internal language}. We denote expressions in \gtlc with the letter $e$ and expressions in \gtclc with the letter $d$. We only define static semantics on \gtlc and only define dynamic semantics on \gtclc. The process of converting from the external language to the internal language (i.e., the process of cast-insertion) is called \textit{elaboration}.
 
 Usually, elaboration includes the type-checking operation rather than being a separate operation. Elaboration fails iff type checking fails. A theorem may be stated that the type assigned by elaboration is the same as the type assigned by the type assignment judgment.
 
@@ -384,7 +386,49 @@ The elaboration process is governed by the judgment $\Gamma^-\vdash e^-\leadsto 
   \end{mathpar}
 \end{singlespace}
 
-\todo{explain the dynamic semantics}
+We may now define a dynamic semantics on \gtclc. The following dynamic semantics is simplified from Siek's formulation for the sake of clarity\footnote{Siek \cite{siek2015refined} introduces the idea of \textit{ground types} and the \textit{matched-ground judgment}. Casts can only succeed or fail between ground types. Additionally, Siek describes \textit{blames} and \textit{frames} to encapsulate errors. Ground types are carried over to Hazelnut Live's formulation \cite{conf/popl/HazelnutLive19}, but blames and frames are not currently implemented in Hazel.} and is not intended to be a precise description of the evaluation semantics. As before, the dynamic semantics are described using a big-step notation, where the judgment $d^-\textsf{ final}$ indicates that $d$ is a value. \footnote{This may be a place where using the small-step semantics may be easier and more clear, as it more clearly illustrates the isolated effect of the cast operation. Both Siek \cite{Siek06gradualtyping,siek2015refined} and Hazelnut Live \cite{conf/popl/HazelnutLive19} describe the dynamic semantics using a small-step semantics. Hazelnut Live adds the concept of the \textit{final judgment} to delineate values.}.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{\gtclc-VConst}{}{c\textsf{ final}}
+    \and
+    \Infer{\gtclc-VLam}{}{\lambda x:\tau.d\textsf{ final}}
+    \and
+    \Infer{\gtclc-VBoxedVal}{}{e\langle\tau\Rightarrow ?\rangle\textsf{ final}}
+    \and
+    \Infer{\gtclc-EVal}{d\textsf{ final}}{d\Downarrow d}
+    \and
+    \Infer{\gtclc-EFix}{[\fix f:\tau.d/f]d\Downarrow d'}{\fix f:\tau.d\Downarrow d'}
+    \and
+    \Infer{\gtclc-EAp}{
+      d_1\Downarrow\lambda x:\tau.d_1' \\
+      [d_2/x]d_1\Downarrow d
+    }{d_1\ d_2\Downarrow d}
+    \and
+    \Infer{\gtclc-ECastAp}{
+      d_1\Downarrow d_1'\langle\tau_1\to\tau_2\Rightarrow\tau_1'\to\tau_2'\rangle \\
+      (d_1'\ (d_2\langle\tau_1'\Rightarrow\tau_1\rangle))\langle\tau_2\Rightarrow\tau_2'\rangle\Downarrow d
+    }{d_1\ d_2\Downarrow d}
+    \and
+    \Infer{\gtclc-ECastId}{
+      d\Downarrow d'
+    }{d\langle\tau\Rightarrow\tau\rangle\Downarrow d'}
+    \and
+    \Infer{\gtclc-ECastSucceed}{
+      d\Downarrow d'
+    }{d\langle\tau\Rightarrow ?\Rightarrow\tau\rangle\Downarrow d'}
+  \end{mathpar}
+\end{singlespace}
+
+There is also the possibility of a dynamic cast error.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{\gtclc-ECastFail}{}{d\langle\tau\Rightarrow ?\Rightarrow\tau'\rangle\textsf{ castfail}}
+  \end{mathpar}
+\end{singlespace}
+
+Hazel's core calculus heavily borrows from \gtlc and \gtclc. The cast calculus will remain unchanged when rewriting the evaluator to use environments rather than substitution. However, the cast language will briefly appear in the discussion of fill-and-resume, as we will have to be able to resolve old failed casts and introduce new failed casts.
 
 \section{Implementations of programming languages}
 \label{sec:interpreters}
@@ -393,7 +437,7 @@ In order for a programming language to be practical, it must not only be defined
 
 It is important to note that the definition of a language (its syntax and semantics) are largely orthogonal to its implementation. In other words, a programming language does not dictate whether it requires a compiler or interpreter implementation, and languages sometimes have multiple implementations.
 
-\section{Compiler vs. interpreter implementations}
+\subsection{Compiler vs. interpreter implementations}
 \label{sec:comp-vs-interp}
 
 There are two general classes of programming language implementations: \textit{interpreters} and \textit{compilers} \cite{aho86}. Both types of implementations share the function of taking a program as input, and should be able to produce the same result (assuming an equal and determinstic machine state, equal inputs, correct implementations, and no exceptional behavior due to differences in resource usage).
@@ -423,7 +467,7 @@ In this formulation, variables are ``given meaning'' via substitution; once eval
 
 However, for the purpose of computational efficiency, a model in which values are lazily expanded (``looked-up'') only when needed is more efficient. This is called the \textit{environment model of evaluation}, and generally is more efficient because the runtime does not need to perform an extra substitution pass over subexpressions and because untraversed (unevaluated) branches do not require substituting. Lastly, the runtime does not need to carry an expression-level IR of the language, due to the fact that the substitution model manipulates expressions, while evaluation does not. This means that the latter is more amenable for compilation, and is how compiled languages tend to be implemented: each frame of the theoretical stack frame is a de facto environment frame. While switching from the substitution to environment model is not an improvement in asymptotic efficency, these effects are useful especially for high-performance and compiled languages.
 
-Note that the substitution model does not imply a lazy (i.e., normal-order, call-by-name, call-by-need) evaluation \cite{plotkin1975call} as in languages such as Haskell or Miranda, in which bound variables are (by default) not evaluated until their value is required. Laziness is conceptually tied to substitution, but the substitution model does not require laziness. Like most programming languages, Hazel only has strict (i.e., applicative-order, call-by-value) evaluation: the expressions bound to variables are evaluated at the time of binding.
+Note that the substitution model does not imply a lazy (i.e., normal-order, call-by-name, call-by-need) evaluation \cite{plotkin1975call} as in languages such as Haskell or Miranda, in which bound variables are (by default) not evaluated until their value is required. Laziness is conceptually tied to substitution, but the substitution model does not require laziness. Like most programming languages, Hazel only has strict (i.e., applicative-order, call-by-value) evaluation: the expressions bound to variables are evaluated at the time of binding\footnote{Note that the function application rules *-EAp so far have been written in a lazy call-by-name manner. This can be easily changed to a strict call-by-value evaluation by evaluating the argument before performing $\beta$-reduction.}.
 
 % TODO: "Laziness is conceptually tied to substitution" -- but does it require substitution? Methinks so but not sure;
 %   will find out more later due to this independent study
