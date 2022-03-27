@@ -128,7 +128,7 @@ Let us consider values in some more detail. Values are distinguished by the judg
 
 \begin{singlespace}
   \begin{mathpar}
-    \Infer{Val-$\lambda$}{}{\lambda x.e\textsf{ value}}
+    \Infer{VLam}{}{\lambda x.e\textsf{ value}}
   \end{mathpar}
 \end{singlespace}
 
@@ -142,23 +142,23 @@ For example, let us describe the dynamic semantics of an addition operation usin
 
 \begin{singlespace}
   \begin{mathpar}
-    \Infer{EvalS-Plus$_1$}{e_1\to e_1'}{e_1+e_2\to e_1'+e_2}
+    \Infer{EPlus$_1$-Small}{e_1\to e_1'}{e_1+e_2\to e_1'+e_2}
     \and
-    \Infer{EvalS-Plus$_2$}{e_2\to e_2'}{\hnum{n_1}+e_2\to \hnum{n_1}+e_2'}
+    \Infer{EPlus$_2$-Small}{e_2\to e_2'}{\hnum{n_1}+e_2\to \hnum{n_1}+e_2'}
     \and
-    \Infer{EvalS-Plus$_3$}{}{\hnum{n_1}+\hnum{n_2}\to\hnum{n_1+n_2}}
+    \Infer{EPlus$_3$-Small}{}{\hnum{n_1}+\hnum{n_2}\to\hnum{n_1+n_2}}
   \end{mathpar}
 \end{singlespace}
 
 The algorithm carries itself out as follows: while $e_1$ is reducible, reduce it using some applicable evaluation rule. Once $e_1$ becomes a value, the first rule is no longer applicable (as $e_1$ cannot further reduce) and $e_2$ reduces until it too is a value. Finally, the third rule is applicable, and reduces the expression down to a single number literal. Note that if either $e_1$ or $e_2$ do not reduce down to a number literal, then the expression will not evaluate fully; this kind of failure cannot happen in a strongly-typed language due to typing rules.
 
-The second of these styles is \textit{natural operational semantics} as introduced by Kahn \cite{Kahn1987NaturalS} (alternatively, \textit{big-step semantics}). In the big-step semantics, the evaluation judgment is $e\Downarrow v$, where $e$ is an expression in the language, $\Downarrow$ represents some operation that is being defined, and $v\textsf{ value}$.
+The second of these styles is \textit{natural operational semantics} as introduced by Kahn \cite{Kahn1987NaturalS} (alternatively, \textit{big-step semantics}). In the big-step semantics, the evaluation judgment is $e\Downarrow v$, where $e$ is an expression in the language, $\Downarrow$ is the evaluation operator, and $v\textsf{ value}$.
 
 To express the evaluation of addition in the big-step semantics, we need only a single rule. In this case, the antecedants indicate that the subexpressions must be recursively evaluated, but (as noted earlier) this notably doesn't specify the order of evaluation of the antecedants, unlike the small-step notation.
 
 \begin{singlespace}
   \begin{mathpar}
-    \Infer{EvalB-Plus}{
+    \Infer{EPlus-B}{
       e_1\Downarrow\hnum{n_1} \\
       e_2\Downarrow\hnum{n_2} \\
     }{e_1+e_2\Downarrow\hnum{n_1+n_2}}
@@ -313,16 +313,20 @@ The hybrid proposed by Siek is the \textit{gradually-typed $\lambda$-calculus} \
 
 The grammar of \gtlc{} is almost exactly the same as \stlc, except that we add a new type $?$, indicating an unspecified type. Now, $\lambda$-abstractions may be type-annotated using this type, and we define the notation $\lambda x.e\equiv\lambda x:?.e$.
 
-The static semantics of \gtlc{} is expectedly also similar to \stlc. The only rule that differs are the rules for function application.
+The static semantics of \gtlc{} is expectedly also similar to \stlc. The only rule that differs is the rule for function application. We also write a new rule for subsumption, which states that if $\Gamma\vdash e:\tau$, then $e$ may also be assigned any consistent type.
 
 \begin{singlespace}
   \begin{mathpar}
     \Infer{\gtlc{}-TAp}{
       \Gamma\vdash e_1:\tau_1 \\
       \arrmatch{\tau_1}{\tau_2\to\tau_3} \\
-      \Gamma\vdash e_2:\tau_4 \\
-      \tau_4\sim\tau_3
+      \Gamma\vdash e_2:\tau_3 \\
     }{\Gamma\vdash e_1\ e_2:\tau_3}
+    \and
+    \Infer{\gtlc{}-TSub}{
+      \Gamma\vdash e:\tau \\
+      \tau\sim\tau'
+    }{\Gamma\vdash e:\tau'}
   \end{mathpar}
 \end{singlespace}
 
@@ -330,9 +334,9 @@ Two new judgments are introduced here. The first is the \textit{matched arrow ju
 
 \begin{singlespace}
   \begin{mathpar}
-    \Infer{MatHoleArr}{}{\arrmatch{\tehole}{\tehole\to\tehole}}
+    \Infer{MAHole}{}{\arrmatch{\tehole}{\tehole\to\tehole}}
     \and
-    \Infer{MatArrArr}{}{\arrmatch{\tau_1\to\tau_2}{\tau_1\to\tau_2}}
+    \Infer{MAArr}{}{\arrmatch{\tau_1\to\tau_2}{\tau_1\to\tau_2}}
   \end{mathpar}
 \end{singlespace}
 
@@ -340,11 +344,11 @@ The second new judgment is the \textit{type consistency judgment} $\tau_1\sim\ta
 
 \begin{singlespace}
   \begin{mathpar}
-    \Infer{TConsHoleTyp}{}{\tehole\sim\tau}
+    \Infer{TCHoleTyp}{}{\tehole\sim\tau}
     \and
-    \Infer{TConsTypHole}{}{\tau\sim\tehole}
+    \Infer{TCTypHole}{}{\tau\sim\tehole}
     \and
-    \Infer{TConsArr}{
+    \Infer{TCArr}{
       \tau_1\sim\tau_1' \\
       \tau_2\sim\tau_2'
     }{(\tau_1\to\tau_2)\sim(\tau_1'\to\tau_2)}
