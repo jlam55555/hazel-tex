@@ -1,11 +1,9 @@
 \chapter{Programming language principles}
 \label{sec:prog_lang_principles}
 
-This chapter is intended to provide a primer to the theory of functional programming and programming languages, as relevant to this work on Hazel.
+This chapter is intended to provide a primer to the theory of functional programming and programming languages, as relevant to this work on Hazel. The work performed for this thesis is concerned with the dynamic semantics of Hazel.
 
-In particular, the work performed for this thesis focuses on rewriting the dynamic semantics of Hazel to use an environment-based evaluation rather than a substitution-based evaluation. Hazel's internal language and evaluation semantics heavily borrow from the gradually-typed $\lambda$-calculus, which are incrementally introduced in this section. Introductory programming language material is typically presented using a substitution-based semantics, and we reproduce this here. Much of this material is condensed from introductory programming-language texts such as \cite{harper2016practical}.
-
-After describing programming language specifications, an overview of programming language implementations is provided. Lastly, we present related structural editors.
+\Cref{sec:prog-lang-def} is concerned with explaining the notation used throughout this paper to describe formal systems. \Cref{sec:fp-lc} is concerned with incrementally building up the conceptual foundation for the gradually-typed $\lambda$-calculus, which Hazel is heavily based on. In this section, the syntax and static semantics of the $\lambda$-calculus are explored; even though not directly tied to the work performed in this, these are critical to understanding the Hazel system. Much of the material presented in this section is standard material in a introductory text in programming language theory such as \cite{prog-lang-def}. \Cref{sec:interpreters} provides some detail on different types of programming language implementations, which is standard material in an introductory compilers text such as \cite{aho86}. In particular, this section sheds some light on the rationale behind switching from an evaluation model based on substitution to an evaluation model based on environments, which forms a large part of this thesis work. \Cref{sec:prog-intf} provides an overview of structural editors. Finally, \Cref{sec:cmtt} provides some background on contextual modal type theory (CMTT), which forms the conceptual precedent for the hole-filling operation.
 
 \section{Specifications of programming languages}
 \label{sec:prog-lang-def}
@@ -190,9 +188,9 @@ Hazel is one such (purely) functional programming languages. Other languages tha
 \subsection{The untyped $\lambda$-calculus}
 \label{sec:lambda-calculus}
 
-Church introduced the \textit{untyped $\lambda$-calculus} $\Lambda$ as an example of a simple universal language of computable functions, and it forms the foundation for the syntax and evaluation semantics of functional programming languages.
+Church introduced the \textit{untyped $\lambda$-calculus} \ulc{} as an example of a simple universal language of computable functions, and it forms the foundation for the syntax and evaluation semantics of functional programming languages.
 
-The grammar of $\Lambda$ is very simple, only comprising three forms (excluding parentheses\footnote{The imperative programmer with a background in a C-family language be warned: parentheses are not required for function application. Rather, space (\textvisiblespace) is an infix operator that represents function application in $\Lambda$ and many functional languages. It traditionally is left-associative and has the highest precedence of any infix operator. Parentheses around function arguments are only required when it affects the order of operations. An exception to this rule in functional programming is in the LISP family of languages, in which parentheses specify function application rather than operator precedence, but that is not the interpretation here.}), shown below.
+The grammar of \ulc{} is very simple, only comprising three forms (excluding parentheses\footnote{The imperative programmer with a background in a C-family language be warned: parentheses are not required for function application. Rather, space (\textvisiblespace) is an infix operator that represents function application in \ulc{} and many functional languages. It traditionally is left-associative and has the highest precedence of any infix operator. Parentheses around function arguments are only required when it affects the order of operations. An exception to this rule in functional programming is in the LISP family of languages, in which parentheses specify function application rather than operator precedence, but that is not the interpretation here.}), shown below.
 
 \begin{singlespace}
   \begin{align*}
@@ -202,21 +200,21 @@ The grammar of $\Lambda$ is very simple, only comprising three forms (excluding 
   \end{align*}
 \end{singlespace}
 
-The static semantics of this syntax are very simple: every expression in $\Lambda$ is well-fromed if all variables are bound by some binder\footnote{There are no typing rules in the static semantics, because there is only a single type: the recursive arrow type $\tau::=\tau\to\tau$. Thus, it may be more correct to say that $\Lambda$ is ``uni-typed'' as opposed to ``untyped,'' as noted in \cite{harper2016practical}. Thus no type errors will occur when evaluating a (well-formed) expression in $\Lambda$.}.
+The static semantics of this syntax are very simple: every expression in \ulc{} is well-fromed if all variables are bound by some binder\footnote{There are no typing rules in the static semantics, because there is only a single type: the recursive arrow type $\tau::=\tau\to\tau$. Thus, it may be more correct to say that \ulc{} is ``uni-typed'' as opposed to ``untyped,'' as noted in \cite{harper2016practical}. Thus no type errors will occur when evaluating a (well-formed) expression in \ulc{}.}.
 
 The dynamic semantics are similarly simple, shown below using a big-step semantics. $\lambda$-abstractions are values (expressions that evaluate to themselves), and application is applied by substituting variables \footnote{The substitution of the function variable during function application is known as $\beta$-reduction. Renaming of bound variables (a process known as $\alpha$-conversion) is used to avoid substituting variables of the same name bound by a different binder.}.
 
 \begin{singlespace}
   \begin{mathpar}
-    \Infer{$\Lambda$-ELam}{}{\lambda x.e\Downarrow\lambda x.e}
+    \Infer{\ulc{}-ELam}{}{\lambda x.e\Downarrow\lambda x.e}
     \and
-    \Infer{$\Lambda$-EAp}{
+    \Infer{\ulc{}-EAp}{
       e_1\Downarrow\lambda x.e_1'
     }{e_1\ e_2\Downarrow [e_2/x]e_1'}
   \end{mathpar}
 \end{singlespace}
 
-$\Lambda$ is an example of a Turing-complete language. One of the key characteristics to this is the ability to compute recursive algorithms. To implement recursion, a function must be able to refer to itself. Since there is no construct to bind an expression to a variables other than function binders (i.e., there is no construct such as OCaml's \mintinline{ocaml}|let rec| expressions), one must pass a self-reference of a function to itself. For example, let us consider the example of a factorial function in $\Lambda$ (for sake of illustration, extended with a conditional statement, integers, and simple integer operators).
+\ulc{} is an example of a Turing-complete language. One of the key characteristics to this is the ability to compute recursive algorithms. To implement recursion, a function must be able to refer to itself. Since there is no construct to bind an expression to a variables other than function binders (i.e., there is no construct such as OCaml's \mintinline{ocaml}|let rec| expressions), one must pass a self-reference of a function to itself. For example, let us consider the example of a factorial function in \ulc{} (for sake of illustration, extended with a conditional statement, integers, and simple integer operators).
 
 \[\text{fact'}\equiv\lambda f.\lambda x.\text{if }x=0\text{ then }1\text{ else }x*f(x-1)\]
 
@@ -229,14 +227,14 @@ To facilitate the recursion, we need the help of an auxiliary operator which con
   \end{gather*}
 \end{singlespace}
 
-A more thorough discussion of $\Lambda$ and the Y-combinator is left to standard material on programming language theory, such as \cite{harper2016practical}.
+A more thorough discussion of \ulc{} and the Y-combinator is left to standard material on programming language theory, such as \cite{harper2016practical}.
 
 \subsection{The simply-typed $\lambda$-calculus}
 \label{sec:stlc}
 
 While the $\lambda$ calculus is Turing complete and sufficient to represent any computation, it is not practical in terms of efficiency or usability if all data is represented with functions\footnote{The stereotypical example of representing data using functions is called the Church encoding. For example, there are standard Church encodings for natural numbers, for boolean values and conditionals, and for pairs (\texttt{cons}), which can be used to construct structured data.}.
 
-The \textit{simply-typed $\lambda$-calculus} (STLC) $\Lambda^\to$ extends $\Lambda$ with one or more base types $b_i$, such as integers, booleans, or floating-point numbers. Consider the case of a single base type $b$. The extended grammar is shown below.
+The \textit{simply-typed $\lambda$-calculus} (STLC) \stlc{} extends \ulc{} with one or more base types $b_i$, such as integers, booleans, or floating-point numbers. Consider the case of a single base type $b$. The extended grammar is shown below.
 
 \begin{singlespace}
   \begin{align*}
@@ -252,47 +250,47 @@ The \textit{simply-typed $\lambda$-calculus} (STLC) $\Lambda^\to$ extends $\Lamb
 
 The grammar is extended to include constants of the base type. The type of functions parameters must be annotated\footnote{This is in the simplest case of type-assignment. With a type inference system such as bidirectional typing as described in \Cref{sec:static-semantics}, some type annotations may be optional.}.
 
-We now define what it means for a program in $\Lambda^\to$ to be well-typed. The following typing judgments assign a type to a $\Lambda^\to$ program.
+We now define what it means for a program in \stlc{} to be well-typed. The following typing judgments assign a type to a \stlc{} program.
 
 \begin{singlespace}
   \begin{mathpar}
-    \Infer{$\Lambda^\to$-TConst}{}{\Gamma\vdash c:b}
+    \Infer{\stlc{}-TConst}{}{\Gamma\vdash c:b}
     \and
-    \Infer{$\Lambda^\to$-TVar}{}{\Gamma,x:\tau\vdash x:\tau}
+    \Infer{\stlc{}-TVar}{}{\Gamma,x:\tau\vdash x:\tau}
     \and
-    \Infer{$\Lambda^\to$-TLam}{
+    \Infer{\stlc{}-TLam}{
       \Gamma,x:\tau_1\vdash e:\tau_2
     }{\Gamma\vdash(\lambda x:\tau_1.e):\tau_2}
     \and
-    \Infer{$\Lambda^\to$-TAp}{
+    \Infer{\stlc{}-TAp}{
       \Gamma\vdash e_1:\tau_1\to\tau \\
       \Gamma\vdash e_2:\tau_1
     }{\Gamma\vdash e_1\ e_2:\tau}
     \and
-    \Infer{$\Lambda^\to$-TFix}{}{\Gamma\vdash(\fix f:\tau.e):\tau}
+    \Infer{\stlc{}-TFix}{}{\Gamma\vdash(\fix f:\tau.e):\tau}
   \end{mathpar}
 \end{singlespace}
 
-The dynamic semantics are not much different than $\Lambda$. Additional evaluation rules are defined for constants and fixpoints; evaluation of $\lambda$-abstractions and function application remains the same.
+The dynamic semantics are not much different than \ulc{}. Additional evaluation rules are defined for constants and fixpoints; evaluation of $\lambda$-abstractions and function application remains the same.
 
 \begin{singlespace}
   \begin{mathpar}
-    \Infer{$\Lambda^\to$-EConst}{}{c\Downarrow c}
+    \Infer{\stlc{}-EConst}{}{c\Downarrow c}
     \and
-    \Infer{$\Lambda^\to$-ELam}{}{\lambda x:\tau.e \Downarrow \lambda x:\tau.e}
+    \Infer{\stlc{}-ELam}{}{\lambda x:\tau.e \Downarrow \lambda x:\tau.e}
     \and
-    \Infer{$\Lambda^\to$-EAp}{
+    \Infer{\stlc{}-EAp}{
       e_1\Downarrow\lambda x:\tau.e
     }{e_1\ e_2\Downarrow [e_2/x]e}
     \and
-    \Infer{$\Lambda^\to$-EFix}{}{\fix f:\tau.e \Downarrow[\fix f:\tau.e/f]e}
+    \Infer{\stlc{}-EFix}{}{\fix f:\tau.e \Downarrow[\fix f:\tau.e/f]e}
     \and
   \end{mathpar}
 \end{singlespace}
 
-We may characterize type systems by establishing certain desirable properties. One such property is \textit{soundness}. Soundness means that if a program in $\Lambda^\to$ type-checks, then it will not fail with a type error at run-time. This property is not necessary to prove for $\Lambda$ because there is only one type in $\Lambda$, the recursive type $\tau::=\tau\to\tau$.
+We may characterize type systems by establishing certain desirable properties. One such property is \textit{soundness}. Soundness means that if a program in \stlc{} type-checks, then it will not fail with a type error at run-time. This property is not necessary to prove for \ulc{} because there is only one type in \ulc{}, the recursive type $\tau::=\tau\to\tau$.
 
-There is an additional expression form in $\Lambda^\to$. This is the \textit{fixpoint form}, $\fix f:\tau.e$. The fixpoint is a primitive operator with the same purpose and evaluation behavior as the Y-combinator: it allows for self-reference, and thus general recursion. The reason for the explicit fixpoint operator is that the Y-combinator is ill-typed. Self-reference is inherently poorly-typed and requires a primitive operator, since it involves a function which takes itself as a parameter (leading to an infinitely-recursive arrow type). With the $\fix$ operator, we may express the factorial function as shown below. In this example, we assume that the base type $b\equiv\text{int}$, and that conditionals and primitive integer operations extend $\Lambda^\to$.
+There is an additional expression form in \stlc{}. This is the \textit{fixpoint form}, $\fix f:\tau.e$. The fixpoint is a primitive operator with the same purpose and evaluation behavior as the Y-combinator: it allows for self-reference, and thus general recursion. The reason for the explicit fixpoint operator is that the Y-combinator is ill-typed. Self-reference is inherently poorly-typed and requires a primitive operator, since it involves a function which takes itself as a parameter (leading to an infinitely-recursive arrow type). With the $\fix$ operator, we may express the factorial function as shown below. In this example, we assume that the base type $b\equiv\text{int}$, and that conditionals and primitive integer operations extend \stlc{}.
 
 \begin{equation*}
   \text{fact}\equiv\fix f:\text{int}\to \text{int}.\lambda x:\text{int}.\text{if }x=0\text{ then }1\text{ else }x*f(x-1)
@@ -300,14 +298,63 @@ There is an additional expression form in $\Lambda^\to$. This is the \textit{fix
 
 The fixpoint operator is introduced in Plotkin's System PCF \todoref{can cite PFPL, also get citation for original pcf?}, and is used to implement recursion in Hazel's evaluator, which uses a substitution-based evaluation.
 
-$\Lambda^\to$ is a practical foundation for many functional languages. Standard exercises include extending $\Lambda^\to$ with multiple common base types (integers and booleans), conditional expressions, \texttt{let}-expressions, and \texttt{case}-expressions. The basic type system can be extended to use type inference algorithms or support more advanced types.
+\stlc{} is a practical foundation for many functional languages. Standard exercises include extending \stlc{} with multiple common base types (integers and booleans), conditional expressions, \texttt{let}-expressions, and \texttt{case}-expressions. The basic type system can be extended to use type inference algorithms or support more advanced types.
 
 % TODO: for practical purposes, let and case expressions
 
 \subsection{The gradually-typed $\lambda$-calculus}
 \label{sec:gradual}
 
-\todo{write this section, reference Siek06gradualtyping,siek2015refined}
+\todo{references for notation: siek for original gradual typing (unknown type, type consistency, cast calculus), hazelnut notation for most notation specifics, matched arrow notation from other sources from hazelnut paper}
+
+We have discussed \stlc{}, which involves a simple \textit{static typing} system, as type checks are part of the static semantics. However, we may extend \ulc{} with an additional base type but without a static semantics. In this case, a well-formed expression may fail at run-time due to type errors -- thus, types are checked in the dynamic semantics and this is known as \textit{dynamic typing}. The benefit of static typing is soundness and performance (as run-time type checks are relatively slow). The benefit of dynamic checking is to avoid annotating types\footnote{Note that type inference systems in a statically-typed system also allow for reduced type-annotations, but may still require some annotations when not enough information is given for type inference.}, and thus more quickly prototype or refactor programs.
+
+The hybrid proposed by Siek is the \textit{gradually-typed $\lambda$-calculus} \gtlc{} \cite{Siek06gradualtyping,siek2015refined}. In \gtlc{}, all type annotations are optional and offer a ``pay-as-you-go'' benefit. A completely unannotated \gtlc{} program acts like dynamic typing (\ulc{} extended with base type(s) but no static semantics), with run-time casts and the ability for run-time type failures. A completely annotated \gtlc{} program is equivalent to a \stlc{} program. The performance cost of run-time casts and the possibility of run-time type failures only occurs when evaluating expressions with unannotated terms.
+
+The grammar of \gtlc{} is almost exactly the same as \stlc, except that we add a new type $?$, indicating an unspecified type. Now, $\lambda$-abstractions may be type-annotated using this type, and we define the notation $\lambda x.e\equiv\lambda x:?.e$.
+
+The static semantics of \gtlc{} is expectedly also similar to \stlc. The only rule that differs are the rules for function application.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{\gtlc{}-TAp}{
+      \Gamma\vdash e_1:\tau_1 \\
+      \arrmatch{\tau_1}{\tau_2\to\tau_3} \\
+      \Gamma\vdash e_2:\tau_4 \\
+      \tau_4\sim\tau_3
+    }{\Gamma\vdash e_1\ e_2:\tau_3}
+  \end{mathpar}
+\end{singlespace}
+
+Two new judgments are introduced here. The first is the \textit{matched arrow judgment} $\arrmatch{\tau_1}{\tau_2\to\tau_3}$, which is a notational convenience which allows us to write a single rule for arrow types, which may either be a hole or an arrow type. This judgment is defined by the following rules.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{MatHoleArr}{}{\arrmatch{\tehole}{\tehole\to\tehole}}
+    \and
+    \Infer{MatArrArr}{}{\arrmatch{\tau_1\to\tau_2}{\tau_1\to\tau_2}}
+  \end{mathpar}
+\end{singlespace}
+
+The second new judgment is the \textit{type consistency judgment} $\tau_1\sim\tau_2$. This judgment defines the typing relation of the unknown type to other types: every type is consistent to the hole type. Thus any type will type-check where a hole is expected, and vice versa. This relation is reflexive, symmetric, and non-transitive\footnote{It may seem unintuitive at first that type consistency is a symmetric relationship, because it may seem more like a subtyping relation. However, a major revolution in Siek's original formulation of \gtlc is that the symmetric subtyping relation is more suitable than the subtyping relations that had been explored in earlier works such as Thatte's quasi-static typing \cite{Siek06gradualtyping}.}.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{TConsHoleTyp}{}{\tehole\sim\tau}
+    \and
+    \Infer{TConsTypHole}{}{\tau\sim\tehole}
+    \and
+    \Infer{TConsArr}{
+      \tau_1\sim\tau_1' \\
+      \tau_2\sim\tau_2'
+    }{(\tau_1\to\tau_2)\sim(\tau_1'\to\tau_2)}
+    \and
+  \end{mathpar}
+\end{singlespace}
+
+\todo{explain elaboration to the internal cast calculus}
+
+\todo{explain the dynamic semantics}
 
 \section{Implementations of programming languages}
 \label{sec:interpreters}
@@ -353,6 +400,11 @@ Note that the substitution model does not imply a lazy (i.e., normal-order, call
 
 The implementation of evaluation with environments differs from that of evaluation with substitution primarily in that: an evaluation environment is required to look up bound variables as evaluation reaches them; binding constructs extend the evaluation environment rather than performing substitution; and $\lambda$ abstractions are bound with their evaluation environment at runtime to form (lexical) closures.
 
+\subsection{Closure conversion}
+\label{sec:closure-conversion}
+
+\todo{implement this section}
+
 \section{Approaches to programming interfaces}
 \label{sec:prog-intf}
 
@@ -372,6 +424,11 @@ The implementation of evaluation with environments differs from that of evaluati
 
 \subsection{Criticisms of non-textual editors}
 \label{sec:textual-benefits}
+
+\section{Contextual Modal Type Theory}
+\label{sec:cmtt}
+
+\todo{implemen this section; background for hole filling}
 
 %%% Local Variables:
 %%% mode: latex
