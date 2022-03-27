@@ -3,7 +3,7 @@
 
 This chapter is intended to provide a primer to the theory of functional programming and programming languages, as relevant to this work on Hazel. The work performed for this thesis is concerned with the dynamic semantics of Hazel.
 
-\Cref{sec:prog-lang-def} is concerned with explaining the notation used throughout this paper to describe formal systems. \Cref{sec:fp-lc} is concerned with incrementally building up the conceptual foundation for the gradually-typed $\lambda$-calculus, which Hazel is heavily based on. In this section, the syntax and static semantics of the $\lambda$-calculus are explored; even though not directly tied to the work performed in this, these are critical to understanding the Hazel system. Much of the material presented in this section is standard material in a introductory text in programming language theory such as \cite{prog-lang-def}. \Cref{sec:interpreters} provides some detail on different types of programming language implementations, which is standard material in an introductory compilers text such as \cite{aho86}. In particular, this section sheds some light on the rationale behind switching from an evaluation model based on substitution to an evaluation model based on environments, which forms a large part of this thesis work. \Cref{sec:prog-intf} provides an overview of structural editors. Finally, \Cref{sec:cmtt} provides some background on contextual modal type theory (CMTT), which forms the conceptual precedent for the hole-filling operation.
+\Cref{sec:prog-lang-def} is concerned with explaining the notation used throughout this paper to describe formal systems. \Cref{sec:fp-lc} is concerned with incrementally building up the conceptual foundation for the gradually-typed $\lambda$-calculus, which Hazel is heavily based on. In this section, the syntax and static semantics of the $\lambda$-calculus are explored; even though not directly tied to the work performed in this, these are critical to understanding the Hazel system. Much of the material presented in this section is standard material in a introductory text in programming language theory such as \cite{harper2016practical}. \Cref{sec:interpreters} provides some detail on different types of programming language implementations, which is standard material in an introductory compilers text such as \cite{aho86}. In particular, this section sheds some light on the rationale behind switching from an evaluation model based on substitution to an evaluation model based on environments, which forms a large part of this thesis work. \Cref{sec:prog-intf} provides an overview of structural editors. Finally, \Cref{sec:cmtt} provides some background on contextual modal type theory (CMTT), which forms the conceptual precedent for the hole-filling operation.
 
 \section{Specifications of programming languages}
 \label{sec:prog-lang-def}
@@ -48,6 +48,8 @@ In formal logic, a standard notation for \textit{rules of inference} is shown be
 \end{singlespace}
 $p_1,p_2,\dots,p_n$ are the \textit{antecedents} (alternatively, \textit{premises}) and $q$ is the (single) \textit{consequent} (alternatively, \textit{conclusion}). Each of $p_1,p_2,\dots,p_n,q$ is a \textit{judgment} (alternatively, \textit{proposition} or \textit{statement}); we may interpret the rule as: ``if all of $p_1,p_2,\dots,p_n$ are true, then $q$ must be true'' (the antecedent of the rule is the logical conjunction of the antecedants $\bigwedge_{i=1}^n p_i$). The logical disjunction of antecedants $\bigvee_{i=1}^n p_i$ is expressed by writing separate rules with the same consequent. A rule with zero premises is an \textit{axiom}, i.e., the conclusion is vacuously true. We may build up a formal logic system using such rules; in our case the formal specification of the static and dynamic semantics of a programming language. Note that the set of judgments that form the consequents of a rule, as well as the set of rules in a formal system, are both unordered; however, any computer program that carries out these judgments must choose some order in which to evaluate the set of antecedents or the order in which to evaluate a set of equally-viable rules.
 
+Each new judgment form will be introduced annotated with the modes of each term. For example, the typing judgment $\Gamma^-\vdash e^-:\tau^+$ indicates that $\Gamma$ and $e$ are inputs to the judgment and $\tau$ is an output of the judgment. If there are no terms with output mode in a judgment, then the ability to logically construct the judgment is its sole (boolean) output.
+
 A derivation of a statement in such a system by chaining together inference rules, such that the final consequent is the statement to be proved.
 
 \todo{example of a derivation in a simple fabricated system}
@@ -63,7 +65,7 @@ The \textit{static semantics} of a programming language describes specifications
 
 It is formative to provide an overview of type checking. While the static semantics is not very important to the core work in this thesis, a fundamental understanding is key to understanding the motivation and bidirectionally-typed action calculus behind Hazel, as well as understanding the formulation of gradual typing described in \Cref{sec:gradual}.
 
-The \textit{typing judgment} $\Gamma\vdash e:\tau$ states that, with respect to the typing context $\Gamma$, the expression $e$ is well-typed with type $\tau$. The typing context is a set of variable typing judgments $\{x:\tau\}$. A few sample typing judgments are shown below.
+The \textit{typing judgment} $\Gamma^-\vdash e^-:\tau^+$ states that, with respect to the typing context $\Gamma$, the expression $e$ is well-typed with type $\tau$. The typing context is a set of variable typing judgments $\{x:\tau\}$. A few sample typing judgments are shown below.
 
 \begin{singlespace}
   \begin{mathpar}
@@ -84,7 +86,7 @@ The \textit{typing judgment} $\Gamma\vdash e:\tau$ states that, with respect to 
 
 There are a few noteworthy items here. The syntax $\Gamma,x:\tau$ indicates that the typing context $\Gamma$ extended with the binding $x:\tau$. Thus, when it is part of the consequent, it means that we are stating the typing judgment with respect to a different typing context $\Gamma'=\Gamma,x:\tau$. The type of a number is always $\tnum$. The type of a variable may only be determined if its type exists in the typing context (which, according to this limited set of rules, may only be extended during a function application). Lambda expressions can only be typed if they are fully-annotated: i.e., if the argument's type is annotated and the body is also assigned a type. This example typing system is very minimal and not practical for larger systems: every $\lambda$-abstraction would have to be typed for the entire expression to be well-typed. Consider even the simple example $(\lambda x.x)\ 2$, which cannot be typed according to the simple system above due to the unannotated $\lambda$-abstraction.
 
-A type system that allows for fewer type annotations, while remaining reasonably simple to formulate and implement, is \textit{bidirectional typing} \cite{Dunfield_2022,chlipala2005strict,pierce2000local}, or \textit{local type inference}. Bidirectional typing involves two typing judgments: the \textit{typing synthesis judgment} $\Gamma\vdash e\Rightarrow\tau$ (pronounced ``given typing context $\Gamma$, expression $e$ synthesizes type $\tau$), and the \textit{type analysis judgment} $\Gamma\vdash e\Leftarrow\tau$ (pronounced ``given typing context $\Gamma$, expression $e$ analyzes against type $\tau$). The type synthesis judgment outputs a type (the exact or ``narrowest'' type of the expression), whereas the type analysis judgment takes a type as an input and ``checks'' the expression against that (``wider'') type. With these two judgments, we may be able to loosen the antecedant judgments when synthesizing a type. We may re-express the above type system into a similar (and incomplete) bidirectional type system.
+A type system that allows for fewer type annotations, while remaining reasonably simple to formulate and implement, is \textit{bidirectional typing} \cite{Dunfield_2022,chlipala2005strict,pierce2000local}, or \textit{local type inference}. Bidirectional typing involves two typing judgments: the \textit{typing synthesis judgment} $\Gamma^-\vdash e^-\Rightarrow\tau^+$ (pronounced ``given typing context $\Gamma$, expression $e$ synthesizes type $\tau$), and the \textit{type analysis judgment} $\Gamma^-\vdash e^-\Leftarrow\tau^-$ (pronounced ``given typing context $\Gamma$, expression $e$ analyzes against type $\tau$). The type synthesis judgment outputs a type (the exact or ``narrowest'' type of the expression), whereas the type analysis judgment takes a type as an input and ``checks'' the expression against that (``wider'') type. With these two judgments, we may be able to loosen the antecedant judgments when synthesizing a type. We may re-express the above type system into a similar (and incomplete) bidirectional type system.
 
 \begin{singlespace}
   \begin{mathpar}
@@ -124,7 +126,7 @@ More advanced type inference algorithms such as type unification are used in the
 
 The \textit{dynamic semantics} (alternatively, \textit{evaluation semantics}) of a programming language describes the evaluation process. Evaluation is the algorithmic reduction of an language expression to a \textit{value}, an irreducible expression.
 
-Let us consider values in some more detail. Values are distinguished by the judgment $v\Downarrow v$; i.e., values evaluate to themselves. Following the notation from \cite{conf/popl/Hazelnut17,conf/popl/HazelnutLive19}, we can alternatively write this using the equivalent judgment $v\textsf{ value}$. In the stereotypical untyped $\lambda$-calculus, the only values are $\lambda$-abstractions. We can denote this using the axiom:
+Let us consider values in some more detail. In the big-step notation, values are distinguished by the judgment $v\Downarrow v$; i.e., values evaluate to themselves. In the small-step notation, there will be no applicable rule to further reduce a value. Following the notation from \cite{conf/popl/Hazelnut17,conf/popl/HazelnutLive19}, we can alternatively write this using the equivalent judgment $v^-\textsf{ value}$. In the stereotypical untyped $\lambda$-calculus, the only values are $\lambda$-abstractions. We can denote this using the axiom:
 
 \begin{singlespace}
   \begin{mathpar}
@@ -136,7 +138,7 @@ In Hazel, we have other base types such as integers, floats, and booleans, which
 
 The rules that are used to define the dynamic semantics of a programming language are called \textit{operational semantics}, because they model the operation of a computer when compiling or evaluating a programming language. There are two major styles of operational semantics.
 
-The first of these styles is \textit{structural operational semantics} as introduced by Plotkin \cite{plotkin1981structural} (alternatively, \textit{small-step semantics}). In the small-step semantics, the \textit{evaluation judgment} is $e_1\to e_2$, where $e_1$ and $e_2$ are expressions in the language, and $\to$ is the operation being defined.
+The first of these styles is \textit{structural operational semantics} as introduced by Plotkin \cite{plotkin1981structural} (alternatively, \textit{small-step semantics}). In the small-step semantics, the \textit{evaluation judgment} is $e_1^-\to e_2^+$, where $e_1$ and $e_2$ are expressions in the language.
 
 For example, let us describe the dynamic semantics of an addition operation using a small-step semantics. This is described using the following three rules:
 
@@ -152,7 +154,7 @@ For example, let us describe the dynamic semantics of an addition operation usin
 
 The algorithm carries itself out as follows: while $e_1$ is reducible, reduce it using some applicable evaluation rule. Once $e_1$ becomes a value, the first rule is no longer applicable (as $e_1$ cannot further reduce) and $e_2$ reduces until it too is a value. Finally, the third rule is applicable, and reduces the expression down to a single number literal. Note that if either $e_1$ or $e_2$ do not reduce down to a number literal, then the expression will not evaluate fully; this kind of failure cannot happen in a strongly-typed language due to typing rules.
 
-The second of these styles is \textit{natural operational semantics} as introduced by Kahn \cite{Kahn1987NaturalS} (alternatively, \textit{big-step semantics}). In the big-step semantics, the evaluation judgment is $e\Downarrow v$, where $e$ is an expression in the language, $\Downarrow$ is the evaluation operator, and $v\textsf{ value}$.
+The second of these styles is \textit{natural operational semantics} as introduced by Kahn \cite{Kahn1987NaturalS} (alternatively, \textit{big-step semantics}). In the big-step semantics, the evaluation judgment is $e^-\Downarrow v^+$, where $e$ is an expression in the language, and $v\textsf{ value}$.
 
 To express the evaluation of addition in the big-step semantics, we need only a single rule. In this case, the antecedants indicate that the subexpressions must be recursively evaluated, but (as noted earlier) this notably doesn't specify the order of evaluation of the antecedants, unlike the small-step notation.
 
@@ -309,7 +311,7 @@ The fixpoint operator is introduced in Plotkin's System PCF \todoref{can cite PF
 
 We have discussed \stlc{}, which involves a simple \textit{static typing} system, as type checks are part of the static semantics. However, we may extend \ulc{} with an additional base type but without a static semantics. In this case, a well-formed expression may fail at run-time due to type errors -- thus, types are checked in the dynamic semantics and this is known as \textit{dynamic typing}. The benefit of static typing is soundness and performance (as run-time type checks are relatively slow). The benefit of dynamic checking is to avoid annotating types\footnote{Note that type inference systems in a statically-typed system also allow for reduced type-annotations, but may still require some annotations when not enough information is given for type inference.}, and thus more quickly prototype or refactor programs.
 
-The hybrid proposed by Siek is the \textit{gradually-typed $\lambda$-calculus} \gtlc{} \cite{Siek06gradualtyping,siek2015refined}. In \gtlc{}, all type annotations are optional and offer a ``pay-as-you-go'' benefit. A completely unannotated \gtlc{} program acts like dynamic typing (\ulc{} extended with base type(s) but no static semantics), with run-time casts and the ability for run-time type failures. A completely annotated \gtlc{} program is equivalent to a \stlc{} program. The performance cost of run-time casts and the possibility of run-time type failures only occurs when evaluating expressions with unannotated terms.
+The hybrid proposed by Siek is the \textit{gradually-typed $\lambda$-calculus} \gtlc{} \cite{Siek06gradualtyping,siek2015refined}\footnote{The material presented in this section originates from \cite{Siek06gradualtyping,siek2015refined}, but the notation conventions follow from \cite{conf/popl/HazelnutLive19} for in order to stay consistent with the rest of this paper.}. In \gtlc{}, all type annotations are optional and offer a ``pay-as-you-go'' benefit. A completely unannotated \gtlc{} program acts like dynamic typing (\ulc{} extended with base type(s) but no static semantics), with run-time casts and the ability for run-time type failures. A completely annotated \gtlc{} program is equivalent to a \stlc{} program. The performance cost of run-time casts and the possibility of run-time type failures only occurs when evaluating expressions with unannotated terms.
 
 The grammar of \gtlc{} is almost exactly the same as \stlc, except that we add a new type $?$, indicating an unspecified type. Now, $\lambda$-abstractions may be type-annotated using this type, and we define the notation $\lambda x.e\equiv\lambda x:?.e$.
 
@@ -330,7 +332,7 @@ The static semantics of \gtlc{} is expectedly also similar to \stlc. The only ru
   \end{mathpar}
 \end{singlespace}
 
-Two new judgments are introduced here. The first is the \textit{matched arrow judgment} $\arrmatch{\tau_1}{\tau_2\to\tau_3}$, which is a notational convenience which allows us to write a single rule for arrow types, which may either be a hole or an arrow type. This judgment is defined by the following rules.
+Two new judgments are introduced here. The first is the \textit{matched arrow judgment} $\arrmatch{\tau_1^-}{(\tau_2\to\tau_3)^+}$, which is a notational convenience which allows us to write a single rule for arrow types, which may either be a hole or an arrow type. This judgment is defined by the following rules.
 
 \begin{singlespace}
   \begin{mathpar}
@@ -340,7 +342,7 @@ Two new judgments are introduced here. The first is the \textit{matched arrow ju
   \end{mathpar}
 \end{singlespace}
 
-The second new judgment is the \textit{type consistency judgment} $\tau_1\sim\tau_2$. This judgment defines the typing relation of the unknown type to other types: every type is consistent to the hole type. Thus any type will type-check where a hole is expected, and vice versa. This relation is reflexive, symmetric, and non-transitive\footnote{It may seem unintuitive at first that type consistency is a symmetric relationship, because it may seem more like a subtyping relation. However, a major revolution in Siek's original formulation of \gtlc is that the symmetric subtyping relation is more suitable than the subtyping relations that had been explored in earlier works such as Thatte's quasi-static typing \cite{Siek06gradualtyping}.}.
+The second new judgment is the \textit{type consistency judgment} $\tau_1^-\sim\tau_2^-$. This judgment defines the typing relation of the unknown type to other types: every type is consistent to the hole type. Thus any type will type-check where a hole is expected, and vice versa. This relation is reflexive, symmetric, and non-transitive\footnote{It may seem unintuitive at first that type consistency is a symmetric relationship, because it may seem more like a subtyping relation. However, a major revolution in Siek's original formulation of \gtlc is that the symmetric subtyping relation is more suitable than the subtyping relations that had been explored in earlier works such as Thatte's quasi-static typing \cite{Siek06gradualtyping}.}.
 
 \begin{singlespace}
   \begin{mathpar}
@@ -356,7 +358,31 @@ The second new judgment is the \textit{type consistency judgment} $\tau_1\sim\ta
   \end{mathpar}
 \end{singlespace}
 
-\todo{explain elaboration to the internal cast calculus}
+Evaluation of a gradually-typed language introduces a cast calculus, which performs run-time type checking. To do this, we design another language, \gtclc, whose grammar is identical to \gtlc except for the introduction of a new expression form indicating a run-time cast, $e\langle\tau\Rightarrow\tau'\rangle$. We refer to \gtlc as the \textit{external language} and \gtclc as the \textit{internal language}. We denote expressions in \gtlc with the letter $e$ and expressions in \gtclc with the letter $d$. We only define static semantics on \gtlc and only define dynamic semantics on \gtclc. The process of converting from the external language to the internal language (i.e., the process of cast-insertion) is called \textit{elaboration}.
+
+Usually, elaboration includes the type-checking operation rather than being a separate operation. Elaboration fails iff type checking fails. A theorem may be stated that the type assigned by elaboration is the same as the type assigned by the type assignment judgment.
+
+The elaboration process is governed by the judgment $\Gamma^-\vdash e^-\leadsto d^+:\tau^+$. For most expression types, the expression in the external language elaborates to itself. The only exception is function applications, in which dynamic casts are inserted.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{\gtlc-ElConst}{}{\Gamma\vdash c\leadsto c:b}
+    \and
+    \Infer{\gtlc-ElLam}{
+      \Gamma,x:\tau_1\vdash e:\tau_2
+    }{\Gamma\vdash\lambda x:\tau_1.e\leadsto (\lambda x:\tau_1.e):\tau_1\to\tau_2}
+    \and
+    \Infer{\gtlc-ElFix}{
+    }{\Gamma\vdash\fix f:\tau.e\leadsto (\fix f:\tau.e):\tau}
+    \and
+    \Infer{\gtlc-ElApp}{
+      \Gamma\vdash e_1\leadsto d_1:\tau_1 \\
+      \arrmatch{\tau_1}{\tau_3\to\tau_4} \\
+      \Gamma\vdash e_2\leadsto d_2:\tau_2 \\
+      \tau_2\sim\tau_3
+    }{\Gamma\vdash e_1\ e_2\leadsto (d_1\langle\tau_1\Rightarrow\tau_3\to\tau_4\rangle)\ (d_2\langle\tau_2\Rightarrow\tau_5\rangle):\tau_4}
+  \end{mathpar}
+\end{singlespace}
 
 \todo{explain the dynamic semantics}
 
