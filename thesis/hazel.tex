@@ -33,6 +33,18 @@ Some languages also have the concept of expression holes, which allow a program 
 
 In summary, Hazel provides empty type and expression holes, which represent dynamic typing and missing expressions. Nonempty holes are also provided to encapsulate error conditions and provide a well-defined dynamic semantics while providing useful feedback to the user. The dynamic semantics is carefully defined to stop when such indeterminate expressions are encountered, but continue elsewhere (``around'' holes or failed casts) if possible.
 
+\subsection{The Hazel interface}
+\label{sec:hazel-interface}
+
+In \Cref{fig:hazel-interface} the web interface for the Hazel live environment is shown. The left panel marked (1) is a informational panel showing the list of keyboard shortcuts to perform actions. Since Hazel is a structured editor, simply typing the program as plaintext will not work; one must use the appropriate shortcuts the construct and edit the program. (2) is the code view. Below the code, a gray box indicates the result of evaluating the expression. The program result updates in real time with every edit action, assuming that evaluation is turned on. (3) is the context inspector, which shows information about a hole if a hole is selected. It shows the hole environment and typing context, followed by the path to the hole and the number of hole instances. In this case, the third hole in the result is selected, in which $x$ has value $3$. Lastly, (4) shows a history of the edit actions. Hovering or clicking on a past edit state will revert the program to that edit state.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\linewidth]{img/hazel_ui_annot.png}
+  \caption{The Hazel interface, annotated}
+  \label{fig:hazel-interface}
+\end{figure}
+
 \subsection{Implications of Hazel}
 \label{sec:hazel-implications}
 
@@ -40,14 +52,14 @@ The main proposed use case of Hazel is its use in programming education, particu
 
 Another research direction is in its use as a structural and graphical editor. For example, live GUIs \cite{omar2021filling} are being explored to enhance the editing experience by providing live, compositional, graphical interfaces, in addition to the benefits that Hazel's core calculi provide.
 
-The result of a Hazel evaluation may contain holes, and thus not be fully evaluated. The Hazelnut Live paper \cite{conf/popl/HazelnutLive19} suggests the idea of hole-filling: since each hole in the result contains its lexical environment, we may ``resume'' evaluation without restarting evaluation from the beginning if a hole is filled. An interesting application of this is in the use of notebook-style programming editors such as Jupyter Notebook \todoref{citation} and MATLAB \todoref{citation}, which are common in scientific computing \todoref{citation}. Notebook-style editors are useful because they allow evaluation of sections of a script, usually to avoid recomputation of previous sections. The problem with this is that they are stateful; running sections out of order may yield different results than running the sections of a program in order. Hole filling provides a novel solution by avoiding recomputation and maintaining the same result as if the program had been run from the start \todo{rephrase this part}.
+The result of a Hazel evaluation may contain holes, and thus not be fully evaluated. The Hazelnut Live paper \cite{conf/popl/HazelnutLive19} suggests the idea of hole-filling: since each hole in the result contains its lexical environment, we may ``resume'' evaluation without restarting evaluation from the beginning if a hole is filled. An interesting application of this is in the use of notebook-style programming editors such as Jupyter Notebook \todoref{citation} and MATLAB \todoref{citation}, which are common in scientific computing \todoref{citation}. Notebook-style editors are useful because they allow evaluation of sections of a script, usually to avoid recomputation of previous sections. The problem is that notebook execution is stateful and running operations out-of-order will cause irreproducible results. On the other hand, resuming an evalution with fill-and-resume will produce the same result as if the program was run ordinarily from start to finish\footnote{This is a property known as \textit{commutativity} and described in \cite{conf/popl/HazelnutLive19}.}.
 
 \section{Introduction to OCaml and Reason}
 \label{sec:ocaml-intro}
 
 Previously, we have been introducing concepts using a pseudo-mathematical notation. Henceforth, when describing Hazel and its implementation, it may be useful to use sample code or pseudocode from the implementation to describe various aspects of Hazel.
 
-\todo{describe syntax of OCaml/Reason, e.g., modules, types}
+Hazel is implemented in Reason, which is a dialect of OCaml. Except for code samples in \Cref{app:code-samples}, the notation used throughout this report will be limited to referring to function names and types. Module names are denoted \texttt{}PascalCase, whereas function and type names are \texttt{snake\_case}. Conventionally, modules that export a type export a single type called \texttt{t}. As an example, \mintinline{ocaml}|DHExp.t| refers to the primarily-relevant type from the \mintinline{ocaml}|DHExp| module, the type that represents internal expressions $d$. On the other hand, \mintinline{ocaml}|Evaluator.evaluate| refers to the \mintinline{ocaml}|evaluate| function in the \mintinline{ocaml}|Evaluator| module. All functions and types will be prefixed with their module names for clarity.
 
 \section{Hazel semantics}
 \label{sec:hazel-semantics}
@@ -64,11 +76,10 @@ The internal language is highly similar to the external language. The primary di
 
 The elaboration algorithm is bidirectionally-typed, and thus involves two mutually-recursive judgments: a \textit{synthetic elaboration judgment} $\Gamma\vdash e\Rightarrow\tau\leadsto d:\tau\dashv\Delta$, and an \textit{analytic elaboration judgment} $\Gamma\vdash e\Leftarrow\tau\leadsto d:\tau'\dashv\Delta$. $\Delta$ is the \textit{hole context}, used to store the typing context and actual type of each hole, and is an output of the judgments. As with bidirectional typing, the synthetic judgment outputs the synthesized type alongside the elaborated internal expression $d$; the analyzed judgment takes a type $\tau$ to analyze against, and returns the elaborated internal expression $d$ along with its actual type $\tau'$. Having the actual type of analyzed expressions is useful for generating dynamic casts as described in the GTLC.
 
-\section{An overview of the evaluator implementation}
-\label{sec:evaluator-overview}
-
 \subsection{Hole instance numbering}
 \label{sec:hole-instance-numbering}
+
+\todo{implement this section}
 
 %%% Local Variables:
 %%% mode: latex
