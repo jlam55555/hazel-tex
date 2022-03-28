@@ -59,7 +59,7 @@ The result of a Hazel evaluation may contain holes, and thus not be fully evalua
 
 Previously, we have been introducing concepts using a pseudo-mathematical notation. Henceforth, when describing Hazel and its implementation, it may be useful to use sample code or pseudocode from the implementation to describe various aspects of Hazel.
 
-Hazel is implemented in Reason, which is a dialect of OCaml. Except for code samples in \Cref{app:code-samples}, the notation used throughout this report will be limited to referring to function names and types. Module names are denoted \texttt{}PascalCase, whereas function and type names are \texttt{snake\_case}. Conventionally, modules that export a type export a single type called \texttt{t}. As an example, \mintinline{ocaml}|DHExp.t| refers to the primarily-relevant type from the \mintinline{ocaml}|DHExp| module, the type that represents internal expressions $d$. On the other hand, \mintinline{ocaml}|Evaluator.evaluate| refers to the \mintinline{ocaml}|evaluate| function in the \mintinline{ocaml}|Evaluator| module. All functions and types will be prefixed with their module names for clarity.
+Hazel is implemented in Reason, which is a dialect of OCaml. Except for code samples in \Cref{app:code-samples}, the notation used throughout this report will be limited to referring to function names and types. Module names are denoted \texttt{PascalCase}, whereas function and type names are \texttt{snake\_case}. Conventionally, modules that export a type export a single type called \texttt{t}. As an example, \mintinline{ocaml}|DHExp.t| refers to the primarily-relevant type from the \mintinline{ocaml}|DHExp| module, the type that represents internal expressions $d$. On the other hand, \mintinline{ocaml}|Evaluator.evaluate| refers to the \mintinline{ocaml}|evaluate| function in the \mintinline{ocaml}|Evaluator| module. All functions and types will be prefixed with their module names for clarity.
 
 \section{Hazel semantics}
 \label{sec:hazel-semantics}
@@ -67,7 +67,32 @@ Hazel is implemented in Reason, which is a dialect of OCaml. Except for code sam
 \subsection{Statics: Hazelnut action and typing semantics}
 \label{sec:hazel-statics}
 
-\todo{implement this section}
+The grammar of Hazel's external language is defined as follows.
+
+\begin{singlespace}
+  \begin{align*}
+    \tau &::= \tau\to\tau
+           \mid b
+           \mid \tehole \\
+    e &::= c
+        \mid x
+        \mid\lambda x:\tau.e
+        \mid e\ e
+        \mid e:\tau
+        \mid \hehole
+        \mid \hhole{e}
+  \end{align*}
+\end{singlespace}
+
+This is very similar to \gtlc{}. The $\gtlch{}$ type is rewritten as $\tehole$ and pronounced the ``hole type.'' An expression form for type ascription is added. Most notably, there is the addition of empty and non-empty expression holes, which are denoted $\hehole$ and $\hhole{e}$, respectively.
+
+Hazelnut \cite{conf/popl/Hazelnut17} defines a bidirectional typing judgment for the external language. \todo{reproduce this in an appendix} The judgments are very similar to \gtlc{}. Unsurprisingly, hole expressions synthesize the hole type, and they analyze against any type. Note that in the case of a non-empty hole, the encapsulated expression must still synthesize a type, i.e., they are well-typed.
+
+Hazelnut defines an action semantics for the structural editor, which describes the behavior of editing and maneuvering around a program. A program's edit state comprises an external expression with a superimposed cursor. There are four main actions carried out by the user: \texttt{move}, \texttt{construct}, and \texttt{delete}. These actions are described by bidirectionally-typed action judgments that transform a (well-typed) edit state to another (well-typed) edit state. There are a number of metatheorems that enforce desirable properties of action semantics in a structural editor, such as \textit{sensibility} (the result of an action on a well-typed expression is a well-typed expression), \textit{movement erase invariance} (movement actions should not change the external expression, but only the position of the cursor), \textit{reachability} (the cursor should be able to move to any valid location to any other valid location), \textit{constructability} (every valid edit state should be constructable from the initial edit state), \textit{action determinism} (every sequence of edit actions should have only one valid output state), etc. These metatheorems are proved using the Agda theorem proving assistant \cite{agda2017}.
+
+Since this work is not concerned with the structural editing or typing properties of Hazel, we defer a thorough discussion of Hazel's action or static semantics to the original paper \cite{conf/popl/Hazelnut17}.
+
+\todo{talk about missing forms from the Hazelnut formulation: let expressions, case expressions, binary sum types, lists, other hole types}
 
 \subsection{Dynamics: Hazelnut Live dynamic semantics}
 \label{sec:hazel-dynamics}
