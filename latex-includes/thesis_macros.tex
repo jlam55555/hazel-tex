@@ -3,8 +3,8 @@
 
 % for header page
 \newcommand{\pt}[1]{\MakeUppercase{
-    \centering{}
     \large{}
+    \centering{}
     #1 \\
     \vs{}
   }}
@@ -108,6 +108,18 @@
 \newcommand{\Rar}{$\Rightarrow$}
 \newcommand{\lbd}{$\lambda$}
 \newcommand{\heh}[1]{$\hehole^{#1}$}
+
+% for missing references
+\newcommand{\todo}[1]{\textbf{[TODO: #1]}}
+\newcommand{\todoref}[1]{\textbf{[TODO: need reference(s): #1]}}
+
+% lambda calculi
+\newcommand{\ulc}{$\Lambda$}
+\newcommand{\stlc}{$\Lambda_\to$}
+\newcommand{\gtlc}{$\Lambda_\to^?$}
+\newcommand{\gtclc}{$\Lambda_\to^{\langle\tau\rangle}$}
+
+\newcommand{\gtlch}{*}
 
 %%% Local Variables:
 %%% mode: latex

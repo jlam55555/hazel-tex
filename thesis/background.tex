@@ -1,133 +1,512 @@
-\section{Background}
-\label{sec:background}
+\chapter{Programming language principles}
+\label{sec:prog_lang_principles}
 
-This chapter is intended to provide a primer to the theory of functional programming and programming languages, as relevant to this work on Hazel. It is in particular geared towards engineers with a general programming background, and especially a background programming in imperative languages.
+This chapter is intended to provide a primer to the theory of functional programming and programming languages, as relevant to this work on Hazel. The work performed for this thesis is concerned with the dynamic semantics of Hazel.
 
-\subsection{Functional programming}
+\Cref{sec:prog-lang-def} is concerned with explaining the notation used throughout this paper to describe formal systems. \Cref{sec:fp-lc} is concerned with incrementally building up the conceptual foundation for the gradually-typed $\lambda$-calculus, which Hazel is heavily based on. In this section, the syntax and static semantics of the $\lambda$-calculus are explored; even though not directly tied to the work performed in this, these are critical to understanding the Hazel system. Much of the material presented in this section is standard material in a introductory text in programming language theory such as \cite{harper2016practical}. \Cref{sec:interpreters} provides some detail on different types of programming language implementations, which is standard material in an introductory compilers text such as \cite{aho86}. In particular, this section sheds some light on the rationale behind switching from an evaluation model based on substitution to an evaluation model based on environments, which forms a large part of this thesis work. \Cref{sec:prog-intf} provides an overview of structural editors. Finally, \Cref{sec:cmtt} provides some background on contextual modal type theory (CMTT), which forms the conceptual precedent for the hole-filling operation.
+
+\section{Specifications of programming languages}
+\label{sec:prog-lang-def}
+
+To be able to rigorously work with programming languages, as like any mathematical activity, we need to be able to precisely define the behavior of programming languages that serve as our interface to computation. We typically define the definition (or specification) of a programming language as the combination of its \textit{syntax} and \textit{semantics}, which will be discussed below.
+
+Note that the specification of a programming language is orthogonal to its \textit{implementation(s)}; a single programming language may have several implementations of the specification, which may have differing support for language features and different performance characteristics. Common classifications of programming language implementations are discussed in \Cref{sec:comp-vs-interp}.
+
+\subsection{Syntax}
+\label{sec:syntax}
+
+The syntax of a programming language is defined by a grammar. The grammar described in the original paper on Hazelnut \cite{conf/popl/Hazelnut17} is reproduced below as an example.
+
+\begin{singlespace}
+  \begin{align*}
+    \tau &::= \tau\to\tau
+         \mid\tnum
+         \mid\hehole \\
+    e &::= x
+         \mid\lambda x.e
+         \mid e\ e
+         \mid e+e
+         \mid e:\tau
+         \mid\hehole
+         \mid\hhole{e}
+  \end{align*}
+\end{singlespace}
+
+In this simple grammar, we have two productions: types and expressions. A type may have one of three forms: the $\tnum$ type, an arrow (function) type, or the hole type (similar to the \texttt{?} type from the GTLC described in \Cref{sec:gradual}). An expression may be a variable; a $\lambda$-abstraction (function literal); the primitive addition operation; a type ascription; an empty hole; or a non-empty hole. The latter two types are Hazel specific, as is the hole type.
+
+Parentheses are not shown in this grammar, but they are optional except to affect order of operations.
+
+Parts of this grammar will be revisited when discussing the $\lambda$-calculus described in \Cref{sec:lambda-calculus}, and when discussing Hazel's grammar described in \Cref{sec:hazel}. In particular, this Hazelnut grammar is a superset of the grammar of the GTLC described in \Cref{sec:gradual}, and a subset of the grammar in the implementation of Hazel, which includes additional forms such as \texttt{let}, \texttt{case}, and pair expressions. Some of these forms will be important cases for our study of evaluation.
+
+Due to Hazelnut being a structural edit calculus (as described in \Cref{sec:structure-editors}), there is no need to worry about syntax errors. The syntax describes the external language of Hazel, which will be translated into the internal language via the elaboration algorithm prior to evaluation.
+
+\subsection{Notation for semantics}
+\label{sec:semantics-notation}
+In formal logic, a standard notation for \textit{rules of inference} is shown below.
+\begin{singlespace}
+  \[\Infer{SampleRule}{p_1 \\ p_2 \\ \dots \\ p_n}{q}\]
+\end{singlespace}
+$p_1,p_2,\dots,p_n$ are the \textit{antecedents} (alternatively, \textit{premises}) and $q$ is the (single) \textit{consequent} (alternatively, \textit{conclusion}). Each of $p_1,p_2,\dots,p_n,q$ is a \textit{judgment} (alternatively, \textit{proposition} or \textit{statement}); we may interpret the rule as: ``if all of $p_1,p_2,\dots,p_n$ are true, then $q$ must be true'' (the antecedent of the rule is the logical conjunction of the antecedants $\bigwedge_{i=1}^n p_i$). The logical disjunction of antecedants $\bigvee_{i=1}^n p_i$ is expressed by writing separate rules with the same consequent. A rule with zero premises is an \textit{axiom}, i.e., the conclusion is vacuously true. We may build up a formal logic system using such rules; in our case the formal specification of the static and dynamic semantics of a programming language. Note that the set of judgments that form the consequents of a rule, as well as the set of rules in a formal system, are both unordered; however, any computer program that carries out these judgments must choose some order in which to evaluate the set of antecedents or the order in which to evaluate a set of equally-viable rules.
+
+Each new judgment form will be introduced annotated with the modes of each term. For example, the typing judgment $\Gamma^-\vdash e^-:\tau^+$ indicates that $\Gamma$ and $e$ are inputs to the judgment and $\tau$ is an output of the judgment. If there are no terms with output mode in a judgment, then the ability to logically construct the judgment is its sole (boolean) output.
+
+A derivation of a statement in such a system by chaining together inference rules, such that the final consequent is the statement to be proved.
+
+\todo{example of a derivation in a simple fabricated system}
+
+To ensure that the system of inference rules covers the entire semantics of a language, to ensure that rules to not conflict, and to ensure that rules give the language the desired behavior, we may establish additional metatheorems, which must be proved for all of the inference rules in the logic system. In the foundational papers for Hazel's core semantics \cite{conf/popl/Hazelnut17,conf/popl/HazelnutLive19}, metatheorems are amply used to justify and verify the correctness of the rules. Agda \cite{bove2009brief}, an interactive proof checker and dependently-typed programming language, is used for these proofs \cite{agda2017,agda-dynamics}.
+
+\todo{example of a metatheorem (from the original papers?)}
+
+\subsection{Static semantics}
+\label{sec:static-semantics}
+
+The \textit{static semantics} of a programming language describes specifications of a language that occur prior to program evaluation. Static semantics typically primarily refers to \textit{type checking}. In Hazelnut Live, we have the process of \textit{elaboration} that transforms the \textit{external language} (a program expressed in the syntax of Hazel) to the \textit{internal language} (an intermediate representation more amenable to evaluation), which occurs before evaluation and incorporates the type checking rules. Elaboration and the internal language will be discussed further in \Cref{sec:comp-vs-interp}. The type checking and elaboration algorithms form the static semantics of Hazel.
+
+It is formative to provide an overview of type checking. While the static semantics is not very important to the core work in this thesis, a fundamental understanding is key to understanding the motivation and bidirectionally-typed action calculus behind Hazel, as well as understanding the formulation of gradual typing described in \Cref{sec:gradual}.
+
+The \textit{typing judgment} $\Gamma^-\vdash e^-:\tau^+$ states that, with respect to the typing context $\Gamma$, the expression $e$ is well-typed with type $\tau$. The typing context is a set of variable typing judgments $\{x:\tau\}$. A few sample typing judgments are shown below.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{TNum}{}{\Gamma\vdash\hnum{n}:\tnum}
+    \and
+    \Infer{TVar}{}{\Gamma,x:\tau\vdash x:\tau}
+    \and
+    \Infer{TAnnArr}{
+      \Gamma,x:\tau_1\vdash e:\tau_2
+    }{\Gamma\vdash(\lambda x:\tau_1.e):\tau_1\to\tau_2}
+    \and
+    \Infer{TAp}{
+      \Gamma\vdash e_2:\tau_1 \\
+      \Gamma\vdash e_1:\tau_1\to\tau_2
+    }{\Gamma\vdash e_1\ e_2:\tau_2}
+  \end{mathpar}
+\end{singlespace}
+
+There are a few noteworthy items here. The syntax $\Gamma,x:\tau$ indicates that the typing context $\Gamma$ extended with the binding $x:\tau$. Thus, when it is part of the consequent, it means that we are stating the typing judgment with respect to a different typing context $\Gamma'=\Gamma,x:\tau$. The type of a number is always $\tnum$. The type of a variable may only be determined if its type exists in the typing context (which, according to this limited set of rules, may only be extended during a function application). Lambda expressions can only be typed if they are fully-annotated: i.e., if the argument's type is annotated and the body is also assigned a type. This example typing system is very minimal and not practical for larger systems: every $\lambda$-abstraction would have to be typed for the entire expression to be well-typed. Consider even the simple example $(\lambda x.x)\ 2$, which cannot be typed according to the simple system above due to the unannotated $\lambda$-abstraction.
+
+A type system that allows for fewer type annotations, while remaining reasonably simple to formulate and implement, is \textit{bidirectional typing} \cite{Dunfield_2022,chlipala2005strict,pierce2000local}, or \textit{local type inference}. Bidirectional typing involves two typing judgments: the \textit{typing synthesis judgment} $\Gamma^-\vdash e^-\Rightarrow\tau^+$ (pronounced ``given typing context $\Gamma$, expression $e$ synthesizes type $\tau$), and the \textit{type analysis judgment} $\Gamma^-\vdash e^-\Leftarrow\tau^-$ (pronounced ``given typing context $\Gamma$, expression $e$ analyzes against type $\tau$). The type synthesis judgment outputs a type (the exact or ``narrowest'' type of the expression), whereas the type analysis judgment takes a type as an input and ``checks'' the expression against that (``wider'') type. With these two judgments, we may be able to loosen the antecedant judgments when synthesizing a type. We may re-express the above type system into a similar (and incomplete) bidirectional type system.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{TSynNum}{}{\Gamma\vdash\hnum{n}\Rightarrow\tnum}
+    \and
+    \Infer{TSynVar}{}{\Gamma,x:\tau\vdash x\Rightarrow\tau}
+    \and
+    \Infer{TSynAnnArr}{
+      \Gamma,x:\tau_1\vdash e\Rightarrow\tau_2
+    }{\Gamma\vdash(\lambda x:\tau_1.e)\Rightarrow\tau_1\to\tau_2}
+    \and
+    \Infer{TSynAp}{
+      \Gamma\vdash e_2\Rightarrow\tau_1 \\
+      \Gamma\vdash e_1\Leftarrow\tau_1\to\tau_2
+    }{\Gamma\vdash e_1\ e_2\Rightarrow\tau_2}
+    \and
+    \Infer{TAnaArr}{
+      \Gamma,x:\tau_1\vdash e\Leftarrow\tau_2
+    }{\Gamma\vdash\lambda x.e\Leftarrow\tau_1\to\tau_2}
+    \and
+    \Infer{TAnaSubsume}{
+      \Gamma\vdash e\Rightarrow\tau
+    }{\Gamma\vdash e\Leftarrow\tau}
+  \end{mathpar}
+\end{singlespace}
+
+Now, we may synthesize the type of $(\lambda x.x)\ 2$; the derivation uses all of the rules above. Note the presence of the last rule; \textit{subsumption} states that an expression analyzes against its synthesized type, which should fit the earlier intuition of type synthesis producing the ``narrowest'' type and type analysis checking against a ``wider'' type. Subsumption allows us to avoid manually writing type analysis rules for most types.
+
+Algorithmically, bidirectional typing begins by synthesizing the type of the top-level expression; if it successfully synthesizes, then the expression is well-typed. A more complete discussion of bidirectional typing is left to Dunfield \cite{Dunfield_2022}, who provides an overview of bidirectional typing, or to the formulation of Hazel's bidirectional typing \cite{conf/popl/Hazelnut17}. Hazelnut is at its core a bidirectionally-typed ``edit calculus'' \cite{conf/popl/Hazelnut17}, citing the balance of usability and simplicity of implementation.
+
+The elaboration algorithm is bidirectionally-typed and fairly specific to Hazel and described in \Cref{sec:hazel-dynamics}. It is based off of the cast calculus from the GTLC.
+
+More advanced type inference algorithms such as type unification are used in the highly advanced type systems of languages such as Haskell \cite{gundry2013type}, and are out of scope for this work.
+
+\subsection{Dynamic semantics}
+\label{sec:dynamic-semantics}
+
+The \textit{dynamic semantics} (alternatively, \textit{evaluation semantics}) of a programming language describes the evaluation process. Evaluation is the algorithmic reduction of an language expression to a \textit{value}, an irreducible expression.
+
+Let us consider values in some more detail. In the big-step notation, values are distinguished by the judgment $v\Downarrow v$; i.e., values evaluate to themselves. In the small-step notation, there will be no applicable rule to further reduce a value. Following the notation from \cite{conf/popl/Hazelnut17,conf/popl/HazelnutLive19}, we can alternatively write this using the equivalent judgment $v^-\textsf{ value}$. In the stereotypical untyped $\lambda$-calculus, the only values are $\lambda$-abstractions. We can denote this using the axiom:
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{VLam}{}{\lambda x.e\textsf{ value}}
+  \end{mathpar}
+\end{singlespace}
+
+In Hazel, we have other base types such as integers, floats, and booleans, which also have axiomatic $\textsf{value}$ judgments. For composite data such as pairs or injections (binary sum type constructors), the expression is a value iff its subexpression(s) are values.
+
+The rules that are used to define the dynamic semantics of a programming language are called \textit{operational semantics}, because they model the operation of a computer when compiling or evaluating a programming language. There are two major styles of operational semantics.
+
+The first of these styles is \textit{structural operational semantics} as introduced by Plotkin \cite{plotkin1981structural} (alternatively, \textit{small-step semantics}). In the small-step semantics, the \textit{evaluation judgment} is $e_1^-\to e_2^+$, where $e_1$ and $e_2$ are expressions in the language.
+
+For example, let us describe the dynamic semantics of an addition operation using a small-step semantics. This is described using the following three rules:
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{EPlus$_1$-Small}{e_1\to e_1'}{e_1+e_2\to e_1'+e_2}
+    \and
+    \Infer{EPlus$_2$-Small}{e_2\to e_2'}{\hnum{n_1}+e_2\to \hnum{n_1}+e_2'}
+    \and
+    \Infer{EPlus$_3$-Small}{}{\hnum{n_1}+\hnum{n_2}\to\hnum{n_1+n_2}}
+  \end{mathpar}
+\end{singlespace}
+
+The algorithm carries itself out as follows: while $e_1$ is reducible, reduce it using some applicable evaluation rule. Once $e_1$ becomes a value, the first rule is no longer applicable (as $e_1$ cannot further reduce) and $e_2$ reduces until it too is a value. Finally, the third rule is applicable, and reduces the expression down to a single number literal. Note that if either $e_1$ or $e_2$ do not reduce down to a number literal, then the expression will not evaluate fully; this kind of failure cannot happen in a strongly-typed language due to typing rules.
+
+The second of these styles is \textit{natural operational semantics} as introduced by Kahn \cite{Kahn1987NaturalS} (alternatively, \textit{big-step semantics}). In the big-step semantics, the evaluation judgment is $e^-\Downarrow v^+$, where $e$ is an expression in the language, and $v\textsf{ value}$.
+
+To express the evaluation of addition in the big-step semantics, we need only a single rule. In this case, the antecedants indicate that the subexpressions must be recursively evaluated, but (as noted earlier) this notably doesn't specify the order of evaluation of the antecedants, unlike the small-step notation.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{EPlus-B}{
+      e_1\Downarrow\hnum{n_1} \\
+      e_2\Downarrow\hnum{n_2} \\
+    }{e_1+e_2\Downarrow\hnum{n_1+n_2}}
+  \end{mathpar}
+\end{singlespace}
+
+The implementation of an evaluator with a program stepper capability (as is commonly found in programming language debuggers) is more amenable to implementation using a small-step operational semantics, since it precisely details the sub-reductions when evaluating an expression. The evaluation semantics of Hazelnut Live are originally described using a small-step semantics in \cite{conf/popl/HazelnutLive19}. To simplify the rules, the concept of an \textit{evaluation context} $\mathcal{E}$ is used to recurse through subexpressions.
+
+The big-step semantics is often simpler because it involves fewer rules, and is more efficient to implement. As a result, the implementation of evaluation in Hazel more closely follows the big-step semantics, and it is the notation used predominantly throughout this work.
+
+\section{Introduction to functional programming and the $\lambda$-calculus}
+\label{sec:fp-lc}
+
+To understand this work, one must have a satisfactory understanding of Hazel. Understanding Hazel requires some understanding of the \textit{functional programming paradigm}, as it is a stereotypical functional language. One must also have some knowledge of the \textit{gradually-typed $\lambda$-calculus} (GTLC) introduced by Siek \cite{Siek06gradualtyping,siek2015refined}. This itself is an extension of the simply-typed $\lambda$-calculus (STLC), which is an extension of the untyped $\lambda$-calculus (ULC), the simplest implementation of Church's $\lambda$-calculus. The STLC, the untyped $\lambda$-calculus, and Church's $\lambda$-calculus are standard textbook material in programming language theory \cite{harper2016practical}, but a brief overview will be provided here.
+
+\subsection{Introduction to functional programming}
 \label{sec:fp}
 
-Functional programming is a programming paradigm tat is highly involved with function application, function composition, and first-class functions. It is generally a subtype of, and often associated with, the declarative programming paradigm, which is concerned with expression-based computation, often without mutable state or side-effects. Declarative programming is often considered the complement of imperative programming, which may be characterized as programming with mutable state, side effects, or statements. Purely functional programming is a subset of functional programming that deals solely with pure functions; non-pure languages may allow varying degrees of mutable state but typically encourage the use of pure functions.
+Functional programming \todoref{functional programming} is a programming paradigm that is highly involved with function application, function composition, and first-class functions. It is generally a subtype of, and often associated with, the declarative programming paradigm, which is concerned with expression-based computation, often without mutable state or side-effects. Declarative programming is often considered the complement of imperative programming, which may be characterized as programming with mutable state, side effects, or statements. Purely functional programming is a subset of functional programming that deals solely with pure functions; non-pure languages may allow varying degrees of mutable state but typically encourage the use of pure functions.
 
-Functional languages are based on Alonzo Church's $\lambda$ calculus as its core evaluation and typing semantics, which provides a minimal foundation for computation. The syntax of functional programming languages is based off the $\lambda$ calculus. This, along with the lack of mutable state and side effects, allows functional programming to be easily mathematically modeled and reasoned about, making it particularly amenable to proofs about programming languages. This is as opposed to in imperative programming, in which the mutable ``memory cell'' interpretation of variables and side-effects complicates formalizations.
+Functional languages are based on Alonzo Church's $\lambda$ calculus \todoref{lambda calculus} as its core evaluation and typing semantics, which provides a minimal foundation for computation. The syntax of functional programming languages is based off the $\lambda$ calculus. This, along with the lack of mutable state and side effects, allows functional programming to be easily mathematically modeled and reasoned about, making it particularly amenable to proofs about programming languages. This is as opposed to in imperative programming, in which the mutable ``memory cell'' interpretation of variables and side-effects complicates formalizations.
 
-Hazel is one such (purely) functional programming languages. Other languages that are classified as functional include the ML family of languages, Haskell, Elm, and the LISP family of languages. Examples of imperative programming languages include C, C++, FORTRAN, Java, and Golang. A number of languages incorporate both functional and imperative styles, such as Javascript, Python, Scala, and Rust.
+Hazel is one such (purely) functional programming languages. Other languages that are classified as functional include the ML family of languages, Haskell, Elm, and the LISP family of languages. Examples of imperative programming languages include C, C++, FORTRAN, Java, and Golang. A number of languages incorporate both functional and imperative styles, such as Javascript, Python, Scala, and Rust \todoref{all of these languages and their classifications}.
 
-% TODO: show a simple example of programs in these paradigms
+\todo{show a simple example of programs in these paradigms?}
 
-\subsubsection{The $\lambda$-calculus}
+\subsection{The untyped $\lambda$-calculus}
 \label{sec:lambda-calculus}
 
-TODO: this section is a mess at the moment; sorry
+Church introduced the \textit{untyped $\lambda$-calculus} \ulc{} as an example of a simple universal language of computable functions, and it forms the foundation for the syntax and evaluation semantics of functional programming languages.
 
-The simplest form of the $\lambda$ calculus, the \textit{untyped $\lambda$ calculus}, comprises only three expression forms:
-\begin{align}
-  \label{eq:untyped-lambda-calculus}
-  x\tag{Variable} \\
-  \lambda x.e\tag{$\lambda$ abstraction} \\
-  e_1\ e_2\tag{Function application}
-\end{align}
-where $e$, $e_1$, and $e_2$ are also expressions of one of these three forms. A $\lambda$ abstraction is also known as a $\lambda$ expression, $\lambda$ function, anonymous function, or simply function, and function application is also known as function invocation or $\beta$-reduction\footnote{A few notes for the imperative programmer: $\lambda$ functions only take a single parameter. A function of multiple parameters may be constructed as a series of recursive functions, each taking a single parameter -- a process known as \textit{currying}. Similarly, function application comprises two expressions, the first in \textit{function position} (which must evaluate to a $\lambda$ function), and the second in \textit{argument position}. Function application is traditionally (e.g., in the ML and Haskell families of programming languages, although LISP is an exception) denoted using the infix operator `` '' (space), which has the highest precedence of any infix operator; parentheses are only used to indicate order of operations and typically omitted when not necessary.}. The only reduction in the untyped $\lambda$ calculus is $\beta$-reduction, which is stated as follows.\[(\lambda x.e_1)\ e_2\to [e_1/x]e_2\] The notation $[x/y]z$ indicates substitution, and may be pronounced ``the substitution of $x$ for $y$ in $z$.'' According to computability theory, since the untyped $\lambda$ calculus supports general recursion (through the use of a fixpoint operator), it is Turing-complete.
+The grammar of \ulc{} is very simple, only comprising three forms (excluding parentheses\footnote{The imperative programmer with a background in a C-family language be warned: parentheses are not required for function application. Rather, space (\textvisiblespace) is an infix operator that represents function application in \ulc{} and many functional languages. It traditionally is left-associative and has the highest precedence of any infix operator. Parentheses around function arguments are only required when it affects the order of operations. An exception to this rule in functional programming is in the LISP family of languages, in which parentheses specify function application rather than operator precedence, but that is not the interpretation here.}), shown below.
 
-While the untyped $\lambda$ calculus is Turing-complete and thus as expressive as any other Turing-complete programming language, this is far too tedious to be of any practical use. In this minimal foundation, we do not have base types such as integers or booleans\footnote{In the untyped $\lambda$ calculus, the only value type are $\lambda$ abstractions. Any other data type, such as the set of natural numbers or booleans, may be represented using $\lambda$ abstractions via \textit{Church encoding}.} or a typing system. The typical formulation of the \textit{simply-typed $\lambda$ calculus} extends the untyped $\lambda$ calculus with a (non-$\lambda$ abstraction) base type $b$ of type $B$, and a type $\tau\in $ TODO: working here; this is a mess
+\begin{singlespace}
+  \begin{align*}
+    e &::= x\tag{variable}\\
+      &\mid \lambda x.e\tag{$\lambda$-abstraction}\\
+      &\mid e\ e\tag{function application}
+  \end{align*}
+\end{singlespace}
 
-% TODO: describe these using syntax and semantics
+The static semantics of this syntax are very simple: every expression in \ulc{} is well-fromed if all variables are bound by some binder\footnote{There are no typing rules in the static semantics, because there is only a single type: the recursive arrow type $\tau::=\tau\to\tau$. Thus, it may be more correct to say that \ulc{} is ``uni-typed'' as opposed to ``untyped,'' as noted in \cite{harper2016practical}. Thus no type errors will occur when evaluating a (well-formed) expression in \ulc{}.}.
 
-% TODO: move syntax and semantics and notation to here
+The dynamic semantics are similarly simple, shown below using a big-step semantics. $\lambda$-abstractions are values (expressions that evaluate to themselves), and application is applied by substituting variables \footnote{The substitution of the function variable during function application is known as $\beta$-reduction. Renaming of bound variables (a process known as $\alpha$-conversion) is used to avoid substituting variables of the same name bound by a different binder.}.
 
-% TODO: describe typing rules
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{\ulc{}-ELam}{}{\lambda x.e\Downarrow\lambda x.e}
+    \and
+    \Infer{\ulc{}-EAp}{
+      e_1\Downarrow\lambda x.e_1' \\
+      [e_2/x]e_1'\Downarrow e
+    }{e_1\ e_2\Downarrow e}
+  \end{mathpar}
+\end{singlespace}
+
+\ulc{} is an example of a Turing-complete language. One of the key characteristics to this is the ability to compute recursive algorithms. To implement recursion, a function must be able to refer to itself. Since there is no construct to bind an expression to a variables other than function binders (i.e., there is no construct such as OCaml's \mintinline{ocaml}|let rec| expressions), one must pass a self-reference of a function to itself. For example, let us consider the example of a factorial function in \ulc{} (for sake of illustration, extended with a conditional statement, integers, and simple integer operators).
+
+\[\text{fact'}\equiv\lambda f.\lambda x.\text{if }x=0\text{ then }1\text{ else }x*f(x-1)\]
+
+To facilitate the recursion, we need the help of an auxiliary operator which converts a recursive function formulated with a self-reference parameter as shown above. The Y-combinator is such an operator. The operation of this operator is made clear by working through the $\beta$-reduction of the \texttt{fact} function.
+
+\begin{singlespace}
+  \begin{gather*}
+    Y\equiv\lambda f.(\lambda x.f(x\ x))\ (\lambda x.f(x\ x)) \\
+    \text{fact}\equiv Y\ \text{fact'}
+  \end{gather*}
+\end{singlespace}
+
+A more thorough discussion of \ulc{} and the Y-combinator is left to standard material on programming language theory, such as \cite{harper2016practical}.
+
+\subsection{The simply-typed $\lambda$-calculus}
+\label{sec:stlc}
+
+While the $\lambda$ calculus is Turing complete and sufficient to represent any computation, it is not practical in terms of efficiency or usability if all data is represented with functions\footnote{The stereotypical example of representing data using functions is called the Church encoding. For example, there are standard Church encodings for natural numbers, for boolean values and conditionals, and for pairs (\texttt{cons}), which can be used to construct structured data.}.
+
+The \textit{simply-typed $\lambda$-calculus} (STLC) \stlc{} extends \ulc{} with one or more base types $b_i$, such as integers, booleans, or floating-point numbers. Consider the case of a single base type $b$. The extended grammar is shown below.
+
+\begin{singlespace}
+  \begin{align*}
+    \tau &::=\tau\to\tau\tag{function type} \\
+         &\mid b\tag{base type} \\
+    e &::= c\tag{constant} \\
+         &\mid x\tag{variable} \\
+         &\mid\lambda x:\tau.e\tag{type-annotated function} \\
+         &\mid e\ e\tag{function application} \\
+         &\mid \fix f:\tau.e\tag{fixpoint}
+  \end{align*}
+\end{singlespace}
+
+The grammar is extended to include constants of the base type. The type of functions parameters must be annotated\footnote{This is in the simplest case of type-assignment. With a type inference system such as bidirectional typing as described in \Cref{sec:static-semantics}, some type annotations may be optional.}.
+
+We now define what it means for a program in \stlc{} to be well-typed. The following typing judgments assign a type to a \stlc{} program.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{\stlc{}-TConst}{}{\Gamma\vdash c:b}
+    \and
+    \Infer{\stlc{}-TVar}{}{\Gamma,x:\tau\vdash x:\tau}
+    \and
+    \Infer{\stlc{}-TLam}{
+      \Gamma,x:\tau_1\vdash e:\tau_2
+    }{\Gamma\vdash(\lambda x:\tau_1.e):\tau_2}
+    \and
+    \Infer{\stlc{}-TAp}{
+      \Gamma\vdash e_1:\tau_1\to\tau \\
+      \Gamma\vdash e_2:\tau_1
+    }{\Gamma\vdash e_1\ e_2:\tau}
+    \and
+    \Infer{\stlc{}-TFix}{}{\Gamma\vdash(\fix f:\tau.e):\tau}
+  \end{mathpar}
+\end{singlespace}
+
+The dynamic semantics are not much different than \ulc{}. Additional evaluation rules are defined for constants and fixpoints; evaluation of $\lambda$-abstractions and function application remains the same.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{\stlc{}-EConst}{}{c\Downarrow c}
+    \and
+    \Infer{\stlc{}-ELam}{}{\lambda x:\tau.e \Downarrow \lambda x:\tau.e}
+    \and
+    \Infer{\stlc{}-EAp}{
+      e_1\Downarrow\lambda x:\tau.e_1' \\
+      [e_2/x]e_1'\Downarrow e
+    }{e_1\ e_2\Downarrow e}
+    \and
+    \Infer{\stlc{}-EFix}{[\fix f:\tau.e/f]e\Downarrow e'}{\fix f:\tau.e \Downarrow e'}
+    \and
+  \end{mathpar}
+\end{singlespace}
+
+We may characterize type systems by establishing certain desirable properties. One such property is \textit{soundness}. Soundness means that if a program in \stlc{} type-checks, then it will not fail with a type error at run-time. This property is not necessary to prove for \ulc{} because there is only one type in \ulc{}, the recursive type $\tau::=\tau\to\tau$.
+
+There is an additional expression form in \stlc{}. This is the \textit{fixpoint form}, $\fix f:\tau.e$. The fixpoint is a primitive operator with the same purpose and evaluation behavior as the Y-combinator: it allows for self-reference, and thus general recursion. The reason for the explicit fixpoint operator is that the Y-combinator is ill-typed. Self-reference is inherently poorly-typed and requires a primitive operator, since it involves a function which takes itself as a parameter (leading to an infinitely-recursive arrow type). With the $\fix$ operator, we may express the factorial function as shown below. In this example, we assume that the base type $b\equiv\text{int}$, and that conditionals and primitive integer operations extend \stlc{}.
+
+\begin{equation*}
+  \text{fact}\equiv\fix f:\text{int}\to \text{int}.\lambda x:\text{int}.\text{if }x=0\text{ then }1\text{ else }x*f(x-1)
+\end{equation*}
+
+The fixpoint operator is introduced in Plotkin's System PCF \todoref{can cite PFPL, also get citation for original pcf?}, and is used to implement recursion in Hazel's evaluator, which uses a substitution-based evaluation.
+
+\stlc{} is a practical foundation for many functional languages. Standard exercises include extending \stlc{} with multiple common base types (integers and booleans), conditional expressions, \texttt{let}-expressions, and \texttt{case}-expressions. The basic type system can be extended to use type inference algorithms or support more advanced types.
 
 % TODO: for practical purposes, let and case expressions
 
-% TODO: introduce gradually-typed lambda calculus
+\subsection{The gradually-typed $\lambda$-calculus}
+\label{sec:gradual}
 
-\subsubsection{Purity and statefulness}
-\label{sec:purity}
+\todo{references for notation: siek for original gradual typing (unknown type, type consistency, cast calculus), hazelnut notation for most notation specifics, matched arrow notation from other sources from hazelnut paper}
 
-\subsubsection{The ML family, Elm, and Hazel}
-\label{sec:ml-fam}
+We have discussed \stlc{}, which involves a simple \textit{static typing} system, as type checks are part of the static semantics. However, we may extend \ulc{} with an additional base type but without a static semantics. In this case, a well-formed expression may fail at run-time due to type errors -- thus, types are checked in the dynamic semantics and this is known as \textit{dynamic typing}. The benefit of static typing is soundness and performance (as run-time type checks are relatively slow). The benefit of dynamic checking is to avoid annotating types\footnote{Note that type inference systems in a statically-typed system also allow for reduced type-annotations, but may still require some annotations when not enough information is given for type inference.}, and thus more quickly prototype or refactor programs.
 
-% ADTs
-% typing system
+The hybrid proposed by Siek is the \textit{gradually-typed $\lambda$-calculus} \gtlc{} \cite{Siek06gradualtyping,siek2015refined}\footnote{The material presented in this section originates from \cite{Siek06gradualtyping,siek2015refined}, but the notation conventions follow from \cite{conf/popl/HazelnutLive19} for in order to stay consistent with the rest of this paper.}. In \gtlc{}, all type annotations are optional and offer a ``pay-as-you-go'' benefit. A completely unannotated \gtlc{} program acts like dynamic typing (\ulc{} extended with base type(s) but no static semantics), with run-time casts and the ability for run-time type failures. A completely annotated \gtlc{} program is equivalent to a \stlc{} program. The performance cost of run-time casts and the possibility of run-time type failures only occurs when evaluating expressions with unannotated terms.
 
-\subsection{Implementations for programming languages}
+The grammar of \gtlc{} is almost exactly the same as \stlc, except that we add a new type $\gtlch$, indicating an unspecified type. Now, $\lambda$-abstractions may be type-annotated using this type, and we define the notation $\lambda x.e\equiv\lambda x:\gtlch.e$.
+
+The static semantics of \gtlc{} is expectedly also similar to \stlc. The only rule that differs is the rule for function application. We also write a new rule for subsumption, which states that if $\Gamma\vdash e:\tau$, then $e$ may also be assigned any consistent type.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{\gtlc{}-TAp}{
+      \Gamma\vdash e_1:\tau_1 \\
+      \arrmatch{\tau_1}{\tau_2\to\tau_3} \\
+      \Gamma\vdash e_2:\tau_3 \\
+    }{\Gamma\vdash e_1\ e_2:\tau_3}
+    \and
+    \Infer{\gtlc{}-TSub}{
+      \Gamma\vdash e:\tau \\
+      \tau\sim\tau'
+    }{\Gamma\vdash e:\tau'}
+  \end{mathpar}
+\end{singlespace}
+
+Two new judgments are introduced here. The first is the \textit{matched arrow judgment} $\arrmatch{\tau_1^-}{(\tau_2\to\tau_3)^+}$, which is a notational convenience which allows us to write a single rule for arrow types, which may either be a hole or an arrow type. This judgment is defined by the following rules.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{MAHole}{}{\arrmatch{\tehole}{\tehole\to\tehole}}
+    \and
+    \Infer{MAArr}{}{\arrmatch{\tau_1\to\tau_2}{\tau_1\to\tau_2}}
+  \end{mathpar}
+\end{singlespace}
+
+The second new judgment is the \textit{type consistency judgment} $\tau_1^-\sim\tau_2^-$. This judgment defines the typing relation of the unknown type to other types: every type is consistent to the hole type. Thus any type will type-check where a hole is expected, and vice versa. This relation is reflexive, symmetric, and non-transitive\footnote{It may seem unintuitive at first that type consistency is a symmetric relationship, because it may seem more like a subtyping relation. However, a major revolution in Siek's original formulation of \gtlc is that the symmetric subtyping relation is more suitable than the subtyping relations that had been explored in earlier works such as Thatte's quasi-static typing \cite{Siek06gradualtyping}.}.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{TCHoleTyp}{}{\tehole\sim\tau}
+    \and
+    \Infer{TCTypHole}{}{\tau\sim\tehole}
+    \and
+    \Infer{TCArr}{
+      \tau_1\sim\tau_1' \\
+      \tau_2\sim\tau_2'
+    }{(\tau_1\to\tau_2)\sim(\tau_1'\to\tau_2)}
+    \and
+  \end{mathpar}
+\end{singlespace}
+
+Evaluation of a gradually-typed language introduces a cast calculus, which performs run-time type checking. To do this, we design another language, \gtclc, whose grammar is identical to \gtlc except for the introduction of a new expression form indicating a run-time cast, $d\langle\tau\Rightarrow\tau'\rangle$. We also define the notation $d\langle\tau\Rightarrow\tau'\Rightarrow\tau''\rangle\equiv d\langle\tau\Rightarrow\tau'\rangle\langle\tau'\Rightarrow\tau''\rangle$. We refer to \gtlc as the \textit{external language} and \gtclc as the \textit{internal language}. We denote expressions in \gtlc with the letter $e$ and expressions in \gtclc with the letter $d$. We only define static semantics on \gtlc and only define dynamic semantics on \gtclc. The process of converting from the external language to the internal language (i.e., the process of cast-insertion) is called \textit{elaboration}.
+
+Usually, elaboration includes the type-checking operation rather than being a separate operation. Elaboration fails iff type checking fails. A theorem may be stated that the type assigned by elaboration is the same as the type assigned by the type assignment judgment.
+
+The elaboration process is governed by the judgment $\Gamma^-\vdash e^-\leadsto d^+:\tau^+$. For most expression types, the expression in the external language elaborates to itself. The only exception is function applications, in which dynamic casts are inserted.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{\gtlc-ElConst}{}{\Gamma\vdash c\leadsto c:b}
+    \and
+    \Infer{\gtlc-ElLam}{
+      \Gamma,x:\tau_1\vdash e:\tau_2
+    }{\Gamma\vdash\lambda x:\tau_1.e\leadsto (\lambda x:\tau_1.e):\tau_1\to\tau_2}
+    \and
+    \Infer{\gtlc-ElFix}{
+    }{\Gamma\vdash\fix f:\tau.e\leadsto (\fix f:\tau.e):\tau}
+    \and
+    \Infer{\gtlc-ElApp}{
+      \Gamma\vdash e_1\leadsto d_1:\tau_1 \\
+      \arrmatch{\tau_1}{\tau_3\to\tau_4} \\
+      \Gamma\vdash e_2\leadsto d_2:\tau_2 \\
+      \tau_2\sim\tau_3
+    }{\Gamma\vdash e_1\ e_2\leadsto (d_1\langle\tau_1\Rightarrow\tau_3\to\tau_4\rangle)\ (d_2\langle\tau_2\Rightarrow\tau_5\rangle):\tau_4}
+  \end{mathpar}
+\end{singlespace}
+
+We may now define a dynamic semantics on \gtclc. The following dynamic semantics is simplified from Siek's formulation for the sake of clarity\footnote{Siek \cite{siek2015refined} introduces the idea of \textit{ground types} and the \textit{matched-ground judgment}. Casts can only succeed or fail between ground types. Additionally, Siek describes \textit{blames} and \textit{frames} to encapsulate errors. Ground types are carried over to Hazelnut Live's formulation \cite{conf/popl/HazelnutLive19}, but blames and frames are not currently implemented in Hazel.} and is not intended to be a precise description of the evaluation semantics. As before, the dynamic semantics are described using a big-step notation, where the judgment $d^-\textsf{ final}$ indicates that $d$ is a value. \footnote{This may be a place where using the small-step semantics may be easier and more clear, as it more clearly illustrates the isolated effect of the cast operation. Both Siek \cite{Siek06gradualtyping,siek2015refined} and Hazelnut Live \cite{conf/popl/HazelnutLive19} describe the dynamic semantics using a small-step semantics. Hazelnut Live adds the concept of the \textit{final judgment} to delineate values.}.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{\gtclc-VConst}{}{c\textsf{ final}}
+    \and
+    \Infer{\gtclc-VLam}{}{\lambda x:\tau.d\textsf{ final}}
+    \and
+    \Infer{\gtclc-VBoxedVal}{}{e\langle\tau\Rightarrow\gtlch\rangle\textsf{ final}}
+    \and
+    \Infer{\gtclc-EVal}{d\textsf{ final}}{d\Downarrow d}
+    \and
+    \Infer{\gtclc-EFix}{[\fix f:\tau.d/f]d\Downarrow d'}{\fix f:\tau.d\Downarrow d'}
+    \and
+    \Infer{\gtclc-EAp}{
+      d_1\Downarrow\lambda x:\tau.d_1' \\
+      [d_2/x]d_1\Downarrow d
+    }{d_1\ d_2\Downarrow d}
+    \and
+    \Infer{\gtclc-ECastAp}{
+      d_1\Downarrow d_1'\langle\tau_1\to\tau_2\Rightarrow\tau_1'\to\tau_2'\rangle \\
+      (d_1'\ (d_2\langle\tau_1'\Rightarrow\tau_1\rangle))\langle\tau_2\Rightarrow\tau_2'\rangle\Downarrow d
+    }{d_1\ d_2\Downarrow d}
+    \and
+    \Infer{\gtclc-ECastId}{
+      d\Downarrow d'
+    }{d\langle\tau\Rightarrow\tau\rangle\Downarrow d'}
+    \and
+    \Infer{\gtclc-ECastSucceed}{
+      d\Downarrow d'
+    }{d\langle\tau\Rightarrow\gtlch\Rightarrow\tau\rangle\Downarrow d'}
+  \end{mathpar}
+\end{singlespace}
+
+There is also the possibility of a dynamic cast error.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{\gtclc-ECastFail}{}{d\langle\tau\Rightarrow\gtlch\Rightarrow\tau'\rangle\textsf{ castfail}}
+  \end{mathpar}
+\end{singlespace}
+
+Hazel's core calculus heavily borrows from \gtlc and \gtclc. The cast calculus will remain unchanged when rewriting the evaluator to use environments rather than substitution. However, the cast language will briefly appear in the discussion of fill-and-resume, as we will have to be able to resolve old failed casts and introduce new failed casts.
+
+\section{Implementations of programming languages}
 \label{sec:interpreters}
 
 In order for a programming language to be practical, it must not only be defined as a set of syntax and semantics, but also have an \textit{implementation} to run programs in the language. Hazel is implemented as an interpreted language, whose runtime is transpiled to Javascript so that it may be run as a client-side web application in the browser.
 
 It is important to note that the definition of a language (its syntax and semantics) are largely orthogonal to its implementation. In other words, a programming language does not dictate whether it requires a compiler or interpreter implementation, and languages sometimes have multiple implementations.
 
-\subsubsection{Compiler vs. interpreter implementations}
+\subsection{Compiler vs. interpreter implementations}
 \label{sec:comp-vs-interp}
 
-% TODO: need citations for these definitions
+There are two general classes of programming language implementations: \textit{interpreters} and \textit{compilers} \cite{aho86}. Both types of implementations share the function of taking a program as input, and should be able to produce the same result (assuming an equal and determinstic machine state, equal inputs, correct implementations, and no exceptional behavior due to differences in resource usage).
 
-There are two general classes of programming language implementations: \textit{interpreters} and \textit{compilers}. Both types of implementations share the function of taking a program as input, and should be able to produce the same result (assuming an equal and determinstic machine state, equal inputs, correct implementations, and no exceptional behavior due to differences in resource usage).
-
-A compiler is a programming language implementation that converts the program to some low-level representation that is natively executable on the hardware architecture (e.g., x86-64 assembly for most modern personal computers, or the virtualized JVM architecture) before evaluation. This process typically comprises \textit{lexing} (breaking down into atomic tokens) the program text, \textit{parsing} the lexed tokens into a suitable \textit{intermediate representation} (IR) such as LLVM, performing optimization passes on the intermediate representation, and then generating the target bytecode (such as x86-64 assembly). The bytecode outputted from the compilation process is used for evaluation. Compiled implementations tend to produce better runtime efficiency, since the compilation steps are performed separate of the evaluation, and because there is little to no runtime overhead.
+A compiler is a programming language implementation that converts the program to some low-level representation that is natively executable on the hardware architecture (e.g., x86-64 assembly for most modern personal computers, or the virtualized JVM architecture) before evaluation. This process typically comprises \textit{lexing} (breaking down into atomic tokens) the program text, \textit{parsing} the lexed tokens into a suitable \textit{intermediate representation} (IR) such as LLVM, performing optimization passes on the intermediate representation, and then generating the target bytecode (such as x86-64 assembly) \cite{aho86}. The bytecode outputted from the compilation process is used for evaluation. Compiled implementations tend to produce better runtime efficiency, since the compilation steps are performed separate of the evaluation, and because there is little to no runtime overhead.
 
 An interpreter is a programming language implementation that does not compile down to native bytecode, and thus requires an interpreter or \textit{runtime}, which performs the evaluation. Interpreters still require lexing and parsing, and may have any number of optimization stages, but do not generate bytecode for the native machine, instead evaluating the program directly.
 
-% TODO: cite paper on SML elaboration
+In certain contexts (especially in the ML spheres), the term \textit{elaboration} \cite{harper2000type} is used to the process of transforming the \textit{external language} (a well-formed, textual program) into the \textit{internal language} (IR). The interior language may include additional information not present in the external language, such as types generated by type inference or bidirectional typing.
 
-In certain contexts (especially in the ML spheres), the term \textit{elaboration} is used to the process of transforming the \textit{external language} (a well-formed, textual program) into the \textit{internal language} (IR). The interior language may include additional information not present in the external language, such as types generated by type inference (e.g., in SML/NJ) or bidirectional typing (e.g., in Hazel).
+The distinction between compiled and interpreted languages is not a very clear line: some implementations feature just-in-time (JIT) compilation that allow ``on-the-fly'' compilation (e.g., common implementations of the JVM and CLR \cite{sestoft2002runtime}), and some implementations may perform the lexing and parsing separately to generate a non-native bytecode representation to be later evaluated by a runtime. A general characterization of compiled vs. interpreted languages is the amount of runtime overhead required by the implementation.
 
-The distinction between compiled and interpreted languages is not a very clear line: some implementations feature just-in-time (JIT) compilation that allow ``on-the-fly'' compilation (e.g., the JVM or CLR), and some implementations may perform the lexing and parsing separately to generate a non-native bytecode representation to be later evaluated by a runtime. A general characterization of compiled vs. interpreted languages is the amount of runtime overhead required by the implementation.
+Hazel is a purely interpreted language implementation, as optimizations for speed are not among its main concerns. However, performance is clearly one of the main concerns of this thesis project, but the gains will be algorithmic and use the nature of Hazel's structural editing and hole calculus to benefit performance, rather than changing the fundamental implementation. There is, however, a separate endeavor to write a compiled interpretation of Hazel \cite{hazelc}, which is outside the scope of this project.
 
-Hazel is a purely interpreted language implementation, as optimizations for speed are not among its main concerns. However, performance is clearly one of the main concerns of this thesis project, but the gains will be algorithmic and use the nature of Hazel's structural editing and hole calculus to benefit performance, rather than changing the fundamental implementation. There is, however, a separate endeavor to write a compiled interpretation of Hazel\footnote{\url{https://github.com/hazelgrove/hazel/tree/hazelc}}, which is outside the scope of this project.
-
-\subsubsection{The substitution and environment models of evaluation}
+\subsection{The substitution and environment models of evaluation}
 \label{sec:sub-vs-eval}
 
 % REF: https://cs.brown.edu/courses/cs173/2012/book/From_Substitution_to_Environments.html
 % REF: https://www.cs.bham.ac.uk/research/projects/poplog/paradigms_lectures/lecture18.html
 %   this introduces the issue with special forms like set! in a non-functional context
 
-Evaluation in Hazel was performed using originally using a \textit{substitution model of evaluation}, which is a theoretically simpler model. In this model, variables that are bound by some construct are substituted into the construct's body. For example, the variable(s) bound using a \mintinline{ocaml}|let|-expression pattern are substituted in the \mintinline{ocaml}|let|-expression's body, and the variable(s) bound during a function application are substituted into the function's body, and then the body is evaluated.
+Evaluation in Hazel was originally performed using a \textit{substitution model of evaluation}, which is a theoretically simpler model. In this model, variables that are bound by some construct are substituted into the construct's body. For example, the variable(s) bound using a \mintinline{ocaml}|let|-expression pattern are substituted in the \mintinline{ocaml}|let|-expression's body, and the variable(s) bound during a function application are substituted into the function's body, and then the body is evaluated.
 
 % TODO: show example of this
 
 In this formulation, variables are ``given meaning'' via substitution; once evaluation reaches an expression, all variables in scope (in the typing context) will have been replaced by their value by some containing binding expression. In other words, variables are never evaluated directly; they are substituted by their values when bound, and their values are evaluated. The substitution model is useful for teaching purposes because it is simple and close to its mathematical definition: a variable can be thought of as an equivalent stand-in for its value.
 
-However, for the purpose of computational efficiency, a model in which values are lazily expanded (``looked-up'') only when needed is more efficient. This is called the \textit{environment model of evaluation}, and generally is more efficient because the runtime does not need to perform an extra substitution pass over subexpressions; untraversed (unevaluated) branches do not require substituting; and the runtime does not need to carry an expression-level IR of the language. The last point is due to the fact that the substitution model manipulates expressions, while evaluation does not; this means that the latter is more amenable for compilation, and is how compiled languages tend to be implemented: each frame of the theoretical stack frame is a de facto environment frame. While switching from the substitution to environment model is not an improvement in asymptotic efficency, these effects are useful especially for high-performance and compiled languages.
+However, for the purpose of computational efficiency, a model in which values are lazily expanded (``looked-up'') only when needed is more efficient. This is called the \textit{environment model of evaluation}, and generally is more efficient because the runtime does not need to perform an extra substitution pass over subexpressions and because untraversed (unevaluated) branches do not require substituting. Lastly, the runtime does not need to carry an expression-level IR of the language, due to the fact that the substitution model manipulates expressions, while evaluation does not. This means that the latter is more amenable for compilation, and is how compiled languages tend to be implemented: each frame of the theoretical stack frame is a de facto environment frame. While switching from the substitution to environment model is not an improvement in asymptotic efficency, these effects are useful especially for high-performance and compiled languages.
 
-Note that the substitution model does not imply a lazy (i.e., normal-order, call-by-name, call-by-need) evaluation as in languages such as Haskell or Miranda, in which bound variables are (by default) not evaluated until their value is required. Laziness is conceptually tied to substitution, but the substitution model does not require laziness. Like most programming languages, Hazel only has strict (i.e., applicative-order, call-by-value) evaluation: the expressions bound to variables are evaluated at the time of binding.
+Note that the substitution model does not imply a lazy (i.e., normal-order, call-by-name, call-by-need) evaluation \cite{plotkin1975call} as in languages such as Haskell or Miranda, in which bound variables are (by default) not evaluated until their value is required. Laziness is conceptually tied to substitution, but the substitution model does not require laziness. Like most programming languages, Hazel only has strict (i.e., applicative-order, call-by-value) evaluation: the expressions bound to variables are evaluated at the time of binding\footnote{Note that the function application rules *-EAp so far have been written in a lazy call-by-name manner. This can be easily changed to a strict call-by-value evaluation by evaluating the argument before performing $\beta$-reduction.}.
 
 % TODO: "Laziness is conceptually tied to substitution" -- but does it require substitution? Methinks so but not sure;
 %   will find out more later due to this independent study
 
 The implementation of evaluation with environments differs from that of evaluation with substitution primarily in that: an evaluation environment is required to look up bound variables as evaluation reaches them; binding constructs extend the evaluation environment rather than performing substitution; and $\lambda$ abstractions are bound with their evaluation environment at runtime to form (lexical) closures.
 
-\subsection{Programming language semantics}
-\label{sec:type-systems}
+\subsection{Closure conversion}
+\label{sec:closure-conversion}
 
-\subsubsection{Notation}
-\label{sec:semantics-notation}
+\todo{implement this section}
 
-% little-step vs. big-step
+\section{Approaches to programming interfaces}
+\label{sec:prog-intf}
 
-\subsubsection{Static and dynamic semantics}
-\label{sec:static-dynamic-semantics}
+\todo{need to fill out this section}
 
-\subsubsection{Gradual typing}
-\label{sec:gradual}
+\subsection{Structure editors}
+\label{sec:structure-editors}
 
-% \subsection{Approaches to programming interfaces}
-% \label{sec:prog_intf}
+\subsection{Graphical editors}
+\label{sec:graphical-editors}
 
-% \subsubsection{Structure editors}
-% \label{sec:structure_editors}
+\subsection{Notebook editors}
+\label{sec:notebook_editors}
 
-% \subsubsection{Graphical editors}
-% \label{sec:graphical_editors}
 
 % \subsubsection{Intentional, generative, and meta-programming}
-% \label{sec:intentional_programming}
+% \label{sec:intentional-programming}
 
-% \subsubsection{Applications to programming education}
-% \label{sec:programming_education}
+\subsection{Applications to programming education}
+\label{sec:programming-education}
 
-% \subsubsection{Drawbacks of non-textual editors}
-% \label{sec:textual_benefits}
+\subsection{Criticisms of non-textual editors}
+\label{sec:textual-benefits}
+
+\section{Contextual modal type theory}
+\label{sec:cmtt}
+
+\todo{implement this section; background for hole filling}
 
 %%% Local Variables:
 %%% mode: latex
