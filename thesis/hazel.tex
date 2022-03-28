@@ -9,17 +9,38 @@ Hazel is the reference implementation for the Hazelnut bidirectionally-typed act
 \subsection{The gap problem}
 \label{sec:gap-problem}
 
-\subsection{An intuitive introduction to typed holes}
+\todo{add citations in this section -- use citations from Hazelnut Live 2019 paper}
+
+Programming editor environments aim to provide feedback to a programmer in the form of editor services such as syntax highlighting or warnings using the LSP. Live programming environments aim to provide continuous static (static type error) and dynamic (run-time type error) feedback in real-time, allowing for rapid prototyping. However, over the course of the lifetime of a program, the program may enter many edit states when it is \textit{meaningless} (ill-formed or ill-typed).
+
+Editor services can only assign static and dynamic meaning to programs that are statically well-typed and free of dynamic type errors. Some may deploy reduced ad hoc algorithms of meaningless edit states. This means that over the course of editing, the programmer experiences temporal gaps between moments of complete editor services. This is known as the \textit{gap problem}.
+
+\subsection{An intuitive introduction to typed expression holes}
 \label{sec:typed-holes}
 
-\section{The Hazel live programming environment}
-\label{sec:hazel-online}
+Hazelnut and Hazelnut Live address the gap problem by defining a static and dynamic semantics, respectively, for a small functional programming language extended with typed holes. It is built on top of a structure editor, which ensures that a program is always well-formed (syntactically correct). The Hazelnut action semantics for typed holes ensures that a well-formed program is always well-typed. The Hazelnut Live dynamic semantics defines an encapsulated behavior for type errors, such that evaluation continues ``around'' and captures information about type errors in order to provide dynamic feedback to the programmer.
 
-\subsection{Explanation of interface}
-\label{sec:hazel-interface}
+The Hazelnut Live paper provides the following intuitive understanding of holes.
+
+\begin{displayquote}
+  Empty holes stand for missing expressions or types, and non-empty holes operate as ``membranes''
+around static type inconsistencies (i.e. they internalize the ``red underline'' that editors commonly display under a type inconsistency).
+\end{displayquote}
+
+We have already acknowledged the existence of type holes in dynamically-typed languages and in the \gtclc{}, in which type holes are represented by the type $\gtlch$. This allows unannotated expressions to statically type-check, with the possibility of running into a dynamic type error at runtime.
+
+Some languages also have the concept of expression holes, which allow a program to be well-typed with missing expressions. In Haskell, for example, the special error value \mintinline{haskell}|undefined| always type-checks but will immediately crash the program if it is encountered during evaluation. Haskell also provides the syntax \mintinline{haskell}|_u| for expression holes \todoref{cite this}, which provides static type information but will not successfully compile. The mechanism to insert expressions holes may be either automatic or manual \todoref{cite this}. However, no such example of expression holes have a well-defined dynamic semantics that allows continuation past the hole with useful feedback \todoref{cite this -- perhaps cite hazelnut 2019 paper}.
+
+In summary, Hazel provides empty type and expression holes, which represent dynamic typing and missing expressions. Nonempty holes are also provided to encapsulate error conditions and provide a well-defined dynamic semantics while providing useful feedback to the user. The dynamic semantics is carefully defined to stop when such indeterminate expressions are encountered, but continue elsewhere (``around'' holes or failed casts) if possible.
 
 \subsection{Implications of Hazel}
 \label{sec:hazel-implications}
+
+The main proposed use case of Hazel is its use in programming education, particularly for teaching functional programming, as it provides much useful feedback to the programmer for error conditions, allowing them to focus instead on semantic errors in their algorithm. This is being explored with the Hazel Tutor project \cite{potter2020hazel}.
+
+Another research direction is in its use as a structural and graphical editor. For example, live GUIs \cite{omar2021filling} are being explored to enhance the editing experience by providing live, compositional, graphical interfaces, in addition to the benefits that Hazel's core calculi provide.
+
+The result of a Hazel evaluation may contain holes, and thus not be fully evaluated. The Hazelnut Live paper \cite{conf/popl/HazelnutLive19} suggests the idea of hole-filling: since each hole in the result contains its lexical environment, we may ``resume'' evaluation without restarting evaluation from the beginning if a hole is filled. An interesting application of this is in the use of notebook-style programming editors such as Jupyter Notebook \todoref{citation} and MATLAB \todoref{citation}, which are common in scientific computing \todoref{citation}. Notebook-style editors are useful because they allow evaluation of sections of a script, usually to avoid recomputation of previous sections. The problem with this is that they are stateful; running sections out of order may yield different results than running the sections of a program in order. Hole filling provides a novel solution by avoiding recomputation and maintaining the same result as if the program had been run from the start \todo{rephrase this part}.
 
 \section{Introduction to OCaml and Reason}
 \label{sec:ocaml-intro}

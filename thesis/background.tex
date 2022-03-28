@@ -315,7 +315,7 @@ We have discussed \stlc{}, which involves a simple \textit{static typing} system
 
 The hybrid proposed by Siek is the \textit{gradually-typed $\lambda$-calculus} \gtlc{} \cite{Siek06gradualtyping,siek2015refined}\footnote{The material presented in this section originates from \cite{Siek06gradualtyping,siek2015refined}, but the notation conventions follow from \cite{conf/popl/HazelnutLive19} for in order to stay consistent with the rest of this paper.}. In \gtlc{}, all type annotations are optional and offer a ``pay-as-you-go'' benefit. A completely unannotated \gtlc{} program acts like dynamic typing (\ulc{} extended with base type(s) but no static semantics), with run-time casts and the ability for run-time type failures. A completely annotated \gtlc{} program is equivalent to a \stlc{} program. The performance cost of run-time casts and the possibility of run-time type failures only occurs when evaluating expressions with unannotated terms.
 
-The grammar of \gtlc{} is almost exactly the same as \stlc, except that we add a new type $?$, indicating an unspecified type. Now, $\lambda$-abstractions may be type-annotated using this type, and we define the notation $\lambda x.e\equiv\lambda x:?.e$.
+The grammar of \gtlc{} is almost exactly the same as \stlc, except that we add a new type $\gtlch$, indicating an unspecified type. Now, $\lambda$-abstractions may be type-annotated using this type, and we define the notation $\lambda x.e\equiv\lambda x:\gtlch.e$.
 
 The static semantics of \gtlc{} is expectedly also similar to \stlc. The only rule that differs is the rule for function application. We also write a new rule for subsumption, which states that if $\Gamma\vdash e:\tau$, then $e$ may also be assigned any consistent type.
 
@@ -394,7 +394,7 @@ We may now define a dynamic semantics on \gtclc. The following dynamic semantics
     \and
     \Infer{\gtclc-VLam}{}{\lambda x:\tau.d\textsf{ final}}
     \and
-    \Infer{\gtclc-VBoxedVal}{}{e\langle\tau\Rightarrow ?\rangle\textsf{ final}}
+    \Infer{\gtclc-VBoxedVal}{}{e\langle\tau\Rightarrow\gtlch\rangle\textsf{ final}}
     \and
     \Infer{\gtclc-EVal}{d\textsf{ final}}{d\Downarrow d}
     \and
@@ -416,7 +416,7 @@ We may now define a dynamic semantics on \gtclc. The following dynamic semantics
     \and
     \Infer{\gtclc-ECastSucceed}{
       d\Downarrow d'
-    }{d\langle\tau\Rightarrow ?\Rightarrow\tau\rangle\Downarrow d'}
+    }{d\langle\tau\Rightarrow\gtlch\Rightarrow\tau\rangle\Downarrow d'}
   \end{mathpar}
 \end{singlespace}
 
@@ -424,7 +424,7 @@ There is also the possibility of a dynamic cast error.
 
 \begin{singlespace}
   \begin{mathpar}
-    \Infer{\gtclc-ECastFail}{}{d\langle\tau\Rightarrow ?\Rightarrow\tau'\rangle\textsf{ castfail}}
+    \Infer{\gtclc-ECastFail}{}{d\langle\tau\Rightarrow\gtlch\Rightarrow\tau'\rangle\textsf{ castfail}}
   \end{mathpar}
 \end{singlespace}
 
