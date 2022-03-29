@@ -32,7 +32,7 @@ The syntax of a programming language is defined by a grammar. The grammar descri
   \end{align*}
 \end{singlespace}
 
-In this simple grammar, we have two productions: types and expressions. A type may have one of three forms: the $\tnum$ type, an arrow (function) type, or the hole type (similar to the \texttt{?} type from the GTLC described in \Cref{sec:gradual}). An expression may be a variable; a $\lambda$-abstraction (function literal); the primitive addition operation; a type ascription; an empty hole; or a non-empty hole. The latter two types are Hazel specific, as is the hole type.
+In this simple grammar, we have two productions: types and expressions. A type may have one of three forms: the $\tnum$ type, an arrow (function) type, or the hole type (similar to the \texttt{?} type from the GTLC described in \Cref{sec:gradual}). An expression may be a variable, a $\lambda$-abstraction\footnote{This may have several names depending on the context and programming language, such as: $\lambda$-function, function literal, arrow function, anonymous function, or simply function. $\lambda$-abstractions are unary by definition -- higher-arity functions may be constructed via \textit{function currying}.}, the primitive addition operation, a type ascription, an empty hole, or a non-empty hole. The latter two types are Hazel specific, as is the hole type.
 
 Parentheses are not shown in this grammar, but they are optional except to affect order of operations.
 
@@ -482,26 +482,28 @@ The implementation of evaluation with environments differs from that of evaluati
 \section{Approaches to programming interfaces}
 \label{sec:prog-intf}
 
-\todo{need to fill out this section}
+The most traditional programming interface is the standard text-based source file. In this case, we describe two innovations on plaintext files that are relevant to Hazel's design and use cases.
 
 \subsection{Structure editors}
 \label{sec:structure-editors}
 
-\subsection{Graphical editors}
-\label{sec:graphical-editors}
+\textit{Structure editors} form a class of programming language editors that allows one to directly interface with the \textit{abstract syntax tree} of a programming language via a restricted set of \textit{edit actions}, rather than via the manipulation of unstructured text. The immediate benefit of this is the elimination of the entire class of errors related to syntax.
 
-\subsection{Notebook editors}
-\label{sec:notebook_editors}
+A major use case for structural editing is for the purpose of programming education. By eliminating syntactic errors, the student may shift their attention more towards semantic issues in their code. For example, Carnegie Mellon University developed a series of structural editors (GNOME, MacGnome, and ACSE)  targeted at programming education \cite{miller1994evolution}. Scratch is a graphical structural editor targeted at younger students (aged 8-16) developed at MIT \cite{maloney2010scratch}. Programming education is one of the main proposed use cases for Hazel, such as its use in Hazel Tutor \cite{potter2020hazel}.
 
+One of the major drawbacks of structural editing is the decrease in usability by restricting the set of edit actions. The degree to which an editor ``resists local changes'' is a property known as \textit{viscosity} \cite{green1989cognitive}. Structural and visual editing is expectedly more viscous than unstructured plaintext editing. Reducing the viscosity of structural editing is not a goal of Hazel, but a related project at the University of Michigan, Tylr \cite{tylr}, tackles the problem of editing viscosity and may make its way into future versions of Hazel.
 
-% \subsubsection{Intentional, generative, and meta-programming}
-% \label{sec:intentional-programming}
+Omar et al. \cite{conf/popl/Hazelnut17} describes several other structure editors and their relation to Hazel, and in particular other structure editors which also attempt to maintain well-typedness or operate on formal definitions of an underlying language.
 
-\subsection{Applications to programming education}
-\label{sec:programming-education}
+\subsection{Live programming environments and computational notebooks}
+\label{sec:notebook-editors}
 
-\subsection{Criticisms of non-textual editors}
-\label{sec:textual-benefits}
+Burckhardt et al. describes live programming environments as providing continuous feedback that narrows the ``temporal and perceptive gap between program development and code execution''
+ \cite{10.1145/2499370.2462170}. A common example of a live programming environment are read-evaluate-print loops (REPLs), which allow line-by-line evaluation of expressions. Computational notebooks form an example of live programming environments.
+
+Computational notebooks, such as in IPython/Jupyter Notebook \cite{perez2007ipython} or MATLAB, is another trend in programming languages that has been popular in scientific applications. They provide much feedback about program's dynamic state, especially interactively or graphically. Notebook-style editing allows one to intersperse editing and evaluation of a program. Programs may be run in sections (potentially out of order), maintaining state between sections evaluations -- this is typically for efficiency reasons. There is a large design space in current computational notebooks, with many possible variations in code evaluation, editing semantics, and displaying notebook outputs \cite{lau2020design}.
+
+Hazel may be considered a live editor as it attempts to eliminate the feedback gap, by providing static and dynamic feedback throughout the lifetime of then program. The fill-and-resume functionality described in \cite{conf/popl/HazelnutLive19} and implemented in this work provide a novel possible implementation of notebook-like partial evaluation.
 
 \section{Contextual modal type theory}
 \label{sec:cmtt}

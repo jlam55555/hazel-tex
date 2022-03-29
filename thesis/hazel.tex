@@ -18,7 +18,7 @@ Editor services can only assign static and dynamic meaning to programs that are 
 \subsection{An intuitive introduction to typed expression holes}
 \label{sec:typed-holes}
 
-Hazelnut and Hazelnut Live address the gap problem by defining a static and dynamic semantics, respectively, for a small functional programming language extended with typed holes. It is built on top of a structure editor, which ensures that a program is always well-formed (syntactically correct). The Hazelnut action semantics for typed holes ensures that a well-formed program is always well-typed. The Hazelnut Live dynamic semantics defines an encapsulated behavior for type errors, such that evaluation continues ``around'' and captures information about type errors in order to provide dynamic feedback to the programmer.
+Hazelnut and Hazelnut Live address the gap problem by defining a static and dynamic semantics, respectively, for a small functional programming language extended with typed holes. It is built on top of a \textit{structure editor}, which ensures that a program is always well-formed (syntactically correct) by disallowing invalid edit actions. The Hazelnut action semantics for typed holes ensures that a well-formed program is always well-typed. The Hazelnut Live dynamic semantics defines an encapsulated behavior for type errors, such that evaluation continues ``around'' and captures information about type errors in order to provide dynamic feedback to the programmer.
 
 The Hazelnut Live paper provides the following intuitive understanding of holes.
 
@@ -52,20 +52,22 @@ The main proposed use case of Hazel is its use in programming education, particu
 
 Another research direction is in its use as a structural and graphical editor. For example, live GUIs \cite{omar2021filling} are being explored to enhance the editing experience by providing live, compositional, graphical interfaces, in addition to the benefits that Hazel's core calculi provide.
 
-The result of a Hazel evaluation may contain holes, and thus not be fully evaluated. The Hazelnut Live paper \cite{conf/popl/HazelnutLive19} suggests the idea of hole-filling: since each hole in the result contains its lexical environment, we may ``resume'' evaluation without restarting evaluation from the beginning if a hole is filled. An interesting application of this is in the use of notebook-style programming editors such as Jupyter Notebook \todoref{citation} and MATLAB \todoref{citation}, which are common in scientific computing \todoref{citation}. Notebook-style editors are useful because they allow evaluation of sections of a script, usually to avoid recomputation of previous sections. The problem is that notebook execution is stateful and running operations out-of-order will cause irreproducible results. On the other hand, resuming an evalution with fill-and-resume will produce the same result as if the program was run ordinarily from start to finish\footnote{This is a property known as \textit{commutativity} and described in \cite{conf/popl/HazelnutLive19}.}.
+The result of a Hazel evaluation may contain holes, and thus not be fully evaluated. The Hazelnut Live paper \cite{conf/popl/HazelnutLive19} suggests the idea of hole-filling: since each hole in the result contains its lexical environment, we may ``resume'' evaluation without restarting evaluation from the beginning if a hole is filled -- this property is similar to that of computational notebooks. The problem with notebook execution is that it is stateful and running operations out-of-order may cause irreversible state changes that cause irreproducible results. On the other hand, resuming an evalution with fill-and-resume will produce the same result as if the program was run ordinarily from start to finish\footnote{This is a property known as \textit{commutativity} and described in \cite{conf/popl/HazelnutLive19}.} while avoiding re-evaluation of previous sections.
 
-\section{Introduction to OCaml and Reason}
+\section{Introduction to OCaml and Reason syntax}
 \label{sec:ocaml-intro}
 
 Previously, we have been introducing concepts using a pseudo-mathematical notation. Henceforth, when describing Hazel and its implementation, it may be useful to use sample code or pseudocode from the implementation to describe various aspects of Hazel.
 
-Hazel is implemented in Reason, which is a dialect of OCaml. Except for code samples in \Cref{app:code-samples}, the notation used throughout this report will be limited to referring to function names and types. Module names are denoted \texttt{PascalCase}, whereas function and type names are \texttt{snake\_case}. Conventionally, modules that export a type export a single type called \texttt{t}. As an example, \mintinline{ocaml}|DHExp.t| refers to the primarily-relevant type from the \mintinline{ocaml}|DHExp| module, the type that represents internal expressions $d$. On the other hand, \mintinline{ocaml}|Evaluator.evaluate| refers to the \mintinline{ocaml}|evaluate| function in the \mintinline{ocaml}|Evaluator| module. All functions and types will be prefixed with their module names for clarity.
+Hazel is implemented in Reason (alternatively, ReasonML), which is a dialect of OCaml that offers a JavaScript-like syntax. Except for code samples in \Cref{app:code-samples}, the notation used throughout this report will be limited to referring to function names and types. Module names are denoted \texttt{PascalCase}, whereas function and type names are \texttt{snake\_case}. Conventionally, OCaml modules that export a type export a single type called \texttt{t}. As an example, \mintinline{ocaml}|DHExp.t| refers to the primarily-relevant type from the \mintinline{ocaml}|DHExp| module, the type that represents internal expressions $d$. On the other hand, \mintinline{ocaml}|Evaluator.evaluate| refers to the \mintinline{ocaml}|evaluate| function in the \mintinline{ocaml}|Evaluator| module. All functions and types will be prefixed with their module names for clarity.
 
 \section{Hazel semantics}
 \label{sec:hazel-semantics}
 
-\subsection{Statics: Hazelnut action and typing semantics}
-\label{sec:hazel-statics}
+Hazel is rigorously defined using a bidirectional semantics. A high-level overview of the foundational papers on Hazelnut (syntax and static semantics) and Hazelnut Live (elaboration and dynamic semantics) is provided here, but a thorough explanation is deferred to the original papers.
+
+\subsection{Hazelnut syntax}
+\label{sec:hazel-syntax}
 
 The grammar of Hazel's external language is defined as follows.
 
@@ -86,29 +88,41 @@ The grammar of Hazel's external language is defined as follows.
 
 This is very similar to \gtlc{}. The $\gtlch{}$ type is rewritten as $\tehole$ and pronounced the ``hole type.'' An expression form for type ascription is added. Most notably, there is the addition of empty and non-empty expression holes, which are denoted $\hehole$ and $\hhole{e}$, respectively.
 
+\subsection{Hazelnut action and typing semantics}
+\label{sec:hazel-statics}
+
 Hazelnut \cite{conf/popl/Hazelnut17} defines a bidirectional typing judgment for the external language. \todo{reproduce this in an appendix} The judgments are very similar to \gtlc{}. Unsurprisingly, hole expressions synthesize the hole type, and they analyze against any type. Note that in the case of a non-empty hole, the encapsulated expression must still synthesize a type, i.e., they are well-typed.
 
 Hazelnut defines an action semantics for the structural editor, which describes the behavior of editing and maneuvering around a program. A program's edit state comprises an external expression with a superimposed cursor. There are four main actions carried out by the user: \texttt{move}, \texttt{construct}, and \texttt{delete}. These actions are described by bidirectionally-typed action judgments that transform a (well-typed) edit state to another (well-typed) edit state. There are a number of metatheorems that enforce desirable properties of action semantics in a structural editor, such as \textit{sensibility} (the result of an action on a well-typed expression is a well-typed expression), \textit{movement erase invariance} (movement actions should not change the external expression, but only the position of the cursor), \textit{reachability} (the cursor should be able to move to any valid location to any other valid location), \textit{constructability} (every valid edit state should be constructable from the initial edit state), \textit{action determinism} (every sequence of edit actions should have only one valid output state), etc. These metatheorems are proved using the Agda theorem proving assistant \cite{agda2017}.
 
-Since this work is not concerned with the structural editing or typing properties of Hazel, we defer a thorough discussion of Hazel's action or static semantics to the original paper \cite{conf/popl/Hazelnut17}.
+\todo{talk about missing forms from the Hazelnut formulation: let expressions, case expressions, binary sum types, lists, other hole types, fixpoint}
 
-\todo{talk about missing forms from the Hazelnut formulation: let expressions, case expressions, binary sum types, lists, other hole types}
+\subsection{Hazelnut Live elaboration judgment}
+\label{sec:hazel-elaboration}
 
-\subsection{Dynamics: Hazelnut Live dynamic semantics}
+\textit{Elaboration} is the process of converting an expression from the external language to the internal language. Notably, both the external and internal languages share the same type system. The internal language and the elaboration process is very similar to the cast calculus \gtclc and the elaboration process from \gtlc.
+
+The elaboration algorithm is also bidirectionally-typed, and thus involves two mutually-recursive judgments: a \textit{synthetic elaboration judgment} $\Gamma^-\vdash e^-\Rightarrow\tau^+\leadsto d^+\dashv\Delta^+$, and an \textit{analytic elaboration judgment} $\Gamma^-\vdash e^-\Leftarrow\tau^-\leadsto d^+:\tau'^+\dashv\Delta^+$.\todo{reproduce elaboration judgments in appendix}
+
+$\Delta$ is the \textit{hole context}, used to store the typing context and actual type of each hole. Each hole (whether in synthetic or analytic position) is recorded in the hole context, and is given the identity mapping as its original environment\footnote{This is amended in this work, in which holes will not initially be given an environment because the environment is not substitution-based.}.
+
+The elaboration judgment will produce as output a type for the internal expression, which may be different from the type of the external expression. In particular, elaborated holes will produce different types depending on whether they are in synthetic or analytic position.
+
+\subsection{Hazelnut Live final judgment and dynamic semantics}
 \label{sec:hazel-dynamics}
 
-\todo{rewrite this section}
+Hazelnut Live introduces a new $d\textsf{ final}$ judgment for the internal language, used to indicate an irreducible expression. This subsumes the set of fully-evaluated expressions in \gtclc, which include plain values or \textit{boxed values}, values which are casted ``out'' of their original type but not yet casted ``into'' the destination type. However, expressions containing holes also cannot further evaluate and comprise the second class of final expressions: \textit{indeterminate} values.
 
-The internal language is highly similar to the external language. The primary difference is the introduction of the cast calculus taken from the GTLC described in \Cref{sec:gradual}. Practically, there is also the introduction of the fixpoint to allow for recursion, as the fixpoint is not exposed to users in the external language.
+\todo{reproduce final judgment}
 
-\textit{Elaboration} is the process of converting an expression from the external language to the internal language. Notably, both the external and internal languages share the same type system.
+Hazelnut Live defines a small-step semantics for its internal language very similar to that of \gtclc. To avoid the rapid proliferation of rules due to the small-step semantics, a notational convenience called the \textit{evaluation context} $\mathcal{E}$, which recursively evaluates subexpressions. The rules are modified to accomodate indeterminate expressions.
 
-The elaboration algorithm is bidirectionally-typed, and thus involves two mutually-recursive judgments: a \textit{synthetic elaboration judgment} $\Gamma\vdash e\Rightarrow\tau\leadsto d:\tau\dashv\Delta$, and an \textit{analytic elaboration judgment} $\Gamma\vdash e\Leftarrow\tau\leadsto d:\tau'\dashv\Delta$. $\Delta$ is the \textit{hole context}, used to store the typing context and actual type of each hole, and is an output of the judgments. As with bidirectional typing, the synthetic judgment outputs the synthesized type alongside the elaborated internal expression $d$; the analyzed judgment takes a type $\tau$ to analyze against, and returns the elaborated internal expression $d$ along with its actual type $\tau'$. Having the actual type of analyzed expressions is useful for generating dynamic casts as described in the GTLC.
+\todo{reproduce small-step semantics in an appendix}
 
 \subsection{Hole instance numbering}
 \label{sec:hole-instance-numbering}
 
-\todo{implement this section}
+Hazelnut Live introduces \textit{hole instances} with some motivation, but with no details of its implementation. In \Cref{sec:renumbering}, we will motivate hole instances in greater detail, describe the current implementation, and reformulate the problem of hole instance tracking to accomodate environments and memoization.
 
 %%% Local Variables:
 %%% mode: latex
