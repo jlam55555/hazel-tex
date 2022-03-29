@@ -32,7 +32,7 @@ Evaluation judgments are shown for a subset of the Hazel language, similar to th
 
 As always, elements of the base type are values and do not further evaluate. Bound variables evaluate to their value in the environment. (Unbound variables are marked as free during elaboration and do not further evaluate.)
 
-$\lambda$-abstractions $\lambda x.d$ are no longer final values; they evaluate further to the function closure $[\env]\lambda x.d$, which captures the lexical environment of the $\lambda$ expression\footnote{This step is conceptually similar to the first step of closure conversion, in which $\lambda$-abstractions are converted to functions that take two parameters: the argument and the environment.}.
+$\lambda$-abstractions $\lambda x.d$ are no longer final values; they evaluate further to the function closure $[\env]\lambda x.d$, which captures the lexical environment of the $\lambda$ expression.
 
 A description of recursive $\lambda$-abstractions (the fixpoint form) is described in \Cref{sec:rec_impl}.
 
