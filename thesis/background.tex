@@ -338,7 +338,7 @@ Two new judgments are introduced here. The first is the \textit{matched arrow ju
 
 \begin{singlespace}
   \begin{mathpar}
-    \Infer{MAHole}{}{\arrmatch{\tehole}{\tehole\to\tehole}}
+    \Infer{MAHole}{}{\arrmatch{\gtlch}{\gtlch\to\gtlch}}
     \and
     \Infer{MAArr}{}{\arrmatch{\tau_1\to\tau_2}{\tau_1\to\tau_2}}
   \end{mathpar}
@@ -348,9 +348,9 @@ The second new judgment is the \textit{type consistency judgment} $\tau_1^-\sim\
 
 \begin{singlespace}
   \begin{mathpar}
-    \Infer{TCHoleTyp}{}{\tehole\sim\tau}
+    \Infer{TCHoleTyp}{}{\gtlch\sim\tau}
     \and
-    \Infer{TCTypHole}{}{\tau\sim\tehole}
+    \Infer{TCTypHole}{}{\tau\sim\gtlch}
     \and
     \Infer{TCArr}{
       \tau_1\sim\tau_1' \\
