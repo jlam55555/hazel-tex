@@ -22,14 +22,42 @@
 % - Multiple hole instances
 % - Multiple parent hole instances
 
-\section{CMTT interpretation of fill-and-resume}
-\label{sec:implementing_far}
+\section{Motivation}
+\label{sec:far-motivation}
 
-\section{Memoization of recent actions} 
-\label{sec:memoization_actions}
+\begin{figure}
+  \centering
+  \inputhminted{far_motivation}
+  \caption{A sample program with an expensive calculation stored in a hole's environment}
+  \label{fig:far-motivation}
+\end{figure}
 
-\section{UI changes for notebook-like editing}
-\label{sec:notebook_ui}
+Consider the program shown in \Cref{fig:far-motivation}. In this program, the calculation of $x=\text{fib }30$ is arbitrarily chosen to represent a computationally-expensive operation. The result of this program is \[
+  [f\leftarrow [\varnothing]\lambda x.\{\dots\},x\leftarrow 832040]\hehole^1
+\]
+Now, if we want to ``fill'' hole 1 with the expression $x+2$, then it would seem extremely wasteful to have to re-compute the value of $x$. After all, the computation remains exactly the same, and the only part that we are changing uses the result of the previous computation. Moreover, we realize that the end result stores the computed value of $x$ in the hole's closure's environment. Rather than filling the expression $x+2$ in the hole in the original program, we may instead fill the hole in the evaluated program result, and ``resume'' evaluation.
+\begin{gather*}
+  [f\leftarrow [\varnothing]\lambda x.\{\dots\},x\leftarrow 832040](x+2) \\
+  832040+2 \\
+  832042
+\end{gather*}
+Here we observe that the generalized closures surrounding holes and other stopped evaluations allow us to capture the environment for future computation.
+
+This is the \textit{fill-and-resume} (\textit{FAR}) operation that is described in Hazelnut Live \cite{conf/popl/HazelnutLive19}. It is described in terms of a substitution-based evaluation semantics, and with respect to its theoretic foundations in contextual modal type theory (CMTT), but does not specify any details with regard to its implementation, such as the extraction of the expression and hole for the fill operation. Hazelnut Live also describes the practical memoization problem with the suggestion to ``cache more than one recent edit state to take full advantage of hole filling'' -- we present a structural diffing\footnote{``Diffing'' taken to mean the action of performing a (structural) diff operation between two edit states.} algorithm that easily allows us to fill a hole from an arbitrary past edit state.
+
+\section{Re-evaluation of closures}
+\label{sec:reeval-flag}
+
+\todo{implement this section}
+
+% \section{CMTT interpretation of fill-and-resume}
+% \label{sec:implementing-far}
+
+% \section{Memoization of recent actions} 
+% \label{sec:memoization-actions}
+
+% \section{UI changes for notebook-like editing}
+% \label{sec:notebook-ui}
 
 %%% Local Variables:
 %%% mode: latex

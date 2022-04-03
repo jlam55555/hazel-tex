@@ -1,0 +1,28 @@
+- Sections for FAR:
+  - CMTT interpretation of fill-and-resume
+  - Memoization of recent actions
+  - UI changes for notebook-like editing
+- Filling theorem
+- Commutativity property
+- The original description in terms of substitution
+- Capturing substitution
+- Optimizations memoization
+- Resuming evaluation with executable flag on closures
+- Integrating with the front end
+- Infix operator troubles
+- Walkthrough of examples with static errors
+- Dynamic type errors
+- Going back multiple edit states
+- Entrypoint
+- Memoization alongside Program.evaluate
+- Limitations to notebook style editing
+- Differences between environment model and substitution model for FAR
+- Ensuring evaluation of all closures:
+  - Special treatment during evaluation
+  - Regular closure treatment in postprocessing
+- Inversion of evaluation order: canot assume closure to be final anymore
+
+Evaluation section
+- Evaluation more or fewer variables lookup
+- Plan out what tests to make for performance
+- Plan out what tests to make for correctness
