@@ -1,27 +1,6 @@
 \chapter{Implementation of fill-and-resume}
 \label{sec:far_impl}
 
-% General steps:
-% Determine that the last edit action only involves changes within a hole
-% - May go multiple steps back (memoization)
-% Elaborate the expression to substitute in
-% Determine if the synthesized type of the expression matches that of the hole (from the hole context)
-% - Multiple cases here
-% Evaluate each instance of the hole
-% Update it in each of its parent hole closures
-% Update it in the result
-% Remove hole closure from HCC
-
-% More consistent to consider the end result as contained within a top-level hole,
-% as if our program were always incomplete (perhaps, philosophically)
-
-% TODO: walk through a few examples by hand
-% - Introduce new type inconsistencies
-% - Remove old type inconsistencies
-% - No new type (in)consistencies
-% - Multiple hole instances
-% - Multiple parent hole instances
-
 \section{Motivation}
 \label{sec:far-motivation}
 
@@ -45,19 +24,140 @@ Here we observe that the generalized closures surrounding holes and other stoppe
 
 This is the \textit{fill-and-resume} (\textit{FAR}) operation that is described in Hazelnut Live \cite{conf/popl/HazelnutLive19}. It is described in terms of a substitution-based evaluation semantics, and with respect to its theoretic foundations in contextual modal type theory (CMTT), but does not specify any details with regard to its implementation, such as the extraction of the expression and hole for the fill operation. Hazelnut Live also describes the practical memoization problem with the suggestion to ``cache more than one recent edit state to take full advantage of hole filling'' -- we present a structural diffing\footnote{``Diffing'' taken to mean the action of performing a (structural) diff operation between two edit states.} algorithm that easily allows us to fill a hole from an arbitrary past edit state.
 
-\section{Re-evaluation of closures}
+\section{The FAR process}
+\label{sec:far-process}
+
+The fill-and-resume process can be broken into the following sequence.
+
+\begin{enumerate}
+\item Obtain a previous edit state with which to fill from the model.
+\item Determine whether a fill operation is appropriate. If it is not, perform regular evaluation of the program, and do not continue to the following steps.
+\item If the fill operation is valid, then obtain the fill parameters (the internal expression to fill, and the hole number from the previous edit state with which to fill).
+\item Pre-process the evaluation result to prepare for (re-)evaluation.
+\item Re-evaluate.
+\item Pos-process the evaluation result for display purposes.
+\item Update the model with the evaluation results.
+\end{enumerate}
+
+These steps will be described in greater detail in the following sections.
+
+\subsection{Entrypoint to the FAR algorithm}
+\label{sec:far-entrypoint}
+
+\subsection{Obtaining the fill parameters via structural diff}
+\label{sec:obtaining-fill-parameters}
+
+\subsubsection{Obtaining past edit states}
+\label{sec:far-past-edit-states}
+
+\subsection{Pre-processing the evaluation result for re-evaluation}
+\label{sec:far-preprocessing}
+
+\todo{executable flag on closures}
+
+\subsection{Modifications to evaluation to allow for re-evaluation}
+\label{sec:re-eval}
+
+\todo{note: re-evaluate on un-postprocessed result, due to bodies of lambdas being evaluated in postprocessed result}
+
+\todo{recursively evaluating closures: ``inversion'' of evaluation order, now cannot assume environments (which usually are evaluated previously) to be evaluated}
+
+\todo{need to memoize hole environments in order to keep interpretation of unique hole instantiations, otherwise same hole instance will be evaluated multiple times (not implemented yet, future work)}
+
+\subsection{Post-processing resumed evaluation}
+\label{sec:far-postprocessing}
+
+\todo{normal postprocessing, evaluated closures simply get expanded as usual}
+
+\subsection{Storing the evaluation result in the model}
+\label{sec:result-model}
+
+\todo{memoization alongside Program.evaluate}
+
+\subsection{Re-evaluation of closures}
 \label{sec:reeval-flag}
 
-\todo{implement this section}
+\section{FAR examples}
+\label{sec:far-examples}
 
-% \section{CMTT interpretation of fill-and-resume}
-% \label{sec:implementing-far}
+\todo{non-empty holes are all treated the same}
 
-% \section{Memoization of recent actions} 
-% \label{sec:memoization-actions}
+\todo{static type error examples}
 
-% \section{UI changes for notebook-like editing}
-% \label{sec:notebook-ui}
+\todo{example where closure environment has to be recursively re-evaluated}
+
+\todo{example where environment appears multiple times, has to be memoized for invariant to hold}
+
+\section{Tracking evaluation state}
+\label{sec:eval-state}
+
+\todo{maybe move this to the results section?}
+
+\todo{show step counts in UI; can stop evaluation after n steps}
+
+\todo{what constitutes the evaluation state?}
+
+\todo{also keep track of evaluation memoization}
+
+\subsection{Noteworthy non-examples}
+\label{sec:far-nonexamples}
+
+\todo{dynamic type errors don't get solved with FAR}
+
+\todo{note about infix operators}
+
+\section{Differences from the substitution model}
+\label{sec:far-sub}
+
+\todo{reproduce the original description}
+
+\todo{preprocessing is very much the same}
+
+\todo{still have to memoize environments to keep the interpretation of unique hole instantiations}
+
+\section{FAR for notebook-style editing}
+\label{sec:notebook-ui}
+
+\todo{improvements: reproducibility}
+
+\todo{limitations: limited cases for re-evaluation}
+
+\section{Improvements to FAR}
+\label{sec:far-improvements}
+
+\todo{move this to future work section}
+
+\todo{need general cleanup of FAR implementation, not very complete}
+
+\todo{optimizing how many edit states to go back: tradeoffs between storage (how many edit states to store) and speed (how much execution time to detect a FAR, how expensive is FAR depending on which edit state; currently the most recent edit state is used, something like a LRU; may want to cache recent edit states that spawned a FAR or group edit states like in the undo history currently)}
+
+\todo{automatic vs manual far detection}
+
+\section{Metatheorems governing FAR}
+\label{sec:far-meta}
+
+\todo{filling (from original paper)}
+
+\todo{commutativity}
+
+\todo{all closures will be evaluated exactly once -- this allows holes that have not yet been evaluated in the result to be successfully re-evaluated (assuming program terminates) and maintains the invariant that all closures will be evaluated at the end of evaluation}
+
+\section{Generalized views on non-empty holes and FAR}
+\label{sec:generalized-holes-far}
+
+The work performed for FAR leads us to the following nice generalizations of some of the concepts we've encountered through this work.
+
+\todo{perhaps move this to the discussion section, along with generalized holes from Ch4?}
+
+\subsubsection{Generalized non-empty holes}
+\label{sec:generalized-neholes}
+
+\todo{every partially-complete program can be represented as part of a non-empty hole. In particular, top-level program can be considered to be in a non-empty hole to be filled. Also works nicely as a general parent (in HoleClosureInfo) for all holes in a non-complete program}
+
+\subsubsection{Generalized FAR}
+\label{sec:generalized-far}
+
+\todo{every evaluation can be rewritten as a FAR operation, since every program originates from a hole as an initial state, or using the above version where the top-level expression exists in a non-empty hole}
 
 %%% Local Variables:
 %%% mode: latex
