@@ -47,6 +47,27 @@ These steps will be described in greater detail in the following sections.
 \subsection{Obtaining the fill parameters via structural diff}
 \label{sec:obtaining-fill-parameters}
 
+One way to approach the problem of obtaining the hole number and filled expression is at action time. When constructing an expression, we can check if the cursor lies in a hole (either directly in an empty hole, or if there is an ancestor non-empty hole). When deleting an expression, we can check if the cursor lies in a non-empty hole. However, this method is somewhat short-sighted. What happens if we wish to make multiple edits, e.g., fill a hole with the number 12? Then there are two actions, and the second action is not a hole fill action.
+\begin{gather*}
+  \hehole^1 \\
+  1 \\
+  12
+\end{gather*}
+We may remedy this specific case by grouping together consecutive construction actions\footnote{Grouping together of actions is already performed to some level by the undo history, for visual purposes.}. However, we may also consider more complicated edit sequences that involve movement and deletion actions, potentially outside of the hole. Consider the following edit sequence.
+\begin{gather*}
+  2+3*\hehole^1 \\
+  2+\hehole^2*\hehole^1\\
+  2+\hehole^1\\
+  2+5 \\
+  2+(5) \\
+  2+\hehole^1*(5) \\
+  2+3*(5) \\
+  2+3*(5+\hehole^1)
+\end{gather*}
+The final edit state in this sequence is actually a valid fill of the first edit state of the sequence\footnote{There are actually multiple valid fill operations here. Another valid fill operation occurs between the third edit state and all of the following edit states.}, such that $u=1$ and $d=5+\hehole^1$. However, an algorithm to trace the edit actions to determine that this is a valid fill may be difficult, since there is an incomprehensible mix of construct, delete, and movement edit actions. Even worse, the edits actually go outside the original hole, which likely makes the algorithm intractable. Thus, we wish for a more robust solution that is independent of the edit sequence between two states.
+
+\todo{working here; introduce structural diffing algorithm}
+
 \subsubsection{Obtaining past edit states}
 \label{sec:far-past-edit-states}
 
