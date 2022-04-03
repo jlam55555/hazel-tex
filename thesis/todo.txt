@@ -5,6 +5,7 @@
 - metatheorems for postprocessing
   - (see error conditions)
   - the only thing that remains in a closure after postprocessing are holes
+- diagram of the updated model of evaluation (including memoization?)
 
 - CMTT interpretation of fill-and-resume
 - Alternative methods of FAR re-evaluation with complications

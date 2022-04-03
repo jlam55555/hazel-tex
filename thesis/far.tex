@@ -44,8 +44,11 @@ These steps will be described in greater detail in the following sections.
 \subsection{Entrypoint to the FAR algorithm}
 \label{sec:far-entrypoint}
 
-\subsection{Obtaining the fill parameters via structural diff}
+\subsection{Detecting the fill parameters via structural diff}
 \label{sec:obtaining-fill-parameters}
+
+\subsubsection{A na\"ive algorithm for detecting fill parameters}
+\label{sec:far-detect-naive}
 
 One way to approach the problem of obtaining the hole number and filled expression is at action time. When constructing an expression, we can check if the cursor lies in a hole (either directly in an empty hole, or if there is an ancestor non-empty hole). When deleting an expression, we can check if the cursor lies in a non-empty hole. However, this method is somewhat short-sighted. What happens if we wish to make multiple edits, e.g., fill a hole with the number 12? Then there are two actions, and the second action is not a hole fill action.
 \begin{gather*}
@@ -66,10 +69,82 @@ We may remedy this specific case by grouping together consecutive construction a
 \end{gather*}
 The final edit state in this sequence is actually a valid fill of the first edit state of the sequence\footnote{There are actually multiple valid fill operations here. Another valid fill operation occurs between the third edit state and all of the following edit states.}, such that $u=1$ and $d=5+\hehole^1$. However, an algorithm to trace the edit actions to determine that this is a valid fill may be difficult, since there is an incomprehensible mix of construct, delete, and movement edit actions. Even worse, the edits actually go outside the original hole, which likely makes the algorithm intractable. Thus, we wish for a more robust solution that is independent of the edit sequence between two states.
 
-\todo{working here; introduce structural diffing algorithm}
+\subsubsection{Structural diffing between two edit states}
+\label{sec:far-detect-structural-diff}
 
-\subsubsection{Obtaining past edit states}
+Instead of observing the edit action, we may instead attempt to find the root of the difference between any two edit states, and determine if that is the the difference gives valid fill parameters. This has the benefit of being a relatively simple algorithm, while overcoming the limitation of the previous method because it is path-independent.
+
+The structural diff algorithm takes two expressions as input and returns one of three diff judgments\footnote{The following notations for diffing are chosen somewhat arbitrarily. The triangle seems appropriate because it has a variant with an equals bar ($\nodiff{}{}$), as well as a ``no fill'' ($\nfdiff{}{}{}{}$) and ``fill'' variant ($\fdiff{}{}{}{}$). The triangle is also horizontally asymmetric, which makes sense given that the diff operation is asymmetric.}. $\nodiff{d_1}{d_2}$ indicates \textit{no diff} between $d_1$ and $d_2$. $\nfdiff{d_1}{d_2}$ indicates a \textit{non-fill diff} from $d_1$ to $d_2$. $\fdiff{d_1}{d_2}{u}{d}$ indicates a \textit{fill diff} of hole $u$ with expression $d$ from $d_1$ to $d_2$.
+
+We also define two shorthand operators for notational convenience. $\fnfdiff{d_1}{d_2}{u}{d}$ indicates \textit{some (non-empty) diff} from $d_1$ to $d_2$, which may or may not be a fill difference. $dff{d_1}{d_2}{u}{d}$ indicates \textit{any diff} (potentially no diff). Both notations are used to avoid writing multiple similar rules, where the only change in the rules is diff judgment type.
+
+\todo{put the following in a figure, and move to another file}
+
+\begin{singlespace}
+  \judgbox{\fnfdiff{d_1}{d_2}{u}{d}}{Some (non-empty) diff between $d_1$ and $d_2$.}
+  \begin{mathpar}
+    \Infer{SDiffNFDiffSome}{
+      \nfdiff{d_1}{d_2}
+    }{\fnfdiff{d_1}{d_2}{\varnothing}{\varnothing}}
+    \and
+    \Infer{SDiffFDiffSome}{
+      \fdiff{d_1}{d_2}{u}{d}
+    }{\fnfdiff{d_1}{d_2}{u}{d}}
+    \and
+    \Infer{SDiffSomeNFDiff}{
+      \fnfdiff{d_1}{d_2}{\varnothing}{\varnothing}
+    }{\nfdiff{d_1}{d_2}}
+    \and
+    \Infer{SDiffSomeFDiff}{
+      \fnfdiff{d_1}{d_2}{u}{d}
+    }{\fdiff{d_1}{d_2}{u}{d}}
+  \end{mathpar}
+
+  \judgbox{\dff{d_1}{d_2}{u}{d}}{Any (possibly-empty) diff between $d_1$ and $d_2$.}
+  \begin{mathpar}
+    \Infer{ADiffNoDiffAny}{
+      \nodiff{d_1}{d_2}
+    }{\dff{d_1}{d_2}{\cdot}{\varnothing}}
+    \and
+    \Infer{ADiffNFDiffAny}{
+      \nfdiff{d_1}{d_2}
+    }{\dff{d_1}{d_2}{\varnothing}{\varnothing}}
+    \and
+    \Infer{ADiffFDiffAny}{
+      \fdiff{d_1}{d_2}{u}{d}
+    }{\dff{d_1}{d_2}{u}{d}}
+    \and
+    \Infer{ADiffAnyNoDiff}{
+      \dff{d_1}{d_2}{\cdot}{\varnothing}
+    }{\nodiff{d_1}{d_2}}
+    \and
+    \Infer{ADiffAnyNFDiff}{
+      \fnfdiff{d_1}{d_2}{\varnothing}{\varnothing}
+    }{\nfdiff{d_1}{d_2}}
+    \and
+    \Infer{ADiffAnyFDiff}{
+      \fnfdiff{d_1}{d_2}{u}{d}
+    }{\fdiff{d_1}{d_2}{u}{d}}
+  \end{mathpar}
+\end{singlespace}
+
+\subsection{Performance tradeoffs of the two detection algorithms}
+\label{sec:far-detect-compare}
+
+In the most na\"ive form, the previous algorithm's efficiency is $O(\log E)$, where $E$ is the number of expression nodes in the program, if we assume that the depth of an expression node is logarithmic with respect to the total number of expression nodes. That algorithm only has to traverse up the ancestors to decide whether the edit lies in a hole.
+
+The structural diff algorithm presented in this section is $O(E)$, since it traverses each node (once) until it finds a difference. However, if one travels backwards multiple edit states, then the cost is $O(SE)$, where $S$ is the number of edit states compared using this algorithm. While this is much more expensive than the previous algorithm, we assume that the program size is relatively small, causing delay only on the order of milliseconds. However, it may be able to find a valid fill-and-resume in many more cases than the previous algorithm, potentially saving a much longer repeated evaluation time.
+
+\subsubsection{Choosing the edit state to fill from}
 \label{sec:far-past-edit-states}
+
+Past edit states are stored in an undo history in Hazel, which allows the user to quickly return to previous edit states. The structure of the undo history is complicated and Hazel-specific, and thus not described here. We note that the result of evaluation is not stored alongside the evaluation result, but the evaluation function itself is memoized, so retrieving a previous edit state and re-evaluating the program is typically not expensive.
+
+\todo{note why that memoization won't work well for us anymore}
+
+There are a number of possible design decisions when searching for a valid hole fill. Firstly, one must decide the maximum number of edit states to search: should it be a fixed number of edit states, or should it be given a fixed time budget? Is it best to cache edit states that recently led to a fill operation (\`a la LRU cache)? Is the most recent edit state that leads to a valid fill usually the best candidate, or even a good candidate? Would it be best to allow for user-configurable settings, or perhaps even for the user to manually select the previous edit from which to fill?
+
+\todoref{need to create a future work section for this}
 
 \subsection{Pre-processing the evaluation result for re-evaluation}
 \label{sec:far-preprocessing}
