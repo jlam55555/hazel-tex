@@ -1,0 +1,2 @@
+let x = /\heh1/ in
+/\heh2/

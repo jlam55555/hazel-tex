@@ -44,7 +44,9 @@ These steps will be described in greater detail in the following sections.
 \subsection{Entrypoint to the FAR algorithm}
 \label{sec:far-entrypoint}
 
-\todo{implement this section}
+\todo{memoization alongside Program.get\_program}
+
+\todo{include a diagram of the updated evaluation call graph}
 
 \subsection{Detecting the fill parameters via structural diff}
 \label{sec:obtaining-fill-parameters}
@@ -380,48 +382,150 @@ The postprocessing algorithm remains unchanged from before. Note that an evaluat
 
 \todo{metatheorems to back up the above}
 
-\subsection{Storing the evaluation result in the model}
-\label{sec:result-model}
-
-\todo{memoization alongside Program.evaluate}
-
 \section{FAR examples}
 \label{sec:far-examples}
 
-\todo{non-empty holes are all treated the same}
+\todo{the previous example}
 
-\todo{static type error examples}
+\begin{figure}
+  \centering
+  \inputhminted{far_introduce_type_error}
+  \caption{FAR introducing a static type error}
+  \label{fig:far-introduce-type-error}
+\end{figure}
 
-\todo{example where closure environment has to be recursively re-evaluated}
+\begin{figure}
+  \centering
+  \inputhminted{far_remove_type_error}
+  \caption{FAR removing a static type error}
+  \label{fig:far-remove-type-error}
+\end{figure}
 
-\todo{example where environment appears multiple times, has to be memoized for invariant to hold}
+\begin{figure}
+  \centering
+  \inputhminted{far_fill_in_hole_env}
+  \caption{FAR filling hole in a hole environment}
+  \label{fig:far-fill-hole-in-hole-env}
+\end{figure}
 
-\section{Tracking evaluation state}
-\label{sec:eval-state}
-
-\todo{maybe move this to the results section?}
-
-\todo{show step counts in UI; can stop evaluation after n steps}
-
-\todo{what constitutes the evaluation state?}
-
-\todo{also keep track of evaluation memoization}
+\begin{figure}
+  \centering
+  \inputhminted{far_hole_closure_memoization}
+  \caption{FAR hole closure memoization}
+  \label{fig:far-hole-closure-memoization}
+\end{figure}
 
 \subsection{Noteworthy non-examples}
 \label{sec:far-nonexamples}
 
-\todo{dynamic type errors don't get solved with FAR}
+\subsubsection{Dynamic type errors}
+\label{sec:far-dynamic-type-errors}
 
-\todo{note about infix operators}
+One may wonder if dynamic type errors (cast failure) have any nice relation to fill-and-resume, but it turns out that they are not treated much different than other non-hole expressions. We may not fill a cast failure directly, because it is not in a hole. We may only remove a cast failure if it lies in a non-empty hole that is filled.
+
+We may introduce new cast failures by filling an expression that is assigned to type hole (something of dynamic type). However, this is no different than introducing any well-typed expression and performing normal evaluation.
+
+Thus the only interesting cases of introducing or remoing holes lies in the case of static type errors (non-empty holes) as described previously.
+
+\subsubsection{Infix operators}
+\label{sec:far-infix-operators}
+
+Filling holes in an infix operator sequence may not result in a hole fill due to infix operator precedences, despite the initial appearance. Consider the example shown in \Cref{fig:far-infix-operator-fill}. Say we construct a binary plus operator in the hole. One might expect the fill operation to be $\far{\hehole^2+\hehole^1}{1}{\dresult}$. However, we need to be careful: the multiplication operator has a higher precedence than the addition operator, causing the AST to have a different structure outside of where hole 1 was in the original edit state. It may be more clear if we write the latter edit state with its implicit parentheses: \hmintinline{(1 * /\heh2/) + (/\heh1/ * 2)}.
+
+If, however, hole 1 in the original edit state was a parenthesized expression, and the sum expression shape was constructed inside the parenthesized expression, then the AST wouldn't change (as a parenthesized expression has higher precedence than the outer multiplication operation) and it would be a valid fill operation.
+
+\begin{figure}
+  \centering
+  \begin{singlespace}
+    \makebox[\textwidth][c]{
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \inputhminted{far_infix_operators}
+        \caption{Previous edit state}
+      \end{subfigure}
+      \qquad
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \inputhminted{far_infix_operators_filled}
+        \caption{Filled edit state}
+      \end{subfigure}
+    }
+  \end{singlespace}
+  \caption{FAR infix operator fill}
+  \label{fig:far-infix-operator-fill}
+\end{figure}
+
+\section{Tracking evaluation state}
+\label{sec:eval-state}
+
+It may be useful to thread some state throughout the evaluation process. This means that changes to this state by an earlier invocation to evaluate will affect later evaluations.
+
+The concept of keeping state has already appeared in several contexts. For hole postprocessing, the memoized hole closure info keeps track of seen environments (\Cref{sec:renumbering_memoization}). evaluation, we keep track of the next unique environment identifier (\Cref{sec:env-purity}) and memoize the evaluation of filled expressions (\Cref{sec:re-eval}).
+
+This becomes relevant again (with respect to evaluation) because resuming evaluation requires us to store the state after evaluation, and restore the state after evaluation. Adding more state variables also makes the implementation messier by increasing the number of variables to pass to and return from each of the numerous calls to \mintinline{ocaml}|Evaluator.evaluate|.
+
+The nice solution to this is to group together all evaluation state under a single data structure, \mintinline{ocaml}|EvalState.t|. This one state variable is passed around to all calls to evaluate, and is stored to and restored from \mintinline{ocaml}|Result.t|, which stores all information about a program's evaluated result (including the evaluated expression and the hole closure information). Adding state then becomes trivial, because we only have to modify this data structure rather than all of the calls to \mintinline{ocaml}|Evaluator.evaluate|.
+
+For sake of brevity, we will not update the judgments to include this state.
+
+\subsection{Step counting}
+\label{sec:step-counting}
+
+With the \mintinline{ocaml}|EvalState.t| data structure, it is now trivial to keep track of evaluation statistics. Sample statistics might include step counting and number of times a particular evaluation trace has been paused and resumed.
+
+Step counting may be implemented simply by incrementing the count on each call to \mintinline{ocaml}|Evaluator.evaluate|. This may be useful to stop long-running executions after a particular number of (possibly user-specified) execution steps in order to prevent program crashes. It is also useful for our purposes to track how efficient fill-and-resume is: during a fill operation, one may observe the difference in the number of steps before and after the resumed evaluation, and compare it to the case if the evaluation had begun from scratch.
 
 \section{Differences from the substitution model}
 \label{sec:far-sub}
 
-\todo{reproduce the original description}
+The FAR operation is much simpler when evaluating with substitution rather than with environments. With substitution, we eliminate the need for pre- and post-processing steps, and dealing with re-evaluating closures. However, this comes at the cost of not being able to memoize repeated instances of the same hole closure. The original description of FAR from \cite{conf/popl/HazelnutLive19} is reproduced below. The equals (=) operator is used to indicate the FAR operation here; it is meant to symbolize the mix of substitution and evaluation that is presented here. The hole closure notation from \cite{conf/popl/HazelnutLive19}, in which the hole closure is represented using a subscript, is also used here, since the substitution model doesn't have the concept of separate closures.
 
-\todo{preprocessing is very much the same}
+\todo{move this to a figure later}
 
-\todo{still have to memoize environments to keep the interpretation of unique hole instantiations}
+\begin{singlespace}
+  \judgbox{\far{u}{d}{d'}=d''}{$d'''$ is obtained by filling hole $u$ with $d$ in $d'$}
+
+  \begin{mathpar}
+    \Infer{FillSubConst}{}{\far{u}{d}{c}=c}
+    \and
+    \Infer{FillSubVar}{}{\far{u}{d}{x}=x}
+    \and
+    \Infer{FillSubLam}{
+    }{\far{u}{d}{\lambda x:\tau.d'}=\lambda x:\tau.\far{u}{d}{d'}}
+    \and
+    \Infer{FillSubAp}{}{\far{u}{d}{d_1\ d_2}=(\far{u}{d}{d_1})\ (\far{u}{d}{d_2})}
+    \and
+    \Infer{FillSubEHole$_1$}{}{\far{u}{d}{\hehole_\env^u}=[\far{u}{d}{\env}]d}
+    \and
+    \Infer{FillSubEHole$_2$}{
+      u\ne u'
+    }{\far{u}{d}{\hehole_\env^{u'}}=\hehole_\env^{u'}}
+    \and
+    \Infer{FillSubNEHole$_1$}{
+    }{\far{u}{d}{\hhole{d'}_\env^u}=[\far{u}{d}{\env}]d}
+    \and
+    \Infer{FillSubNEHole$_2$}{
+      u\ne u'
+    }{\far{u}{d}{\hhole{d'}_\env^{u'}}=\hhole{\far{u}{d}{d'}}_{\far{u}{d}{\env}}^{u'}}
+    \and
+    \Infer{FillSubCast}{
+    }{\far{u}{d}{d'\langle\tau\Rightarrow\tau'\rangle}=(\far{u}{d}{d'})\langle\tau\Rightarrow\tau'\rangle}
+    \and
+    \Infer{FillSubFailedCast}{
+    }{\far{u}{d}{d'\langle\tau\Rightarrow\tehole\not\Rightarrow\tau'\rangle}=(\far{u}{d}{d'})\langle\tau\Rightarrow\tehole\not\Rightarrow\tau'\rangle}
+  \end{mathpar}
+
+  \judgbox{\far{u}{d}{\env}=\env'}{$\env'$ is obtained by filling hole $u$ with $d$ in $\env$}
+
+  \begin{mathpar}
+    \Infer{FillSubEnvNull}{}{\far{u}{d}{\varnothing}=\varnothing}
+    \and
+    \Infer{FillSubEnv}{
+      \env'=\far{u}{d}{\env} \\
+      d''=\far{u}{d}{d'}
+    }{\far{u}{d}{\env,x\leftarrow d'}=\env',x\leftarrow d''}
+  \end{mathpar}
+\end{singlespace}
+
+What remains the same between the environment model and the substitution model is the need for an algorithm to detect the fill parameters, for which the structural diff algorithm presented in \Cref{sec:far-detect-structural-diff} is still applicable.
 
 \section{FAR for notebook-style editing}
 \label{sec:notebook-ui}
@@ -457,12 +561,12 @@ The work performed for FAR leads us to the following nice generalizations of som
 
 \todo{perhaps move this to the discussion section, along with generalized holes from Ch4?}
 
-\subsubsection{Generalized non-empty holes}
+\subsection{Generalized non-empty holes}
 \label{sec:generalized-neholes}
 
 \todo{every partially-complete program can be represented as part of a non-empty hole. In particular, top-level program can be considered to be in a non-empty hole to be filled. Also works nicely as a general parent (in HoleClosureInfo) for all holes in a non-complete program}
 
-\subsubsection{Generalized FAR}
+\subsection{Generalized FAR}
 \label{sec:generalized-far}
 
 \todo{every evaluation can be rewritten as a FAR operation, since every program originates from a hole as an initial state, or using the above version where the top-level expression exists in a non-empty hole}

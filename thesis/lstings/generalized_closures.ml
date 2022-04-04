@@ -6,7 +6,7 @@ type t =
   | InvalidText(/$u$/, /$i$/, ...)
   | FreeVar(/$u$/, /$i$/, ...)
   | InconsistentBranches(/$u$/, /$i$/, ...)
-  (* Lambda expressions and closures *)
+  (* /$\lambda$/ expressions and closures *)
   | Lam(/$x$/, /$\tau$/, /$d$/)
   (* Generalized closure *)
   | Closure(/$\env$/, /$d$/)

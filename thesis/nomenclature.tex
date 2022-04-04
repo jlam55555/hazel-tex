@@ -112,7 +112,7 @@
     $\fdiff{d_1}{d_2}{u}{d}$ & Fill diff from $d_1$ to $d_2$ with fill parameters $u$ and $d$ \\
     $\sdiff{d_1}{d_2}{u}{d}$ & Some (non-empty) diff from $d_1$ to $d_2$ \\
     $\adiff{d_1}{d_2}{u}{d}$ & Any (possibly empty) diff from $d_1$ to $d_2$ \\
-    d_1\sim d_2 & Expression form equality \\
+    $d_1\sim d_2$ & Expression form equality \\
     \hline\hline
   \end{tabular}
   \caption{Fill-and-resume structural diff algorithm}
@@ -123,6 +123,8 @@
   \centering
   \begin{tabular}{\colwidths}
     \hline\hline
+    $\far{u}{d}{d'}=d''$ & Fill-and-resume operation on an expression \\
+    $\far{u}{d}{\env}=\env'$ & Fill-and-resume operation on an environment \\
     $\llbracket\env\rrbracket d$ & Closure with re-eval flag set \\
     $\hhole{d}_i$ & Expression $d$ filled in hole with hole closure number $i$ \\
     $\fenv$ & Fill memoization context\\
