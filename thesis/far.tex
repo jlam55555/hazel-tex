@@ -44,8 +44,12 @@ These steps will be described in greater detail in the following sections.
 \subsection{Entrypoint to the FAR algorithm}
 \label{sec:far-entrypoint}
 
+\todo{implement this section}
+
 \subsection{Detecting the fill parameters via structural diff}
 \label{sec:obtaining-fill-parameters}
+
+Following the notation from \cite{conf/popl/HazelnutLive19}, the fill operation $\far{\dfill}{\ufill}{\dresult}$ indicates the fill of hole $\ufill$ with expression $\dfill$ in the expression $\dresult$. $\dresult$ is the past program result with which to fill. We need a method to determine the fill parameters $\ufill$ and $\dfill$.
 
 \subsubsection{A na\"ive algorithm for detecting fill parameters}
 \label{sec:far-detect-naive}
@@ -130,7 +134,7 @@ We also define two shorthand operators for notational convenience. $\sdiff{d_1}{
 
 We break up the diff judgments into cases. First, we may consider the case of two holes of different \textit{expression forms}\footnote{We use the term \textit{expression form} or \textit{expression variant} to indicate the variant types of \mintinline{ocaml}|DHExp.t|. For example, empty holes and constants of the base type are different expression forms. Empty holes and non-empty holes are also different forms per the grammar.}.
 
-For convenience, we define the judgment $\formsame{d_1}{d_2}$ to mean that $d_1$ and $d_2$ are of the same expression variant\footnote{The relation $\sim$ is already defined to mean type consistency when applied to types. This interpretation applies when the relation is applied to internal expressions.}. We may more concretely express this judgment by the following rules.
+For convenience, we define the judgment $\formsame{d_1}{d_2}$ to mean that $d_1$ and $d_2$ are of the same expression form\footnote{The relation $\sim$ is already defined to mean type consistency when applied to types. This interpretation applies when the relation is applied to internal expressions.}. We may more concretely express this judgment by the following rules.
 
 \begin{singlespace}
   \begin{mathpar}
@@ -270,6 +274,8 @@ The last case to consider is the comparison of two hole expressions of the same 
 
 \todo{metatheorems regarding the diff algorithm}
 
+The diff algorithm begins by performing the structural diff between the elaborated program state of a past edit state $d_{old}$ and the current edit state $d_{cur}$. A FAR operation is only valid if the diff judgment is a fill diff $\fdiff{d_{old}}{d_{cur}}{u}{d}$, which gives us the FAR parameters $u$ and $d$.
+
 \subsubsection{Performance tradeoffs of the two detection algorithms}
 \label{sec:far-detect-compare}
 
@@ -291,12 +297,40 @@ There are a number of possible design decisions when searching for a valid hole 
 \subsection{Pre-processing the evaluation result for re-evaluation}
 \label{sec:far-preprocessing}
 
-\todo{executable flag on closures}
+Before beginning the re-evaluation, we would like to substitute all instances of the hole in the previous evaluation result $\dresult$ with the substituted expression. Each time a the hole $\ufill$ is encountered, it is replaced with the fill expression $\dfill$. This way, we can simply reinvoke the evaluation function on the past program result and expect it to resume the evaluation.
+
+There are a few nuances here that should be addressed. First of all, we acknowledge another benefit of the generalized closure variant. If the environment was still baked into the hole, and the hole was replaced with an expression, we would need an additional mechanism to remember the hole's environment. This becomes more messy when the hole doesn't lie directly in a hole closure (i.e., if the hole lies outside the evaluation boundary). Closures are simply recursed through in this pre-processing step, and their environments will still be available even when the hole gets replaced with the fill expression.
+
+We note that the pre-processing acts on the un-post-processed previous evaluation result $\dresult$. This is because the internal expression directly from evaluation and the result after post-processing have different properties or invariants. We do not want to invalidate the properties that are expected to be upheld during evaluation, such as the fact that the body of any $\lambda$-abstraction lies outside the evaluation boundary (whereas post-processing will modify function bodies).
+
+Another issue to tackle is the problem that closures were previously considered to be final values, and would not be re-evaluated. Technically, we may re-evaluate closures; since the evaluation function is idempotent, this will not yield the incorrect result, but it is needlessly inefficient. However, we will need to re-evaluate closures during FAR re-evaluation, since the fill expression will necessarily lie within some closure.
+
+\todo{write the previous statement as a metatheorem}
+
+The (re-)evaluation of a closure is given by the rule EClosure.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{EClosure}{
+      \env\vdash d\Downarrow d'
+    }{\env'\vdash[\env]d\Downarrow d'}
+  \end{mathpar}
+\end{singlespace}
+
+For efficiency reasons, we will only want to re-evaluate all closures in the result exactly once. To do this, we set a flag for the closure that indicates that it should be re-evaluated. This preprocessing step will recurse through $\dresult$ and set the flag to true for all closures. All closures that result from an evaluation judgment will have the flag set to false. The above closure evaluation rule is only for closures with the re-eval flag set to true. Closures with the re-eval flag set to false will act as values and evaluate to themselves, which is the same as the original evaluation behavior described in \Cref{sec:closures_to_lambdas}. We denote closures with the re-eval flag set to false using the established notation for closures $[\env]d$\footnote{This allows previous discussions of closures to remain valid, since they take the interpretation that the re-eval flag is set to false.}, and denote closures with the re-eval flag set to true by $\llbracket\env\rrbracket d$\footnote{Using the double-square bracket notation also reinforces the fact that re-evaluation is tied with fill-and-resume, which also uses double-square brackets.}.
+
+Finally, we may consider the issue of multiple instances of the same hole closure\footnote{Hole closure refers to the connotation from \Cref{sec:instance-illustration}: instances of hole $\ufill$ that share the same (physical) environment.}. If we substitute the hole, then we lose the information about the holes instance, and thus cannot memoize the evaluations of the same hole instance by environment number. A perhaps poor solution to this is to introduce another \mintinline{ocaml}|DHExp.t| variant \mintinline{ocaml}|FillExp(HoleClosureId.t, DHExp.t)| that indicates the hole closure number as well as the expression to fill. The preprocessing expression will fill a hole $\ufill$ with this expression rather than the expression $\dfill$ directly. During evaluation, this data structure will facilitate the memoization of hole closures.
 
 \subsection{Modifications to evaluation to allow for re-evaluation}
 \label{sec:re-eval}
 
-\todo{note: re-evaluate on un-postprocessed result, due to bodies of lambdas being evaluated in postprocessed result}
+Re-evaluation during fill-and-resume is mostly the same as regular evaluation, but now we need to keep in mind the considerations from pre-processing the previous program result.
+
+First of all, closures will have been marked for re-evaluation by the pre-processing step. This means that the closure environment will first be recursively re-evaluated, following by the closure body. This assures that the entire program result is fully evaluated. This is similar to the EClosure rule, except that now we add the consideration of the re-eval flag to avoid re-evaluating closures more than once, and also recurse evaluation through variable bindings in the bound environment. Closures with the re-eval flag set to false will have the regular evaluation rule.
+
+\todo{write out new closure evaluation rules}
+
+\todo{metatheorem about how all closures from $\dresult$ will re-evaluated (exactly once), assuming that evaluation terminates}
 
 \todo{recursively evaluating closures: ``inversion'' of evaluation order, now cannot assume environments (which usually are evaluated previously) to be evaluated}
 
@@ -311,9 +345,6 @@ There are a number of possible design decisions when searching for a valid hole 
 \label{sec:result-model}
 
 \todo{memoization alongside Program.evaluate}
-
-\subsection{Re-evaluation of closures}
-\label{sec:reeval-flag}
 
 \section{FAR examples}
 \label{sec:far-examples}
