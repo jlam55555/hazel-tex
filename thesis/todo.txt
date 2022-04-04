@@ -16,3 +16,5 @@ Evaluation section
 - Evaluation more or fewer variables lookup
 - Plan out what tests to make for performance
 - Plan out what tests to make for correctness
+
+Intersperse judgments with text, summarize them all in appendices
