@@ -376,7 +376,7 @@ This fill-memoized evaluation judgment subsumes the normal evaluation judgment. 
 \subsection{Post-processing resumed evaluation}
 \label{sec:far-postprocessing}
 
-The postprocessing algorithm remains unchanged from before. Note that an evaluated program result should never include either of the new forms $\hhole{d}_i$ or $\llbracket\env\rrbracket d$; these should all have been encountered and evaluated out. In other words, the evaluation result from re-evaluation during a FAR should be indistinguishable from the evaluation result from a regular evaluation.
+The postprocessing algorithm remains unchanged from before. Note that an evaluated program result should never include either of the new forms $\hhole{d}_i$ or $\llbracket\env\rrbracket d$; these should all have been encountered and evaluated out. In other words, the evaluation result from re-evaluation during a FAR should be indistinguishable from the evaluation result from a regular evaluation, and thus the postprocessing process is unchanged.
 
 \todo{metatheorems to back up the above}
 

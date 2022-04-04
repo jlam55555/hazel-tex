@@ -1,9 +1,9 @@
-\pt{Table of nomenclature}
+\pt{List of notations}
 % \FloatBarrier{}
 
 % nomencl package is too confusing, just use manual tables
 
-\newcommand{\colwidths}{p{2.5cm}p{11cm}}
+\newcommand{\colwidths}{p{4cm}p{10cm}}
 
 \singlespacing
 
@@ -11,13 +11,47 @@
   \centering
   \begin{tabular}{\colwidths}
     \hline\hline
-    $\tau$ & Hazel type \\
+    $e$ & (External) expression \\
+    $\tau$ & Type \\
     $\Gamma$ & Typing context \\
     $\Delta$ & Hole context \\
+    $\Gamma\vdash e:\tau$ & Type judgment \\
+    $\Gamma\vdash e\Rightarrow\tau$ & Synthetic type judgment \\
+    $\Gamma\vdash e\Leftarrow\tau$ & Analytic type judgment \\
+    $[e'/x]e$ & Substitution of $e'$ for $x$ in $e$ \\
     \hline\hline
   \end{tabular}
-  \caption{Hazel expression and hole typing}
-  \label{tab:symb_elab_typing}
+  \caption{Common notation for the $\lambda$-calculus}
+  \label{tab:symb_general}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{\colwidths}
+    \hline\hline
+    \ulc & Untyped $\lambda$-calculus \\
+    \stlc & Simply-typed $\lambda$-calculus \\
+    \gtlc & Gradually-typed $\lambda$-calculus \\
+    $\Lambda_{\rightarrow}^{\tehole}$ & $\lambda$-calculus with typed holes \\
+    \hline\hline
+  \end{tabular}
+  \caption{The $\lambda$-calculi}
+  \label{tab:symb_general}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{\colwidths}
+    \hline\hline
+    $\gtlch$ & Unknown type \\
+    $\tau\sim\tau'$ & Type consistency \\
+    $\arrmatch{\tau}{\tau_1\to\tau_2}$ & Matched arrow judgment \\
+    $\Gamma\vdash e\leadsto d:\tau$ & Elaboration judgment \\
+    $d\langle\tau\Rightarrow\tau'\rangle$ & Cast expression \\
+    \hline\hline
+  \end{tabular}
+  \caption{The gradually-typed $\lambda$-calculus}
+  \label{tab:symb_general}
 \end{table}
 
 \begin{table}[H]
@@ -25,14 +59,15 @@
   \begin{tabular}{\colwidths}
     \hline\hline
     $d$ & Internal expression \\
-    $\lambda x.d$ & Lambda abstraction \\
-    $\fix f.d$ & Fixpoint function \\
+    $\lambda x:\tau.d$ & $\lambda$-abstraction \\
+    $\fix f:\tau.d$ & Fixpoint form \\
     $\env$ & Environment \\
     $x,f$ & Variable name \\
     $u$ & Hole number \\
     $i$ & Hole instance or closure number \\
-    $\hehole_\env^{u:i}$ & Empty hole expression \\
-    $\hhole{d}_\env^{u:i}$ & Non-empty hole expression \\
+    $\hehole^{u:i}$ & Empty hole expression \\
+    $\hhole{d}^{u:i}$ & Non-empty hole expression \\
+    $[\env]d$ & Generalized closure \\
     \hline\hline
   \end{tabular}
   \caption{Hazel internal language}
@@ -66,6 +101,36 @@
   \end{tabular}
   \caption{Hazel postprocessing}
   \label{tab:symb_hazel_dhexp}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{\colwidths}
+    \hline\hline
+    $\nodiff{d_1}{d_2}$ & No (empty) diff between $d_1$ and $d_2$ \\
+    $\nfdiff{d_1}{d_2}$ & Non-fill diff from $d_1$ to $d_2$ \\
+    $\fdiff{d_1}{d_2}{u}{d}$ & Fill diff from $d_1$ to $d_2$ with fill parameters $u$ and $d$ \\
+    $\sdiff{d_1}{d_2}{u}{d}$ & Some (non-empty) diff from $d_1$ to $d_2$ \\
+    $\adiff{d_1}{d_2}{u}{d}$ & Any (possibly empty) diff from $d_1$ to $d_2$ \\
+    d_1\sim d_2 & Expression form equality \\
+    \hline\hline
+  \end{tabular}
+  \caption{Fill-and-resume structural diff algorithm}
+  \label{tab:symb_far-diff}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{\colwidths}
+    \hline\hline
+    $\llbracket\env\rrbracket d$ & Closure with re-eval flag set \\
+    $\hhole{d}_i$ & Expression $d$ filled in hole with hole closure number $i$ \\
+    $\fenv$ & Fill memoization context\\
+    $\env,\fenv\vdash d\Downarrow d'\dashv\fenv'$ & Fill-memoized evaluation \\
+    \hline\hline
+  \end{tabular}
+  \caption{Fill-and-resume pre-processing and evaluation}
+  \label{tab:symb_far-eval}
 \end{table}
 
 \doublespacing
