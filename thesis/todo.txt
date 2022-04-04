@@ -18,3 +18,5 @@ Evaluation section
 - Plan out what tests to make for correctness
 
 Intersperse judgments with text, summarize them all in appendices
+
+Collect notations after doing some more fill and resume stuff

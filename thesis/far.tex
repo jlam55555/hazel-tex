@@ -319,27 +319,66 @@ The (re-)evaluation of a closure is given by the rule EClosure.
 
 For efficiency reasons, we will only want to re-evaluate all closures in the result exactly once. To do this, we set a flag for the closure that indicates that it should be re-evaluated. This preprocessing step will recurse through $\dresult$ and set the flag to true for all closures. All closures that result from an evaluation judgment will have the flag set to false. The above closure evaluation rule is only for closures with the re-eval flag set to true. Closures with the re-eval flag set to false will act as values and evaluate to themselves, which is the same as the original evaluation behavior described in \Cref{sec:closures_to_lambdas}. We denote closures with the re-eval flag set to false using the established notation for closures $[\env]d$\footnote{This allows previous discussions of closures to remain valid, since they take the interpretation that the re-eval flag is set to false.}, and denote closures with the re-eval flag set to true by $\llbracket\env\rrbracket d$\footnote{Using the double-square bracket notation also reinforces the fact that re-evaluation is tied with fill-and-resume, which also uses double-square brackets.}.
 
-Finally, we may consider the issue of multiple instances of the same hole closure\footnote{Hole closure refers to the connotation from \Cref{sec:instance-illustration}: instances of hole $\ufill$ that share the same (physical) environment.}. If we substitute the hole, then we lose the information about the holes instance, and thus cannot memoize the evaluations of the same hole instance by environment number. A perhaps poor solution to this is to introduce another \mintinline{ocaml}|DHExp.t| variant \mintinline{ocaml}|FillExp(HoleClosureId.t, DHExp.t)| that indicates the hole closure number as well as the expression to fill. The preprocessing expression will fill a hole $\ufill$ with this expression rather than the expression $\dfill$ directly. During evaluation, this data structure will facilitate the memoization of hole closures.
+Finally, we may consider the issue of multiple instances of the same hole closure\footnote{Hole closure refers to the connotation from \Cref{sec:instance-illustration}: instances of hole $\ufill$ that share the same (physical) environment.}. If we substitute the hole, then we lose the information about the holes instance, and thus cannot memoize the evaluations of the same hole instance by environment number. A solution to this is to introduce another \mintinline{ocaml}|DHExp.t| variant \mintinline{ocaml}|FillExp(HoleClosureId.t, DHExp.t)| that indicates the hole closure number as well as the expression to fill. This will be denoted using a hole with a subscript $\hhole{d}_i$. The preprocessing expression will fill a hole $\ufill$ with this expression rather than the expression $\dfill$ directly. During evaluation, this data structure will facilitate the memoization of hole closures.
 
 \subsection{Modifications to evaluation to allow for re-evaluation}
 \label{sec:re-eval}
 
 Re-evaluation during fill-and-resume is mostly the same as regular evaluation, but now we need to keep in mind the considerations from pre-processing the previous program result.
 
-First of all, closures will have been marked for re-evaluation by the pre-processing step. This means that the closure environment will first be recursively re-evaluated, following by the closure body. This assures that the entire program result is fully evaluated. This is similar to the EClosure rule, except that now we add the consideration of the re-eval flag to avoid re-evaluating closures more than once, and also recurse evaluation through variable bindings in the bound environment. Closures with the re-eval flag set to false will have the regular evaluation rule.
+First of all, closures will have been marked for re-evaluation by the pre-processing step. This means that the closure environment will first be recursively re-evaluated, following by the closure body. This ensures that the entire program result is fully evaluated\footnote{Note that there is now an ``inversion'' of evaluation order, in that we cannot expect the environment to be fully evaluated before it is encountered in a closure. In an ordinary evaluation, we would expect all the bindings in the environment to have been evaluated before they have been stored in the environment.}. This is similar to the EClosure rule, except that now we add the consideration of the re-eval flag to avoid re-evaluating closures more than once, and also recurse evaluation through variable bindings in the bound environment. We introduce a (re-)evaluation judgment for environments, which simply maps the evaluate operation over the bindings of an environment. Closures with the re-eval flag set to false will have the regular evaluation rule.
 
-\todo{write out new closure evaluation rules}
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{EEClosure}{
+    }{\env'\vdash[\env]d\Downarrow[\env]d}
+    \and
+    \Infer{EREClosure}{
+      \env\Downarrow\env'' \\
+      \env''\vdash d\Downarrow d'
+    }{\env'\vdash\llbracket\env\rrbracket d\Downarrow d'}
+    \and
+    \Infer{EREEnv}{
+      \env\Downarrow\env' \\
+      \varnothing\vdash d\Downarrow d'
+    }{\env,x\leftarrow d\Downarrow\env',x\leftarrow d'}
+    \and
+    \Infer{EREEnvNull}{
+    }{\varnothing\Downarrow\varnothing}
+  \end{mathpar}
+\end{singlespace}
 
 \todo{metatheorem about how all closures from $\dresult$ will re-evaluated (exactly once), assuming that evaluation terminates}
 
-\todo{recursively evaluating closures: ``inversion'' of evaluation order, now cannot assume environments (which usually are evaluated previously) to be evaluated}
+The other difference that we have to deal with are memoizing the evaluation of the filled hole expressions. Per the discussion of the pre-processing step, all filled expressions will exist in a wrapper that indicates the hole number. We may simply memoize the results by that hole number. This requires us to thread some state throughout our evaluation\footnote{Luckily, threading state through evaluation is useful for other purposes as well, such as keeping track of the current \mintinline{ocaml}|EvalEnvId.t|, and keeping track of evaluation state. These are grouped together under one data structure, \mintinline{ocaml}|EvalState.t|, for ease of implementation.}.
 
-\todo{need to memoize hole environments in order to keep interpretation of unique hole instantiations, otherwise same hole instance will be evaluated multiple times (not implemented yet, future work)}
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{EFillMemoNew}{
+    }{\env,(\fenv,i\leftarrow d)\vdash\hhole{d'}_i\Downarrow d\dashv\fenv}
+    \and
+    \Infer{EFillMemoNew}{
+      (i\leftarrow d)\not\in\fenv \\
+      \env,\fenv\vdash d'\Downarrow d''\dashv\fenv'
+    }{\env,\fenv\vdash\hhole{d'}_i\Downarrow d''\dashv\fenv',i\leftarrow d''} \\
+    \and
+    \Infer{EFillOther}{
+      d\ne\hhole{d}_i \\
+      \env\vdash d\Downarrow d'
+    }{\env,\fenv\vdash d\Downarrow d'\dashv\fenv}
+  \end{mathpar}
+\end{singlespace}
+
+In these judgments, we introduce a new \textit{fill memoization context} $\fenv:i\mapsto d$, a mapping of hole closure numbers to expressions\footnote{The symbol $\fenv$ was chosen arbitrarily. It is simply the Greek letter before $\env$.}. A new \textit{fill-memoized evaluation judgment} $\env^-,\fenv^-\vdash d^-\Downarrow d'^+\dashv\fenv'^+$ describes the evaluation with memoization of hole fills. When a hole closure number is encountered for the first time, the expression is evaluated normally and added to $\fenv$; otherwise, the evaluated result of the fill is simply looked up from $\fenv$. Note that memoization requires $\fenv$ to be threaded throughout the evaluation, i.e., it is treated both as an input and output of the evaluation judgment.
+
+This fill-memoized evaluation judgment subsumes the normal evaluation judgment. For all non-hole-fill expressions, it performs the normal evaluation judgment and returns the fill memoization context unchanged.
 
 \subsection{Post-processing resumed evaluation}
 \label{sec:far-postprocessing}
 
-\todo{normal postprocessing, evaluated closures simply get expanded as usual}
+The postprocessing algorithm remains unchanged from before. Note that an evaluated program result should never include either of the new forms $\hhole{d}_i$ or $\llbracket\env\rrbracket d$; these should all have been encountered and evaluated out. In other words, the evaluation result from re-evaluation during a FAR should be indistinguishable from the evaluation result from a regular evaluation.
+
+\todo{metatheorems to back up the above}
 
 \subsection{Storing the evaluation result in the model}
 \label{sec:result-model}
