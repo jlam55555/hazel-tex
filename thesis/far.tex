@@ -74,61 +74,203 @@ The final edit state in this sequence is actually a valid fill of the first edit
 
 Instead of observing the edit action, we may instead attempt to find the root of the difference between any two edit states, and determine if that is the the difference gives valid fill parameters. This has the benefit of being a relatively simple algorithm, while overcoming the limitation of the previous method because it is path-independent.
 
-The structural diff algorithm takes two expressions as input and returns one of three diff judgments\footnote{The following notations for diffing are chosen somewhat arbitrarily. The triangle seems appropriate because it has a variant with an equals bar ($\nodiff{}{}$), as well as a ``no fill'' ($\nfdiff{}{}{}{}$) and ``fill'' variant ($\fdiff{}{}{}{}$). The triangle is also horizontally asymmetric, which makes sense given that the diff operation is asymmetric.}. $\nodiff{d_1}{d_2}$ indicates \textit{no diff} between $d_1$ and $d_2$. $\nfdiff{d_1}{d_2}$ indicates a \textit{non-fill diff} from $d_1$ to $d_2$. $\fdiff{d_1}{d_2}{u}{d}$ indicates a \textit{fill diff} of hole $u$ with expression $d$ from $d_1$ to $d_2$.
+The structural diff algorithm takes two expressions as input and returns one of three diff judgments\footnote{The following notations for diffing are chosen somewhat arbitrarily. The triangle seems appropriate because it has a variant with an equals bar ($\nodiff{}{}$), as well as a ``no fill'' ($\nfdiff{}{}{}{}$) and ``fill'' variant ($\fdiff{}{}{}{}$). The triangle is also horizontally asymmetric, which mirrors the fact that the diff relation is asymmetric.}. $\nodiff{d_1}{d_2}$ indicates \textit{no diff} between $d_1$ and $d_2$. $\nfdiff{d_1}{d_2}$ indicates a \textit{non-fill diff} from $d_1$ to $d_2$. $\fdiff{d_1}{d_2}{u}{d}$ indicates a \textit{fill diff} of hole $u$ with expression $d$ from $d_1$ to $d_2$.
 
-We also define two shorthand operators for notational convenience. $\fnfdiff{d_1}{d_2}{u}{d}$ indicates \textit{some (non-empty) diff} from $d_1$ to $d_2$, which may or may not be a fill difference. $dff{d_1}{d_2}{u}{d}$ indicates \textit{any diff} (potentially no diff). Both notations are used to avoid writing multiple similar rules, where the only change in the rules is diff judgment type.
+We also define two shorthand operators for notational convenience. $\sdiff{d_1}{d_2}{u}{d}$ indicates \textit{some (non-empty) diff} from $d_1$ to $d_2$, which may or may not be a fill difference. $\adiff{d_1}{d_2}{u}{d}$ indicates \textit{any diff} (potentially no diff). Both notations are used to avoid writing multiple similar rules, where the only change in the rules is diff judgment type.
 
 \todo{put the following in a figure, and move to another file}
 
 \begin{singlespace}
-  \judgbox{\fnfdiff{d_1}{d_2}{u}{d}}{Some (non-empty) diff between $d_1$ and $d_2$.}
+  \judgbox{\sdiff{d_1}{d_2}{u}{d}}{Some (non-empty) diff between $d_1$ and $d_2$.}
   \begin{mathpar}
     \Infer{SDiffNFDiffSome}{
       \nfdiff{d_1}{d_2}
-    }{\fnfdiff{d_1}{d_2}{\varnothing}{\varnothing}}
+    }{\sdiff{d_1}{d_2}{\varnothing}{\varnothing}}
     \and
     \Infer{SDiffFDiffSome}{
       \fdiff{d_1}{d_2}{u}{d}
-    }{\fnfdiff{d_1}{d_2}{u}{d}}
+    }{\sdiff{d_1}{d_2}{u}{d}} \\
     \and
     \Infer{SDiffSomeNFDiff}{
-      \fnfdiff{d_1}{d_2}{\varnothing}{\varnothing}
+      \sdiff{d_1}{d_2}{\varnothing}{\varnothing}
     }{\nfdiff{d_1}{d_2}}
     \and
     \Infer{SDiffSomeFDiff}{
-      \fnfdiff{d_1}{d_2}{u}{d}
+      \sdiff{d_1}{d_2}{u}{d}
     }{\fdiff{d_1}{d_2}{u}{d}}
   \end{mathpar}
 
-  \judgbox{\dff{d_1}{d_2}{u}{d}}{Any (possibly-empty) diff between $d_1$ and $d_2$.}
+  \judgbox{\adiff{d_1}{d_2}{u}{d}}{Any (possibly-empty) diff between $d_1$ and $d_2$.}
   \begin{mathpar}
     \Infer{ADiffNoDiffAny}{
       \nodiff{d_1}{d_2}
-    }{\dff{d_1}{d_2}{\cdot}{\varnothing}}
+    }{\adiff{d_1}{d_2}{\cdot}{\varnothing}}
     \and
     \Infer{ADiffNFDiffAny}{
       \nfdiff{d_1}{d_2}
-    }{\dff{d_1}{d_2}{\varnothing}{\varnothing}}
+    }{\adiff{d_1}{d_2}{\varnothing}{\varnothing}}
     \and
     \Infer{ADiffFDiffAny}{
       \fdiff{d_1}{d_2}{u}{d}
-    }{\dff{d_1}{d_2}{u}{d}}
+    }{\adiff{d_1}{d_2}{u}{d}}
     \and
     \Infer{ADiffAnyNoDiff}{
-      \dff{d_1}{d_2}{\cdot}{\varnothing}
+      \adiff{d_1}{d_2}{\cdot}{\varnothing}
     }{\nodiff{d_1}{d_2}}
     \and
     \Infer{ADiffAnyNFDiff}{
-      \fnfdiff{d_1}{d_2}{\varnothing}{\varnothing}
+      \sdiff{d_1}{d_2}{\varnothing}{\varnothing}
     }{\nfdiff{d_1}{d_2}}
     \and
     \Infer{ADiffAnyFDiff}{
-      \fnfdiff{d_1}{d_2}{u}{d}
+      \sdiff{d_1}{d_2}{u}{d}
     }{\fdiff{d_1}{d_2}{u}{d}}
   \end{mathpar}
 \end{singlespace}
 
-\subsection{Performance tradeoffs of the two detection algorithms}
+We break up the diff judgments into cases. First, we may consider the case of two holes of different \textit{expression forms}\footnote{We use the term \textit{expression form} or \textit{expression variant} to indicate the variant types of \mintinline{ocaml}|DHExp.t|. For example, empty holes and constants of the base type are different expression forms. Empty holes and non-empty holes are also different forms per the grammar.}.
+
+For convenience, we define the judgment $\formsame{d_1}{d_2}$ to mean that $d_1$ and $d_2$ are of the same expression variant\footnote{The relation $\sim$ is already defined to mean type consistency when applied to types. This interpretation applies when the relation is applied to internal expressions.}. We may more concretely express this judgment by the following rules.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{FEqConst}{}{\formsame{c_1}{c_2}}
+    \and
+    \Infer{FEqVar}{}{\formsame{x_1}{x_2}}
+    \and
+    \Infer{FEqLam}{}{\formsame{\lambda x.d_1}{\lambda x.d_2}}
+    \and
+    \Infer{FEqAp}{}{\formsame{e_1\ e_2}{e_1'\ e_2'}}
+    \and
+    \Infer{FEqAsc}{}{\formsame{e:\tau}{e':\tau'}}
+    \and
+    \Infer{FEqEHole}{}{\formsame{\hehole^u}{\hehole^{u'}}}
+    \and
+    \Infer{FEqNEHole}{}{\formsame{\hhole{d}^u}{\hhole{d'}^{u'}}}
+  \end{mathpar}
+\end{singlespace}
+
+If the two expressions have different forms, then the current node is necessarily the diff root. It is a fill diff iff the left expression is a hole.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{DFNEqEHole}{
+      \formdiff{\hehole^u}{d_2}
+    }{\fdiff{\hehole^u}{d_2}{u}{d_2}}
+    \and
+    \Infer{DFNEqNEHole}{
+      \formdiff{\hhole{d}^u}{d_2}
+    }{\fdiff{\hhole{d}^u}{d_2}{u}{d_2}}
+    \and
+    \Infer{DFNEqNonHole}{
+      d_1\ne\hehole^u \\
+      d_1\ne\hhole{d}^u \\
+      \formdiff{d_1}{d_2}
+    }{\nfdiff{d_1}{d_2}}
+    \and
+  \end{mathpar}
+\end{singlespace}
+
+If the two expressions have the same form, then we need to check the root node and its subexpression(s). For expressions with no subexpressions, there is a non fill diff iff the expressions differ.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{DFEqConstNEq}{c_1\ne c_2}{\nfdiff{c_1}{c_2}}
+    \and
+    \Infer{DFEqConstEq}{}{\nodiff{c}{c}}
+    \and
+    \Infer{DFEqVarNEq}{x_1\ne x_2}{\nfdiff{x_1}{x_2}}
+    \and
+    \Infer{DFEqVarEq}{}{\nodiff{x}{x}}
+  \end{mathpar}
+\end{singlespace}
+
+For expressions with a single subexpression, we first check if there are any differences, ignoring the subexpression. If there is a difference, then the current node is the non fill diff root. Otherwise, we pass through the diff from the child node.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{DFEqLamNEq$_1$}{
+      x_1\ne x_2
+    }{\nfdiff{\lambda x_1:\tau_1.d_1}{\lambda x_2:\tau_2.d_2}}
+    \and
+    \Infer{DFEqLamNEq$_2$}{
+      \tau_1\ne\tau_2
+    }{\nfdiff{\lambda x:\tau_1.d_1}{\lambda x:\tau_2.d_2}}
+    \and
+    \Infer{DFEqLamEq}{
+      \adiff{d_1}{d_2}{u}{d}
+    }{\adiff{\lambda x:\tau.d_1}{\lambda x:\tau.d_2}{u}{d}}
+    \and
+    \Infer{DFEqAscNEq}{
+      \tau_1\ne\tau_2
+    }{\nfdiff{d_1:\tau_1}{d_2:\tau_2}}
+    \and
+    \Infer{DFEqAscEq}{
+      \adiff{d_1}{d_2}{u}{d}
+    }{\adiff{d_1:\tau}{d_2:\tau}{u}{d}}
+  \end{mathpar}
+\end{singlespace}
+
+The last case to check for non-hole expressions are expressions with more than one subexpression. In this case, we first check if there exist any differences outside the subexpressions, which would result in a non fill diff rooted at the current node. Otherwise, if there are no subexpression diffs, then the result is no diff. If more than one subexpression has a diff, then the diff is a non fill diff rooted at the current node. The last case is when exactly one child has a diff, which would be passed through. This is illustrated below with the binary function application expression form.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{DFEqApEq$_1$}{
+      \nodiff{d_1}{d_1'} \\
+      \nodiff{d_2}{d_2'} \\
+    }{\nodiff{d_1\ d_2}{d_1'\ d_2}}
+    \and
+    \Infer{DFEqApEq$_2$}{
+      \sdiff{d_1}{d_1'}{u}{d} \\
+      \sdiff{d_2}{d_2'}{u'}{d'} \\
+    }{\nodiff{d_1\ d_2}{d_1'\ d_2}}
+    \and
+    \Infer{DFEqApEq$_3$}{
+      \nodiff{d_1}{d_1'} \\
+      \sdiff{d_2}{d_2'}{u}{d} \\
+    }{\sdiff{d_1\ d_2}{d_1'\ d_2}{u}{d}}
+    \and
+    \Infer{DFEqApEq$_4$}{
+      \sdiff{d_1}{d_1'}{u}{d} \\
+      \nodiff{d_2}{d_2'} \\
+    }{\sdiff{d_1\ d_2}{d_1'\ d_2}{u}{d}}
+  \end{mathpar}
+\end{singlespace}
+
+In the minimal $\lambda$-calculus grammars specified for Hazel, the only expression form of plural subexpression arity is function application, but the following description extends to higher numbers of subexpressions (such as the case for \mintinline{ocaml}|case| expressions with arbitrary numbers of rules.
+
+The last case to consider is the comparison of two hole expressions of the same form. The empty hole case is very similar to the nullary subexpression case. The non-empty hole case is very similar to the unary subexpression case, except for a special rule that propagates non-fill diffs upwards to be a fill diff rooted in the current hole. This allows for diffs that are not rooted directly in a hole to be filled in their nearest non-empty hole parent node.
+
+\begin{singlespace}
+  \begin{mathpar}
+    \Infer{DFEqEHoleNEq}{
+      u\ne u'
+    }{\fdiff{\hehole^u}{\hehole^{u'}}{u}{\hehole^{u'}}}
+    \and
+    \Infer{DFEqEHoleEq}{
+    }{\nodiff{\hehole^u}{\hehole^u}}
+    \and
+    \Infer{DFEqNEHoleNEq}{
+      u\ne u'
+    }{\fdiff{\hhole{d}^u}{\hhole{d'}^{u'}}{u}{\hhole{d'}^{u'}}}
+    \and
+    \Infer{DFEqNEHoleEq$_1$}{
+      \nodiff{d}{d'}
+    }{\nodiff{\hhole{d}^u}{\hhole{d'}^u}}
+    \and
+    \Infer{DFEqNEHoleEq$_2$}{
+      \fdiff{d}{d'}{u'}{d''}
+    }{\fdiff{\hhole{d}^u}{\hhole{d'}^u}{u'}{d''}}
+    \and
+    \Infer{DFEqNEHoleEqProp}{
+      \nfdiff{d}{d'}
+    }{\fdiff{\hhole{d}^u}{\hhole{d'}^u}{u}{\hhole{d'}^u}}
+  \end{mathpar}
+\end{singlespace}
+
+\todo{metatheorems regarding the diff algorithm}
+
+\subsubsection{Performance tradeoffs of the two detection algorithms}
 \label{sec:far-detect-compare}
 
 In the most na\"ive form, the previous algorithm's efficiency is $O(\log E)$, where $E$ is the number of expression nodes in the program, if we assume that the depth of an expression node is logarithmic with respect to the total number of expression nodes. That algorithm only has to traverse up the ancestors to decide whether the edit lies in a hole.

@@ -122,11 +122,15 @@
 \newcommand{\gtlch}{*}
 
 % structural diffing
-\newcommand{\nodiff}[2]{#1\trianglerighteq #2}
-\newcommand{\nfdiff}[2]{#1\triangleright #2}
-\newcommand{\fdiff}[4]{#1\blacktriangleright_{#4}^{#3}#2}
-\newcommand{\fnfdiff}[4]{#1\ntrianglerighteq_{#4}^{#3}#2}
-\newcommand{\dff}[4]{#1\triangleright_{#4}^{#3}#2}
+\newcommand{\nodiff}[2]{#1\trianglerighteq #2}            % no diff
+\newcommand{\nfdiff}[2]{#1\triangleright #2}              % non-fill diff
+\newcommand{\fdiff}[4]{#1\blacktriangleright_{#4}^{#3}#2} % fill diff
+\newcommand{\sdiff}[4]{#1\ntrianglerighteq_{#4}^{#3}#2}   % some diff
+\newcommand{\adiff}[4]{#1\triangleright_{#4}^{#3}#2}      % any diff
+
+\newcommand{\formsame}[2]{#1\sim #2}      % same expression forms
+\newcommand{\formdiff}[2]{#1\nsim #2}      % different expression forms
+
 
 %%% Local Variables:
 %%% mode: latex
