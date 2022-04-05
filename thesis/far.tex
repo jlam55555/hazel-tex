@@ -41,71 +41,6 @@ The fill-and-resume process can be broken into the following sequence.
 
 These steps will be described in greater detail in the following sections.
 
-\subsection{Entrypoint to the FAR algorithm}
-\label{sec:far-entrypoint}
-
-\begin{figure}
-  \centering
-  \begin{tikzpicture}
-    \node[draw=red] (action) {\mintinline{ocaml}|ModelAction.EditAction.t|};
-    \node[draw=black] (syn_action) [below=of action] {\mintinline{ocaml}|Action_Exp.syn_perform|};
-    \node[draw=red] (model) [right=80pt of syn_action] {\mintinline{ocaml}|Model.t|};
-    \node[draw=black] (elaborate) [below=of syn_action] {\mintinline{ocaml}|Elaborator_Exp.elab|};
-    \node[draw=black] (evaluate) [below=of elaborate] {\mintinline{ocaml}|Evaluator.evaluate|};
-    \node[draw=black] (renumber) [below=of evaluate] {\mintinline{ocaml}|EvalPostprocess.postprocess|};
-    \node[draw=red] (undo_hist) [below=of model] {\mintinline{ocaml}|UndoHistory.t|};
-    \node[draw=red] (result) [below= of undo_hist] {\mintinline{ocaml}|Result.t|};
-
-    \draw[->,thick] (action) -- (syn_action) node [midway,left] {$\alpha$};
-    \draw[->,thick] (model) -- (syn_action) node [midway,above] {\mintinline{ocaml}|Program.t|};
-    \draw[->,thick] (syn_action) -- (elaborate) node [midway,left] {$e$};
-    \draw[->,thick] (elaborate) -- (evaluate) node [midway,left] {$d_{uneval}$};
-    \draw[->,thick] (evaluate) -- (renumber) node [midway,left] {$d_{eval}$};
-    \draw[->,thick] (evaluate) -- (result) node [midway,above] {$d_{eval}$};
-    \draw[->,thick] (renumber) -- (result) node [midway,below right] {$d_{renumbered},\hci$};
-    \draw[->,thick] (result) -- (undo_hist);
-    \draw[->,thick] (undo_hist) -- (model);
-  \end{tikzpicture}
-  \caption{Previous evaluation model}
-  \label{fig:prev-evaluation-call-graph}
-\end{figure}
-
-\begin{figure}
-  \centering
-  \begin{tikzpicture}
-    \node[draw=red] (action) {\mintinline{ocaml}|ModelAction.EditAction.t|};
-    \node[draw=black] (syn_action) [below=of action] {\mintinline{ocaml}|Action_Exp.syn_perform|};
-    \node[draw=red] (model) [right=80pt of syn_action] {\mintinline{ocaml}|Model.t|};
-    \node[draw=black] (elaborate) [below=of syn_action] {\mintinline{ocaml}|Elaborator_Exp.elab|};
-    \node[draw=black] (detect_fill) [below=of elaborate] {\mintinline{ocaml}|DHExpDiff.diff_dhexp|};
-    \node[draw=black] (preprocess) [below left=of detect_fill] {\mintinline{ocaml}|FillAndResume.preprocess|};
-    \node[draw=black] (evaluate) [below=60pt of detect_fill] {\mintinline{ocaml}|Evaluator.evaluate|};
-    \node[draw=black] (renumber) [below=of evaluate] {\mintinline{ocaml}|EvalPostprocess.postprocess|};
-    \node[draw=red] (undo_hist) [below=of model] {\mintinline{ocaml}|UndoHistory.t|};
-    \node[draw=red] (result) [below= of undo_hist] {\mintinline{ocaml}|Result.t|};
-
-    \draw[->,thick] (action) -- (syn_action) node [midway,left] {$\alpha$};
-    \draw[->,thick] (model) -- (syn_action) node [midway,above] {\mintinline{ocaml}|Program.t|};
-    \draw[->,thick] (syn_action) -- (elaborate) node [midway,left] {$e$};
-    \draw[->,thick] (elaborate) -- (detect_fill) node [midway,left] {$d_{uneval}$};
-    \draw[->,thick] (detect_fill) -- (evaluate) node [midway,right] {no fill diff};
-    \draw[->,thick] (detect_fill) -- (preprocess) node [midway,below right] {fill diff};
-    \draw[->,thick] (preprocess) -- (evaluate) node [midway,below left] {$d_{preprocess}$};
-    \draw[->,thick] (evaluate) -- (renumber) node [midway,left] {$d_{eval}$};
-    \draw[->,thick] (evaluate) -- (result) node [midway,above] {$d_{eval}$};
-    \draw[->,thick] (renumber) -- (result) node [midway,below right] {$d_{postprocess},\hci$};
-    \draw[->,thick] (undo_hist) -- (detect_fill) node [midway] {\mintinline{ocaml}|list(Program.t)|};
-    \draw[->,thick] (result) -- (undo_hist);
-    \draw[->,thick] (undo_hist) -- (model);
-  \end{tikzpicture}
-  \caption{Current evaluation model}
-  \label{fig:current-evaluation-call-graph}
-\end{figure}
-
-\todo{memoization alongside Program.get\_program}
-
-\todo{include a diagram of the updated evaluation call graph}
-
 \subsection{Detecting the fill parameters via structural diff}
 \label{sec:obtaining-fill-parameters}
 
@@ -439,6 +374,31 @@ This fill-memoized evaluation judgment subsumes the normal evaluation judgment. 
 The postprocessing algorithm remains unchanged from before. Note that an evaluated program result should never include either of the new forms $\hhole{d}_i$ or $\llbracket\env\rrbracket d$; these should all have been encountered and evaluated out. In other words, the evaluation result from re-evaluation during a FAR should be indistinguishable from the evaluation result from a regular evaluation, and thus the postprocessing process is unchanged.
 
 \todo{metatheorems to back up the above}
+
+\section{Entrypoint to the FAR algorithm}
+\label{sec:far-entrypoint}
+
+\begin{figure}
+  \centering
+  \input{previous_evaluation_call_graph}
+  \caption{Previous action model}
+  \label{fig:prev-evaluation-call-graph}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \input{current_evaluation_call_graph}
+  \caption{Current action model}
+  \label{fig:current-evaluation-call-graph}
+\end{figure}
+
+An abstracted call graph for the action model (the process of responding to an action, up to evaluation) in Hazel is diagramed in \Cref{fig:prev-evaluation-call-graph}. Red boxes indicate important data structures. Black boxes indicate important steps in the process of responding to an action. The lines between boxes roughly indicate the flow of the program and other important data structures related to the process.
+
+An edit action triggers the bidirectional action semantics, which generates an updated program edit state. This is then elaborated to an internal expression, evaluated, and then postprocessed. The results of evaluation are stored in \mintinline{ocaml}|Result.t|.
+
+The updated abstract call graph is shown in \Cref{fig:current-evaluation-call-graph}. Fill and resume is fundamentally an operation on internal expressions, so we attempt to detect a hole fill operation after elaboration of the current edit state. The structural diff operation requires information about at least one previous edit state from the model's \mintinline{ocaml}|UndoHistory.t|. The result of the previous evaluation is preprocessed, before being evaluated (using the updated evaluation judgments) and postprocessed as usual.
+
+Since this is a very high-level view of the program, many details are abstracted out. For example, the evaluation function is memoized by the function \mintinline{ocaml}|Program.get_result|, which facilitates the normal evaluation process. We will need to modify this memoization to also memoize the FAR evaluation results.
 
 \section{FAR examples}
 \label{sec:far-examples}

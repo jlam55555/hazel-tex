@@ -1,0 +1,20 @@
+\begin{tikzpicture}
+  \node[draw=red] (action) {\mintinline{ocaml}|ModelAction.EditAction.t|};
+  \node[draw=black] (syn_action) [below=of action] {\mintinline{ocaml}|Action_Exp.syn_perform|};
+  \node[draw=red] (model) [right=80pt of syn_action] {\mintinline{ocaml}|Model.t|};
+  \node[draw=black] (elaborate) [below=of syn_action] {\mintinline{ocaml}|Elaborator_Exp.elab|};
+  \node[draw=black] (evaluate) [below=of elaborate] {\mintinline{ocaml}|Evaluator.evaluate|};
+  \node[draw=black] (renumber) [below=of evaluate] {\mintinline{ocaml}|EvalPostprocess.postprocess|};
+  \node[draw=red] (undo_hist) [below=of model] {\mintinline{ocaml}|UndoHistory.t|};
+  \node[draw=red] (result) [below= of undo_hist] {\mintinline{ocaml}|Result.t|};
+
+  \draw[->,thick] (action) -- (syn_action) node [midway,left] {$\alpha$};
+  \draw[->,thick] (model) -- (syn_action) node [midway,above] {\mintinline{ocaml}|Program.t|};
+  \draw[->,thick] (syn_action) -- (elaborate) node [midway,left] {$e$};
+  \draw[->,thick] (elaborate) -- (evaluate) node [midway,left] {$d_{uneval}$};
+  \draw[->,thick] (evaluate) -- (renumber) node [midway,left] {$d_{eval}$};
+  \draw[->,thick] (evaluate) -- (result) node [midway,above] {$d_{eval}$};
+  \draw[->,thick] (renumber) -- (result) node [midway,below right] {$d_{renumbered},\hci$};
+  \draw[->,thick] (result) -- (undo_hist);
+  \draw[->,thick] (undo_hist) -- (model);
+\end{tikzpicture}
