@@ -1,4 +1,3 @@
 let f = /\lbd/ x . /\heh1/ in
 let x = /\heh2/ in
-let y = /\heh3/ in
-y + y
+x + x

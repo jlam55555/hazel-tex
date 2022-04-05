@@ -392,10 +392,7 @@ Since this is a very high-level view of the program, many details are abstracted
 \section{FAR examples}
 \label{sec:far-examples}
 
-\subsection{Simple example}
-\label{sec:far-example-simple}
-
-Let us reconsider the program from \Cref{fig:far-motivation}, reproduced in \Cref{fig:far-simple-reproduced}.
+We revisit the program from \Cref{fig:far-motivation}, reproduced in \Cref{fig:far-simple-reproduced}. This hole fill operation is very simple, replacing a hole with a value. We also observe the behavior of the preprocessing operation, which marks closures for re-evaluation and encapsulates filled expressions with the hole closure number for memoization.
 
 \begin{figure}
   \centering
@@ -449,6 +446,7 @@ Let us reconsider the program from \Cref{fig:far-motivation}, reproduced in \Cre
   \label{fig:far-simple-example}
 \end{figure}
 
+Now, consider the program shown in \Cref{fig:far-introduce-type-error}. In this fill operation, we introduce a new static type error (non-empty hole). The non-empty hole is inserted automatically during the action semantics and appears naturally in the diff, so we do not need to perform any special handling for it. Similarly, in the case of \Cref{fig:far-remove-type-error}, a non-empty hole is removed by filling with a type-consistent expression. This allows static type errors to be ``fixed'' and evaluation to resume past where it had stopped.
 
 \begin{figure}
   \centering
@@ -468,7 +466,7 @@ Let us reconsider the program from \Cref{fig:far-motivation}, reproduced in \Cre
     \makebox[\textwidth][c]{
       \begin{subfigure}[b]{0.4\paperwidth}
         \begin{equation*}
-          2+[\varnothing]\hehole^{1:1}
+          2+[\varnothing]\hehole^1
         \end{equation*}
         \caption{Previous program result}
       \end{subfigure}
@@ -552,6 +550,7 @@ Let us reconsider the program from \Cref{fig:far-motivation}, reproduced in \Cre
   \label{fig:far-remove-type-error}
 \end{figure}
 
+In \Cref{fig:far-fill-hole-in-hole-env} we fill a hole that does not exist directly in the result, but exists in a hole closure environment. This illustrates the need to recursively re-evaluate closure environments.
 
 \begin{figure}
   \centering
@@ -604,6 +603,9 @@ Let us reconsider the program from \Cref{fig:far-motivation}, reproduced in \Cre
   \label{fig:far-fill-hole-in-hole-env}
 \end{figure}
 
+The program in \Cref{fig:far-hole-closure-memoization} shows the necessity of memoizing by hole closure number, in order to preserve the same result as if evaluating normally. In this example, we have two instances of hole 1 in the result. Since there is only one instantiation of hole 1, these are two instances of the same hole closure. If there were no memoization of filled expressions, then the filled expression $f\ 1$ would be evaluated twice. This is problematic because function application generates new environments (and new environment identifiers), so the two instances would have different closures and thus be considered two separate hole closures, even when they come from the same instantiation.
+
+The necessity of memoization in this case is related to the idea of the ``inversion'' of evaluation mentioned in \Cref{sec:re-eval}: during normal evaluation, we expect that a variable may be referenced in multiple places after it is evaluated. However, during a resumed evaluation, we may encounter multiple unevaluated instances of the same instantiation; the first time it is encountered and evaluated is the de facto ``first instantiation'' of that expression.
 
 \begin{figure}
   \centering
@@ -623,9 +625,9 @@ Let us reconsider the program from \Cref{fig:far-motivation}, reproduced in \Cre
     \makebox[\textwidth][c]{
       \begin{subfigure}[b]{0.4\paperwidth}
         \begin{gather*}
-          [f\leftarrow[\varnothing]\lambda x.\{\hehole^{1:1}\},x\leftarrow[f\leftarrow[\varnothing]\lambda x.\{\hehole^{1:1}\}]\hehole^{2:1}]\hehole^{3:1} \\
+          [f\leftarrow[\varnothing]\lambda x.\{\hehole^{1:1}\}]\hehole^{2:1} \\
           + \\
-          [f\leftarrow[\varnothing]\lambda x.\{\hehole^1\},x\leftarrow[f\leftarrow[\varnothing]\lambda x.\{\hehole^{1:1}\}]\hehole^{2:1}]\hehole^{3:1}
+          [f\leftarrow[\varnothing]\lambda x.\{\hehole^{1:1}\}]\hehole^{2:1}
         \end{gather*}
         \caption{Previous program result}
       \end{subfigure}
@@ -639,20 +641,20 @@ Let us reconsider the program from \Cref{fig:far-motivation}, reproduced in \Cre
     }
     \vspace{10pt}
     \makebox[\textwidth][c]{
-      \begin{subfigure}[b]{0.5\paperwidth}
+      \begin{subfigure}[b]{0.4\paperwidth}
         \begin{gather*}
-          \llbracket f\leftarrow\llbracket\varnothing\rrbracket\lambda x.\{\hehole^{1:1}\},x\leftarrow\llbracket f\leftarrow\llbracket\varnothing\rrbracket\lambda x.\{\hehole^{1:1}\}\rrbracket\hhole{f\ 2}_1\rrbracket\hehole^{3:1} \\
+          \llbracket f\leftarrow\llbracket\varnothing\rrbracket\lambda x.\{\hehole^{1:1}\}\rrbracket\hhole{f\ 1}_1 \\
           + \\
-          \llbracket f\leftarrow\llbracket\varnothing\rrbracket\lambda x.\{\hehole^{1:1}\},x\leftarrow\llbracket f\leftarrow\llbracket\varnothing\rrbracket\lambda x.\{\hehole^{1:1}\}\rrbracket\hhole{f\ 2}_1\rrbracket\hehole^{3:1}
+          \llbracket f\leftarrow\llbracket\varnothing\rrbracket\lambda x.\{\hehole^{1:1}\}\rrbracket\hhole{f\ 1}_1
         \end{gather*}
         \caption{Preprocessed program result}
       \end{subfigure}
       \qquad
-      \begin{subfigure}[b]{0.3\paperwidth}
+      \begin{subfigure}[b]{0.4\paperwidth}
         \begin{gather*}
-          [f\leftarrow[\varnothing]\lambda x.\{\hehole^{1:1}\},x\leftarrow[x\leftarrow 1]^i\hehole^{1:1}]\hehole^{3:1} \\
-          + \\
-          [f\leftarrow[\varnothing]\lambda x.\{\hehole^{1:1}\},x\leftarrow[x\leftarrow 1]^i\hehole^{1:1}]\hehole^{3:1}
+          [x\leftarrow 1]^i\hehole^{1:1}
+          +
+          [x\leftarrow 1]^i\hehole^{1:1}
         \end{gather*}
         \caption{Resumed program result}
       \end{subfigure}
