@@ -33,16 +33,22 @@ Additionally, we have a reproducibility benefit here. In most notebook-style edi
 
 \begin{figure}
   \centering
-  \inputminted{matlab}{lstings/matlab_notebook_example.m}
-  \caption{Sample notebook-style program in MATLAB}
-  \label{fig:matlab-notebook-example}
-\end{figure}
-
-\begin{figure}
-  \centering
-  \inputhminted{hazel_notebook_example}
-  \caption{Sample notebook-style program in Hazel}
-  \label{fig:hazel-notebook-example}
+  \begin{singlespace}
+    \makebox[\textwidth][c]{
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \inputminted[frame=single]{matlab}{lstings/matlab_notebook_example.m}
+        \caption{Sample notebook-style program in MATLAB}
+        \label{fig:matlab-notebook-example}    \end{subfigure}
+      \qquad
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \inputhminted{hazel_notebook_example}
+        \caption{Sample notebook-style program in Hazel}
+        \label{fig:hazel-notebook-example}
+      \end{subfigure}
+    }
+  \end{singlespace}
+  \caption{Comparison of notebook-style programs in MATLAB and Hazel}
+  \label{fig:notebook-comparison}
 \end{figure}
 
 The limitation of using Hazel as a computational notebook is that the fill-and-resume operation is limited to cases where there is a hole in a previous edit state as a parent of the root of the diff. If a user programs by always appending to or editing near the bottom of their program, FAR will be very beneficial because most edits will lead to valid fill operations. It may be difficult to quantify the real performance benefit due to large variations in programming styles. Different heuristics for choosing a past edit state to compare, as discussed in \Cref{sec:far-past-edit-states}, will also affect the performance of FAR.
