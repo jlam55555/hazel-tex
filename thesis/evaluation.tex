@@ -1,45 +1,60 @@
 \chapter{Evaluation of performance}
 \label{sec:evaluation}
 
+\section{Evaluation performance using the environment model}
+\label{sec:evaluation-evalenv}
+
+% this figure is no longer valid
+% \begin{figure}
+%   \centering
+%   \includegraphics[width=10cm]{img/subst_evalenv_fib_perf.pdf}
+%   \caption{Performance of the different models of evaluation}
+%   \label{fig:perf_evaluation_models}
+% \end{figure}
+
 \begin{listing}
-\begin{hminted}
-let f : Int /\rar/ Int =
-  /\lbd/ x . {
-    case x of
-    | 0 /\Rar/ 0
-    | 1 /\Rar/ 1
-    | n /\Rar/ f (n - 1) + f (n - 2)
-    end
-  }
-in f 25  
-\end{hminted}
-\caption{An evaluation-heavy Hazel program with no holes}
+  \inputhminted{perf_fib}
+  \caption{An evaluation-heavy Hazel program with no holes}
+  \label{fig:perf-fib}
 \end{listing}
 
-\begin{figure}
-  \centering
-  \includegraphics[width=10cm]{img/subst_evalenv_fib_perf.pdf}
-  \caption{Performance of the different models of evaluation}
-  \label{fig:perf_evaluation_models}
-\end{figure}
+\todo{also compare the performance of the above with the recursive data structures example}
 
-% TODO: evaluate performance of the above, which has no holes or pseudo-holes
-% (is complete (is this the right usage of the word "complete"?) and has no
-% possible match failures); show graph of n vs time
+\begin{listing}
+  \inputhminted{perf_fib_more_bindings}
+  \caption{An evaluation-heavy Hazel program with more variable bindings}
+  \label{fig:perf-fib-more-bindings}
+\end{listing}
 
-% TODO: show a different example and show breakdown of times:
-% - evaluation
-% - renumbering
-% - structural checking
-% - (calling evaluate multiple times?)
-% - (with and without memoization?)
+\todo{note that there is now a "prologue" of some builtin functions: PI, int\_of\_float, float\_of\_int, and mod; these cause lookups to be slower because they take part of each lookup operation}
 
-% TODO: demonstrate fill-and-resume performance improvement
+\begin{listing}
+  \inputhminted{perf_fib_more_branches}
+  \caption{An evaluation-heavy Hazel program with unused variable substitutions}
+  \label{fig:perf-fib-more-branches}
+\end{listing}
 
-% TODO: evaluation of correctness:
-% - fuzz testing and other empirical testing
-% - mechanization in Agda (for future work)
-% - metatheorems and intuition
+\section{Postprocessing performance}
+\label{sec:evaluation-renumbering}
+
+Consider the set of programs described by \Cref{fig:hole_renumbering_problem}.
+
+\todo{describe this code blowup example}
+
+\section{FAR performance}
+\label{sec:evaluation-far}
+
+\begin{listing}
+  \inputhminted{perf_fib_more_branches}
+  \caption{A simple program edit history}
+  \label{fig:far-program-history-simple}
+\end{listing}
+
+\begin{listing}
+  \inputhminted{perf_fib_more_branches}
+  \caption{A program edit history with an expensive computation}
+  \label{fig:far-program-history-fib}
+\end{listing}
 
 %%% Local Variables:
 %%% mode: latex
