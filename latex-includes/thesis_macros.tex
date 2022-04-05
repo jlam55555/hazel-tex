@@ -77,7 +77,13 @@
 % \newcommand{\pythoninline}{\mintinline[]{python}}
 
 % hazel inputminted
-\newcommand{\inputhminted}[1]{\inputminted[escapeinside=//,frame=single,custom]{../latex-includes/hazel_lexer.py:HazelLexer}{lstings/#1.hz}}
+\newcommand{\inputhminted}[1]{
+\inputminted[escapeinside=//,frame=single,custom]{../latex-includes/hazel_lexer.py:HazelLexer}{lstings/#1.hz}
+}
+
+% same as above but with no frame
+\newcommand{\inputhnfminted}[1]{\inputminted[escapeinside=//,custom]{../latex-includes/hazel_lexer.py:HazelLexer}{lstings/#1.hz}}
+
 
 % ocaml inputminted
 \newcommand{\inputominted}[1]{\inputminted[escapeinside=//,frame=single]{ocaml}{lstings/#1.ml}}

@@ -1,3 +1,3 @@
 let x = /\heh5/ in
-let /\heh12/ = /\heh11/ in
-/\heh13/
+let /\heh{12}/ = /\heh{11}/ in
+/\heh{13}/

@@ -44,17 +44,45 @@ Consider the set of programs described by \Cref{fig:hole_renumbering_problem}.
 \section{FAR performance}
 \label{sec:evaluation-far}
 
-\begin{listing}
-  \inputhminted{perf_fib_more_branches}
-  \caption{A simple program edit history}
-  \label{fig:far-program-history-simple}
-\end{listing}
+\begin{singlespace}
+  \begin{longtable}{p{20em} | p{7em} | p{7em}}
+    \hline
+    Program & Steps & Steps (w/ FAR) \\
+    \hline\hline
+    \inputhnfminted{far_hist_1} & & \\ \hline
+    \inputhnfminted{far_hist_2} & & \\ \hline
+    \inputhnfminted{far_hist_3} & & \\ \hline
+    \inputhnfminted{far_hist_4} & & \\ \hline
+    \inputhnfminted{far_hist_5} & & \\ \hline
+    \inputhnfminted{far_hist_6} & & \\ \hline
+    \inputhnfminted{far_hist_7} & & \\ \hline
+    \inputhnfminted{far_hist_8} & & \\ \hline
+    \inputhnfminted{far_hist_9} & & \\ \hline
+    \inputhnfminted{far_hist_10} & & \\ \hline
+    \hline
+    \caption{A simple program edit history}
+    \label{fig:far-program-history-simple}
+  \end{longtable}
+\end{singlespace}
 
-\begin{listing}
-  \inputhminted{perf_fib_more_branches}
-  \caption{A program edit history with an expensive computation}
-  \label{fig:far-program-history-fib}
-\end{listing}
+\begin{singlespace}
+  \begin{longtable}{p{20em} | p{7em} | p{7em}}
+    \hline
+    Program & Steps & Steps (w/ FAR) \\
+    \hline\hline
+    \inputhnfminted{far_fib_hist_1} & & \\ \hline
+    \inputhnfminted{far_fib_hist_2} & & \\ \hline
+    \inputhnfminted{far_fib_hist_3} & & \\ \hline
+    \inputhnfminted{far_fib_hist_4} & & \\ \hline
+    \inputhnfminted{far_fib_hist_5} & & \\ \hline
+    \inputhnfminted{far_fib_hist_6} & & \\ \hline
+    \inputhnfminted{far_fib_hist_7} & & \\ \hline
+    \inputhnfminted{far_fib_hist_8} & & \\ \hline
+    \hline
+    \caption{A program edit history with an expensive computation}
+    \label{fig:far-program-history-fib}
+  \end{longtable}
+\end{singlespace}
 
 %%% Local Variables:
 %%% mode: latex
