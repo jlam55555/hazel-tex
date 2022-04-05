@@ -4,12 +4,12 @@
 \section{Motivation}
 \label{sec:far-motivation}
 
-\begin{figure}
+\begin{listing}
   \centering
   \inputhminted{far_motivation}
   \caption{A sample program with an expensive calculation stored in a hole's environment}
   \label{fig:far-motivation}
-\end{figure}
+\end{listing}
 
 Consider the program shown in \Cref{fig:far-motivation}. In this program, the calculation of $x=\text{fib }30$ is arbitrarily chosen to represent a computationally-expensive operation. The result of this program is \[
   [f\leftarrow [\varnothing]\lambda x.\{\dots\},x\leftarrow 832040]\hehole^1
@@ -301,7 +301,7 @@ The (re-)evaluation of a closure is given by the rule EClosure.
   \end{mathpar}
 \end{singlespace}
 
-For efficiency reasons, we will only want to re-evaluate all closures in the result exactly once. To do this, we set a flag for the closure that indicates that it should be re-evaluated. This preprocessing step will recurse through $\dresult$ and set the flag to true for all closures. All closures that result from an evaluation judgment will have the flag set to false. The above closure evaluation rule is only for closures with the re-eval flag set to true. Closures with the re-eval flag set to false will act as values and evaluate to themselves, which is the same as the original evaluation behavior described in \Cref{sec:closures_to_lambdas}. We denote closures with the re-eval flag set to false using the established notation for closures $[\env]d$\footnote{This allows previous discussions of closures to remain valid, since they take the interpretation that the re-eval flag is set to false.}, and denote closures with the re-eval flag set to true by $\llbracket\env\rrbracket d$\footnote{Using the double-square bracket notation also reinforces the fact that re-evaluation is tied with fill-and-resume, which also uses double-square brackets.}.
+For efficiency reasons, we will only want to re-evaluate all closures in the result exactly once. To do this, we set a flag for the closure that indicates that it should be re-evaluated. This preprocessing step will recurse through $\dresult$ and set the flag to true for all closures. All closures that result from an evaluation judgment will have the flag set to false. The above closure evaluation rule is only for closures with the re-eval flag set to true. Closures with the re-eval flag set to false will act as values and evaluate to themselves, which is the same as the original evaluation behavior described in \Cref{sec:generalized-closures-eval-boundary}. We denote closures with the re-eval flag set to false using the established notation for closures $[\env]d$\footnote{This allows previous discussions of closures to remain valid, since they take the interpretation that the re-eval flag is set to false.}, and denote closures with the re-eval flag set to true by $\llbracket\env\rrbracket d$\footnote{Using the double-square bracket notation also reinforces the fact that re-evaluation is tied with fill-and-resume, which also uses double-square brackets.}.
 
 Finally, we may consider the issue of multiple instances of the same hole closure\footnote{Hole closure refers to the connotation from \Cref{sec:instance-illustration}: instances of hole $\ufill$ that share the same (physical) environment.}. If we substitute the hole, then we lose the information about the holes instance, and thus cannot memoize the evaluations of the same hole instance by environment number. A solution to this is to introduce another \mintinline{ocaml}|DHExp.t| variant \mintinline{ocaml}|FillExp(HoleClosureId.t, DHExp.t)| that indicates the hole closure number as well as the expression to fill. This will be denoted using a hole with a subscript $\hhole{d}_i$. The preprocessing expression will fill a hole $\ufill$ with this expression rather than the expression $\dfill$ directly. During evaluation, this data structure will facilitate the memoization of hole closures.
 
@@ -370,14 +370,14 @@ The postprocessing algorithm remains unchanged from before. Note that an evaluat
 \begin{figure}
   \centering
   \input{previous_evaluation_call_graph}
-  \caption{Previous action model}
+  \caption{Previous action call graph}
   \label{fig:prev-evaluation-call-graph}
 \end{figure}
 
 \begin{figure}
   \centering
   \input{current_evaluation_call_graph}
-  \caption{Current action model}
+  \caption{Current action call graph}
   \label{fig:current-evaluation-call-graph}
 \end{figure}
 
@@ -707,7 +707,7 @@ If, however, hole 1 in the original edit state was a parenthesized expression, a
 
 It may be useful to thread some state throughout the evaluation process. This means that changes to this state by an earlier invocation to evaluate will affect later evaluations.
 
-The concept of keeping state has already appeared in several contexts. For hole postprocessing, the memoized hole closure info keeps track of seen environments (\Cref{sec:renumbering_memoization}). evaluation, we keep track of the next unique environment identifier (\Cref{sec:env-purity}) and memoize the evaluation of filled expressions (\Cref{sec:re-eval}).
+The concept of keeping state has already appeared in several contexts. For hole postprocessing, the memoized hole closure info keeps track of seen environments (\Cref{sec:renumbering_memoization}). For evaluation, we keep track of the next unique environment identifier and memoize the evaluation of filled expressions (\Cref{sec:re-eval}). A theoretical discussion is revisited in \Cref{sec:env-purity}.
 
 This becomes relevant again (with respect to evaluation) because resuming evaluation requires us to store the state after evaluation, and restore the state after evaluation. Adding more state variables also makes the implementation messier by increasing the number of variables to pass to and return from each of the numerous calls to \mintinline{ocaml}|Evaluator.evaluate|.
 

@@ -4,9 +4,17 @@
 \section{Improvements to FAR}
 \label{sec:far-improvements}
 
+\subsection{Finishing the implementation of FAR}
+\label{sec:finishing-far}
+
+
+
 \todo{need general cleanup of FAR implementation, not very complete}
 
 \todo{optimizing how many edit states to go back: tradeoffs between storage (how many edit states to store) and speed (how much execution time to detect a FAR, how expensive is FAR depending on which edit state; currently the most recent edit state is used, something like a LRU; may want to cache recent edit states that spawned a FAR or group edit states like in the undo history currently)}
+
+\subsection{Memoization of environments during re-evaluation}
+\label{sec:far-improv-memo-envs}
 
 \subsection{Choosing the edit state to fill from}
 \label{sec:far-past-edit-states}
@@ -17,7 +25,17 @@ Past edit states are stored in an undo history in Hazel, which allows the user t
 
 There are a number of possible design decisions when searching for a valid hole fill. Firstly, one must decide the maximum number of edit states to search: should it be a fixed number of edit states, or should it be given a fixed time budget? Is it best to cache edit states that recently led to a fill operation (\`a la LRU cache)? Is the most recent edit state that leads to a valid fill usually the best candidate, or even a good candidate? Would it be best to allow for user-configurable settings, or perhaps even for the user to manually select the previous edit from which to fill?
 
+\subsection{User-configurable FAR}
+\label{sec:far-improv-user-config}
+
+
+
 \todo{automatic vs manual far detection}
+
+\subsection{UI changes for notebook-style evaluation}
+\label{sec:far-improv-notebook-ui}
+
+
 
 \section{Mechanization of metatheorems and rules}
 \label{sec:formalization}

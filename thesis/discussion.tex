@@ -1,6 +1,14 @@
 \chapter{Discussion of theoretical results}
 \label{sec:discussion}
 
+\section{Purity of implementation}
+\label{sec:env-purity}
+The purity of implementation is a recurring theme. While it should not affect the capability of the implementation, there is a strong urge to keep the implementation pure. Elegance, complexity, and runtime overhead is traded off for purity. The main decisions regarding purity are summarized here, and left for the consideration of future implementors.
+
+One offender of performance is the use of the fixpoint form when evaluating recursive functions. This involves extra evaluation steps for unwrapping fixpoints, and can be avoided with self-referential data structures, and more easily implemented using \mintinline{ocaml}|ref|s.
+
+The evaluation process becomes stateful. In other words, every call to \mintinline{ocaml}|Evaluator.evaluate| takes an \mintinline{ocaml}|EvalState.t| as both input and output. This maintains state but is still technically pure, much like a state monad. This state includes the environment identifier generator, the fill memoization context, and evaluation statistics such as evaluation steps. This complicates the formalization and the implementation, as we now have additional inputs and outputs to each evaluation judgment. This is also likely less performant than if some global state were used instead. This global state would have to be reset at the beginning of each evaluation or resumed evaluation.
+
 \section{Metatheorems governing FAR}
 \label{sec:far-meta}
 
@@ -39,22 +47,32 @@ Additionally, we have a reproducibility benefit here. In most notebook-style edi
 
 The limitation of using Hazel as a computational notebook is that the fill-and-resume operation is limited to cases where there is a hole in a previous edit state as a parent of the root of the diff. If a user programs by always appending to or editing near the bottom of their program, FAR will be very beneficial because most edits will lead to valid fill operations. It may be difficult to quantify the real performance benefit due to large variations in programming styles. Different heuristics for choosing a past edit state to compare, as discussed in \Cref{sec:far-past-edit-states}, will also affect the performance of FAR.
 
-\section{Generalized views on non-empty holes and FAR}
-\label{sec:generalized-holes-far}
+\section{Summary of generalized concepts}
+\label{sec:summary-generalizations}
 
 The work performed for FAR leads us to the following nice generalizations of some of the concepts we've encountered through this work.
 
-\subsection{Generalized non-empty holes}
+\subsection{Generalized closures and the evaluation boundary}
+\label{sec:generalized-closures}
+
+Generalized closures form an integral part of this implementation. Previously, the term ``closure'' tends to refer to a function closure, but we find that allowing for a general container expression with a bound environment is extremely useful for our implementation. Not only do they tidy up the implementation by ``factoring out'' environments from the numerous expression forms that require them\footnote{This is true even in the case of evaluation with substitution, by separating environments from hole closures.}, but they characterize the evaluation boundary: expressions in the evaluated result that exist within a closure are ``paused'' evaluations that may be resumed later. Separating holes from closures also helps to facilitate fill-and-resume because we wish to substitute the hole with $\dfill$ without discarding the environment.
+
+\subsection{A generalization of non-empty holes}
 \label{sec:generalized-neholes}
 
 Non-empty holes play a central hole in Hazel's ability to provide continuous feedback, as well as in the ability to resume computation in FAR. We may interpret an empty hole as encapsulating a well-formed expression in some incompatible outer expression.
 
 It may be helpful to also imagine that the entire program lies in a non-empty hole. In this interpretation, regular program evaluation (from the start) may be considered a degenerate case of fill-and-resume, where the root of the diff is a non-fill diff that gets propagated up to this non-empty hole. This hole will also nicely serve as the parent for all holes in a non-complete program in the \mintinline{ocaml}|HoleClosureInfo.t|, although the parent of this hole would then not be well-defined.
 
-\subsection{Generalized FAR}
+\subsection{FAR as a generalization of evaluation}
 \label{sec:generalized-far}
 
 It is possible to express every evaluation operation as a FAR operation, assuming that we have the ability to look back an unlimited number of edit states. The intuition behind this is that the initial state of a program is the empty hole $\hehole^1$. It is trivial to prove that using the rules given by the fill diff that every edit state produces either a no diff or a fill diff judgment against this edit state.
 
 For practical reasons, it may be less efficient to perform a fill diff against an arbitrary number of states, or even to store the entire history of a program. Also, the whole history of a program may not be available. In the case of a parsed program or an example program, which is specified as an edit state rather than a history of edit actions, we would need additional machinery to produce a possible series of edit actions that leads to this state from the empty state.
 
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:
