@@ -1,0 +1,3 @@
+let f = ... in
+let a = /\heh1/ in
+/\heh2/
