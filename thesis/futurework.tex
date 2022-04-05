@@ -1,6 +1,15 @@
 \chapter{Future work}
 \label{sec:future_work}
 
+\section{Improvements to FAR}
+\label{sec:far-improvements}
+
+\todo{need general cleanup of FAR implementation, not very complete}
+
+\todo{optimizing how many edit states to go back: tradeoffs between storage (how many edit states to store) and speed (how much execution time to detect a FAR, how expensive is FAR depending on which edit state; currently the most recent edit state is used, something like a LRU; may want to cache recent edit states that spawned a FAR or group edit states like in the undo history currently)}
+
+\todo{automatic vs manual far detection}
+
 \section{Mechanization of metatheorems and rules}
 \label{sec:formalization}
 

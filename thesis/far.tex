@@ -44,6 +44,64 @@ These steps will be described in greater detail in the following sections.
 \subsection{Entrypoint to the FAR algorithm}
 \label{sec:far-entrypoint}
 
+\begin{figure}
+  \centering
+  \begin{tikzpicture}
+    \node[draw=red] (action) {\mintinline{ocaml}|ModelAction.EditAction.t|};
+    \node[draw=black] (syn_action) [below=of action] {\mintinline{ocaml}|Action_Exp.syn_perform|};
+    \node[draw=red] (model) [right=80pt of syn_action] {\mintinline{ocaml}|Model.t|};
+    \node[draw=black] (elaborate) [below=of syn_action] {\mintinline{ocaml}|Elaborator_Exp.elab|};
+    \node[draw=black] (evaluate) [below=of elaborate] {\mintinline{ocaml}|Evaluator.evaluate|};
+    \node[draw=black] (renumber) [below=of evaluate] {\mintinline{ocaml}|EvalPostprocess.postprocess|};
+    \node[draw=red] (undo_hist) [below=of model] {\mintinline{ocaml}|UndoHistory.t|};
+    \node[draw=red] (result) [below= of undo_hist] {\mintinline{ocaml}|Result.t|};
+
+    \draw[->,thick] (action) -- (syn_action) node [midway,left] {$\alpha$};
+    \draw[->,thick] (model) -- (syn_action) node [midway,above] {\mintinline{ocaml}|Program.t|};
+    \draw[->,thick] (syn_action) -- (elaborate) node [midway,left] {$e$};
+    \draw[->,thick] (elaborate) -- (evaluate) node [midway,left] {$d_{uneval}$};
+    \draw[->,thick] (evaluate) -- (renumber) node [midway,left] {$d_{eval}$};
+    \draw[->,thick] (evaluate) -- (result) node [midway,above] {$d_{eval}$};
+    \draw[->,thick] (renumber) -- (result) node [midway,below right] {$d_{renumbered},\hci$};
+    \draw[->,thick] (result) -- (undo_hist);
+    \draw[->,thick] (undo_hist) -- (model);
+  \end{tikzpicture}
+  \caption{Previous evaluation model}
+  \label{fig:prev-evaluation-call-graph}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \begin{tikzpicture}
+    \node[draw=red] (action) {\mintinline{ocaml}|ModelAction.EditAction.t|};
+    \node[draw=black] (syn_action) [below=of action] {\mintinline{ocaml}|Action_Exp.syn_perform|};
+    \node[draw=red] (model) [right=80pt of syn_action] {\mintinline{ocaml}|Model.t|};
+    \node[draw=black] (elaborate) [below=of syn_action] {\mintinline{ocaml}|Elaborator_Exp.elab|};
+    \node[draw=black] (detect_fill) [below=of elaborate] {\mintinline{ocaml}|DHExpDiff.diff_dhexp|};
+    \node[draw=black] (preprocess) [below left=of detect_fill] {\mintinline{ocaml}|FillAndResume.preprocess|};
+    \node[draw=black] (evaluate) [below=60pt of detect_fill] {\mintinline{ocaml}|Evaluator.evaluate|};
+    \node[draw=black] (renumber) [below=of evaluate] {\mintinline{ocaml}|EvalPostprocess.postprocess|};
+    \node[draw=red] (undo_hist) [below=of model] {\mintinline{ocaml}|UndoHistory.t|};
+    \node[draw=red] (result) [below= of undo_hist] {\mintinline{ocaml}|Result.t|};
+
+    \draw[->,thick] (action) -- (syn_action) node [midway,left] {$\alpha$};
+    \draw[->,thick] (model) -- (syn_action) node [midway,above] {\mintinline{ocaml}|Program.t|};
+    \draw[->,thick] (syn_action) -- (elaborate) node [midway,left] {$e$};
+    \draw[->,thick] (elaborate) -- (detect_fill) node [midway,left] {$d_{uneval}$};
+    \draw[->,thick] (detect_fill) -- (evaluate) node [midway,right] {no fill diff};
+    \draw[->,thick] (detect_fill) -- (preprocess) node [midway,below right] {fill diff};
+    \draw[->,thick] (preprocess) -- (evaluate) node [midway,below left] {$d_{preprocess}$};
+    \draw[->,thick] (evaluate) -- (renumber) node [midway,left] {$d_{eval}$};
+    \draw[->,thick] (evaluate) -- (result) node [midway,above] {$d_{eval}$};
+    \draw[->,thick] (renumber) -- (result) node [midway,below right] {$d_{postprocess},\hci$};
+    \draw[->,thick] (undo_hist) -- (detect_fill) node [midway] {\mintinline{ocaml}|list(Program.t)|};
+    \draw[->,thick] (result) -- (undo_hist);
+    \draw[->,thick] (undo_hist) -- (model);
+  \end{tikzpicture}
+  \caption{Current evaluation model}
+  \label{fig:current-evaluation-call-graph}
+\end{figure}
+
 \todo{memoization alongside Program.get\_program}
 
 \todo{include a diagram of the updated evaluation call graph}
@@ -526,50 +584,6 @@ The FAR operation is much simpler when evaluating with substitution rather than 
 \end{singlespace}
 
 What remains the same between the environment model and the substitution model is the need for an algorithm to detect the fill parameters, for which the structural diff algorithm presented in \Cref{sec:far-detect-structural-diff} is still applicable.
-
-\section{FAR for notebook-style editing}
-\label{sec:notebook-ui}
-
-\todo{improvements: reproducibility}
-
-\todo{limitations: limited cases for re-evaluation}
-
-\section{Improvements to FAR}
-\label{sec:far-improvements}
-
-\todo{move this to future work section}
-
-\todo{need general cleanup of FAR implementation, not very complete}
-
-\todo{optimizing how many edit states to go back: tradeoffs between storage (how many edit states to store) and speed (how much execution time to detect a FAR, how expensive is FAR depending on which edit state; currently the most recent edit state is used, something like a LRU; may want to cache recent edit states that spawned a FAR or group edit states like in the undo history currently)}
-
-\todo{automatic vs manual far detection}
-
-\section{Metatheorems governing FAR}
-\label{sec:far-meta}
-
-\todo{filling (from original paper)}
-
-\todo{commutativity}
-
-\todo{all closures will be evaluated exactly once -- this allows holes that have not yet been evaluated in the result to be successfully re-evaluated (assuming program terminates) and maintains the invariant that all closures will be evaluated at the end of evaluation}
-
-\section{Generalized views on non-empty holes and FAR}
-\label{sec:generalized-holes-far}
-
-The work performed for FAR leads us to the following nice generalizations of some of the concepts we've encountered through this work.
-
-\todo{perhaps move this to the discussion section, along with generalized holes from Ch4?}
-
-\subsection{Generalized non-empty holes}
-\label{sec:generalized-neholes}
-
-\todo{every partially-complete program can be represented as part of a non-empty hole. In particular, top-level program can be considered to be in a non-empty hole to be filled. Also works nicely as a general parent (in HoleClosureInfo) for all holes in a non-complete program}
-
-\subsection{Generalized FAR}
-\label{sec:generalized-far}
-
-\todo{every evaluation can be rewritten as a FAR operation, since every program originates from a hole as an initial state, or using the above version where the top-level expression exists in a non-empty hole}
 
 %%% Local Variables:
 %%% mode: latex
