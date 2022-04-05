@@ -278,17 +278,6 @@ In the most na\"ive form, the previous algorithm's efficiency is $O(\log E)$, wh
 
 The structural diff algorithm presented in this section is $O(E)$, since it traverses each node (once) until it finds a difference. However, if one travels backwards multiple edit states, then the cost is $O(SE)$, where $S$ is the number of edit states compared using this algorithm. While this is much more expensive than the previous algorithm, we assume that the program size is relatively small, causing delay only on the order of milliseconds. However, it may be able to find a valid fill-and-resume in many more cases than the previous algorithm, potentially saving a much longer repeated evaluation time.
 
-\subsubsection{Choosing the edit state to fill from}
-\label{sec:far-past-edit-states}
-
-Past edit states are stored in an undo history in Hazel, which allows the user to quickly return to previous edit states. The structure of the undo history is complicated and Hazel-specific, and thus not described here. We note that the result of evaluation is not stored alongside the evaluation result, but the evaluation function itself is memoized, so retrieving a previous edit state and re-evaluating the program is typically not expensive.
-
-\todo{note why that memoization won't work well for us anymore}
-
-There are a number of possible design decisions when searching for a valid hole fill. Firstly, one must decide the maximum number of edit states to search: should it be a fixed number of edit states, or should it be given a fixed time budget? Is it best to cache edit states that recently led to a fill operation (\`a la LRU cache)? Is the most recent edit state that leads to a valid fill usually the best candidate, or even a good candidate? Would it be best to allow for user-configurable settings, or perhaps even for the user to manually select the previous edit from which to fill?
-
-\todoref{need to create a future work section for this}
-
 \subsection{Pre-processing the evaluation result for re-evaluation}
 \label{sec:far-preprocessing}
 
@@ -403,33 +392,273 @@ Since this is a very high-level view of the program, many details are abstracted
 \section{FAR examples}
 \label{sec:far-examples}
 
-\todo{the previous example}
+\subsection{Simple example}
+\label{sec:far-example-simple}
+
+Let us reconsider the program from \Cref{fig:far-motivation}, reproduced in \Cref{fig:far-simple-reproduced}.
 
 \begin{figure}
   \centering
-  \inputhminted{far_introduce_type_error}
-  \caption{FAR introducing a static type error}
+  \begin{singlespace}
+    \makebox[\textwidth][c]{
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \inputhminted{far_simple}
+        \caption{Previous edit state}
+        \label{fig:far-simple-reproduced}
+      \end{subfigure}
+      \qquad
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \inputhminted{far_simple_filled}
+        \caption{Filled edit state}
+      \end{subfigure}
+    }
+    \vspace{10pt}
+    \makebox[\textwidth][c]{
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \begin{equation*}
+          [x\leftarrow 832040]\hehole^{1:1}
+        \end{equation*}
+        \caption{Previous program result}
+      \end{subfigure}
+      \qquad
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \begin{equation*}
+          u=1, d=x+2
+        \end{equation*}
+        \caption{Detected fill parameters}
+      \end{subfigure}
+    }
+    \vspace{10pt}
+    \makebox[\textwidth][c]{
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \begin{equation*}
+          \llbracket x\leftarrow 832040\rrbracket\hhole{x+2}_1
+        \end{equation*}
+        \caption{Preprocessed program result}
+      \end{subfigure}
+      \qquad
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \begin{equation*}
+          832042
+        \end{equation*}
+        \caption{Resumed program result}
+      \end{subfigure}
+    }
+  \end{singlespace}
+  \caption{FAR simple example}
+  \label{fig:far-simple-example}
+\end{figure}
+
+
+\begin{figure}
+  \centering
+  \begin{singlespace}
+    \makebox[\textwidth][c]{
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \inputhminted{far_introduce_type_error}
+        \caption{Previous edit state}
+      \end{subfigure}
+      \qquad
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \inputhminted{far_introduce_type_error_filled}
+        \caption{Filled edit state}
+      \end{subfigure}
+    }
+    \vspace{10pt}
+    \makebox[\textwidth][c]{
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \begin{equation*}
+          2+[\varnothing]\hehole^{1:1}
+        \end{equation*}
+        \caption{Previous program result}
+      \end{subfigure}
+      \qquad
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \begin{equation*}
+          u=1,d=\hhole{\lambda x.x}^{1:1}
+        \end{equation*}
+        \caption{Detected fill parameters}
+      \end{subfigure}
+    }
+    \vspace{10pt}
+    \makebox[\textwidth][c]{
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \begin{equation*}
+          2+\llbracket\varnothing\rrbracket\hhole{\hhole{\lambda x.x}^1}_1
+        \end{equation*}
+        \caption{Preprocessed program result}
+      \end{subfigure}
+      \qquad
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \begin{equation*}
+          2+[\varnothing]\hhole{[\varnothing]\lambda x.x}^{1:1}
+        \end{equation*}
+        \caption{Resumed program result}
+      \end{subfigure}
+    }
+  \end{singlespace}
+  \caption{FAR introduce static type error example}
   \label{fig:far-introduce-type-error}
 \end{figure}
 
 \begin{figure}
   \centering
-  \inputhminted{far_remove_type_error}
-  \caption{FAR removing a static type error}
+  \begin{singlespace}
+    \makebox[\textwidth][c]{
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \inputhminted{far_remove_type_error}
+        \caption{Previous edit state}
+      \end{subfigure}
+      \qquad
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \inputhminted{far_remove_type_error_filled}
+        \caption{Filled edit state}
+      \end{subfigure}
+    }
+    \vspace{10pt}
+    \makebox[\textwidth][c]{
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \begin{equation*}
+          2+[\varnothing]\hhole{[\varnothing]\lambda x.x}^{1:1}
+        \end{equation*}
+        \caption{Previous program result}
+      \end{subfigure}
+      \qquad
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \begin{equation*}
+          u=1, d=3
+        \end{equation*}
+        \caption{Fill parameters}
+      \end{subfigure}
+    }
+    \vspace{10pt}
+    \makebox[\textwidth][c]{
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \begin{equation*}
+          2+\llbracket\varnothing\rrbracket\hhole{3}_1
+        \end{equation*}
+        \caption{Preprocessed program result}
+      \end{subfigure}
+      \qquad
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \begin{equation*}
+          5
+        \end{equation*}
+        \caption{Resumed program result}
+      \end{subfigure}
+    }
+  \end{singlespace}
+  \caption{FAR remove static type error example}
   \label{fig:far-remove-type-error}
 \end{figure}
 
-\begin{figure}
-  \centering
-  \inputhminted{far_fill_in_hole_env}
-  \caption{FAR filling hole in a hole environment}
-  \label{fig:far-fill-hole-in-hole-env}
-\end{figure}
 
 \begin{figure}
   \centering
-  \inputhminted{far_hole_closure_memoization}
-  \caption{FAR hole closure memoization}
+  \begin{singlespace}
+    \makebox[\textwidth][c]{
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \inputhminted{far_fill_in_hole_env}
+        \caption{Previous edit state}
+      \end{subfigure}
+      \qquad
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \inputhminted{far_fill_in_hole_env_filled}
+        \caption{Filled edit state}
+      \end{subfigure}
+    }
+    \vspace{10pt}
+    \makebox[\textwidth][c]{
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \begin{equation*}
+          [x\leftarrow[\varnothing]\hehole^{1:1}]\hehole^{2:1}
+        \end{equation*}
+        \caption{Previous program result}
+      \end{subfigure}
+      \qquad
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \begin{equation*}
+          u=1, d=2
+        \end{equation*}
+        \caption{Fill parameters}
+      \end{subfigure}
+    }
+    \vspace{10pt}
+    \makebox[\textwidth][c]{
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \begin{equation*}
+          \llbracket x\leftarrow\llbracket\varnothing\rrbracket\hhole{2}_1\rrbracket\hehole^{2:1}
+        \end{equation*}
+        \caption{Preprocessed program result}
+      \end{subfigure}
+      \qquad
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \begin{equation*}
+          [x\leftarrow 2]\hehole^{2:1}
+        \end{equation*}
+        \caption{Resumed program result}
+      \end{subfigure}
+    }
+  \end{singlespace}
+  \caption{FAR fill hole in hole environment example}
+  \label{fig:far-fill-hole-in-hole-env}
+\end{figure}
+
+
+\begin{figure}
+  \centering
+  \begin{singlespace}
+    \makebox[\textwidth][c]{
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \inputhminted{far_hole_closure_memoization}
+        \caption{Previous edit state}
+      \end{subfigure}
+      \qquad
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \inputhminted{far_hole_closure_memoization_filled}
+        \caption{Filled edit state}
+      \end{subfigure}
+    }
+    \vspace{10pt}
+    \makebox[\textwidth][c]{
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \begin{gather*}
+          [f\leftarrow[\varnothing]\lambda x.\{\hehole^{1:1}\},x\leftarrow[f\leftarrow[\varnothing]\lambda x.\{\hehole^{1:1}\}]\hehole^{2:1}]\hehole^{3:1} \\
+          + \\
+          [f\leftarrow[\varnothing]\lambda x.\{\hehole^1\},x\leftarrow[f\leftarrow[\varnothing]\lambda x.\{\hehole^{1:1}\}]\hehole^{2:1}]\hehole^{3:1}
+        \end{gather*}
+        \caption{Previous program result}
+      \end{subfigure}
+      \qquad
+      \begin{subfigure}[b]{0.4\paperwidth}
+        \begin{equation*}
+          u=2, d=f\ 1
+        \end{equation*}
+        \caption{Fill parameters}
+      \end{subfigure}
+    }
+    \vspace{10pt}
+    \makebox[\textwidth][c]{
+      \begin{subfigure}[b]{0.5\paperwidth}
+        \begin{gather*}
+          \llbracket f\leftarrow\llbracket\varnothing\rrbracket\lambda x.\{\hehole^{1:1}\},x\leftarrow\llbracket f\leftarrow\llbracket\varnothing\rrbracket\lambda x.\{\hehole^{1:1}\}\rrbracket\hhole{f\ 2}_1\rrbracket\hehole^{3:1} \\
+          + \\
+          \llbracket f\leftarrow\llbracket\varnothing\rrbracket\lambda x.\{\hehole^{1:1}\},x\leftarrow\llbracket f\leftarrow\llbracket\varnothing\rrbracket\lambda x.\{\hehole^{1:1}\}\rrbracket\hhole{f\ 2}_1\rrbracket\hehole^{3:1}
+        \end{gather*}
+        \caption{Preprocessed program result}
+      \end{subfigure}
+      \qquad
+      \begin{subfigure}[b]{0.3\paperwidth}
+        \begin{gather*}
+          [f\leftarrow[\varnothing]\lambda x.\{\hehole^{1:1}\},x\leftarrow[x\leftarrow 1]^i\hehole^{1:1}]\hehole^{3:1} \\
+          + \\
+          [f\leftarrow[\varnothing]\lambda x.\{\hehole^{1:1}\},x\leftarrow[x\leftarrow 1]^i\hehole^{1:1}]\hehole^{3:1}
+        \end{gather*}
+        \caption{Resumed program result}
+      \end{subfigure}
+    }
+  \end{singlespace}
+  \caption{FAR hole closure memoization example}
   \label{fig:far-hole-closure-memoization}
 \end{figure}
 

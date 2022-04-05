@@ -7,4 +7,4 @@ let f : Int /\rar/ Int =
     end
   }
 in x = f 30
-in /\heh1/
+in x + 2
