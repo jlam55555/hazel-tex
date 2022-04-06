@@ -1,3 +1,3 @@
-import performance_eval_vs_subst_fib
+import perf
 
-performance_eval_vs_subst_fib.run()
+perf.run()

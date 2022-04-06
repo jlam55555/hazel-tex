@@ -1,16 +1,20 @@
 \chapter{Evaluation of performance}
 \label{sec:evaluation}
 
+To evaluate performance, benchmarks were carried out using the \mintinline{ocaml}|TimeUtil.measure_time| utility. Benchmarks were carried out on Google Chrome 99 on Debian 10 on an Intel i3-2100 CPU. The times shown are a mean of three trials. Evaluation step counts are tracked in \mintinline{ocaml}|EvalState.t| and count the number of calls to \mintinline{ocaml}|Evaluator.evaluate| as described in \Cref{sec:step-counting}.
+
+There are a number of factors that may affect the consistency of the elapsed time benchmarks. Such factors include the quality of JSOO-generated Javascript, specifics of the Chrome V8 Javascript engine, inaccuracies in the Javascript timing function, and random system fluctuations.
+
 \section{Evaluation performance using the environment model}
 \label{sec:evaluation-evalenv}
 
-% this figure is no longer valid
-% \begin{figure}
-%   \centering
-%   \includegraphics[width=10cm]{img/subst_evalenv_fib_perf.pdf}
-%   \caption{Performance of the different models of evaluation}
-%   \label{fig:perf_evaluation_models}
-% \end{figure}
+To evaluate the performance of evaluation using the environment model, we benchmark the performance of a computationally-expensive function, the tree-recursive Fibonacci function. This function is chosen because it is computationally expensive and does not have a deep recursion depth\footnote{This is because Hazel does not implement TCO, and thus would overflow the stack with too much (tail-)recursion.}. It is also a complete program, i.e., it does not have holes and the hole renumbering and postprocessing steps are not of concern here.
+
+We try out a few variations of the $\text{fib}(n)$ function, shown in \Cref{fig:perf-fib}, for $n=\{22,23,24,25,26\}$. These numbers were chosen somewhat arbitrarily. They are large enough to allow for reproducible results, and small enough to prevent excessively long runtimes. The first variation is shown in \Cref{fig:perf-fib-more-bindings}, which involves more global variables. The second variation is shown in \Cref{fig:perf-fib-more-branches}, in which an additional branch is added. This branch is never taken (as the third rule's pattern will always match), and it involves some instances of the variable $f$.
+
+For this experiment, the builtin variables and functions are removed. Restoring the builtins would be very similar to the second program variation.
+
+The quantitative results of this experiment are shown in \Cref{fig:perf-fib-all}.
 
 \begin{listing}
   \inputhminted{perf_fib}
@@ -18,76 +22,57 @@
   \label{fig:perf-fib}
 \end{listing}
 
-\begin{singlespace}
-  \begin{table}
-    \centering
-    \begin{tabular}{r|ccc}
-      \hline
-      $n$ & \texttt{dev} branch & \texttt{eval-environment} branch & \texttt{rec-closures} branch \\
-      \hline\hline
-      22 & 537 & 255 & 272 \\
-      23 & 871 & 406 & 374 \\
-      24 & 1270 & 578 & 552 \\
-      25 & 1925 & 851 & 831 \\
-      26 & 3048 & 1318 & 1297 \\
-      \hline\hline
-    \end{tabular}
-    \caption{Time (ms) to compute $\text{fib}(n)$}
-    \label{tab:perf-fib}
-  \end{table}
-\end{singlespace}
-
-\todo{also compare the performance of the above with the recursive data structures example}
-
 \begin{listing}
   \inputhminted{perf_fib_more_bindings}
-  \caption{An evaluation-heavy Hazel program with more variable bindings}
+  \caption{Adding global bindings to the program in \Cref{fig:perf-fib}}
   \label{fig:perf-fib-more-bindings}
 \end{listing}
 
-\begin{singlespace}
-  \begin{table}
-    \centering
-    \begin{tabular}{r|cc}
-      \hline
-      $n$ & \texttt{dev} branch & \texttt{eval-environment} branch \\
-      \hline\hline
-      22 & 360 & 399 \\
-      23 & 516 & 566 \\
-      24 & 834 & 837 \\
-      25 & 1257 & 1315 \\
-      26 & 2090 & 2088 \\
-      \hline\hline
-    \end{tabular}
-    \caption{Time (ms) to compute $\text{fib}(n)$ with more bound variables}
-    \label{tab:perf-fib-more-bindings}
-  \end{table}
-\end{singlespace}
-
-\todo{note that there is now a "prologue" of some builtin functions: PI, int\_of\_float, float\_of\_int, and mod; these cause lookups to be slower because they take part of each lookup operation}
-
 \begin{listing}
   \inputhminted{perf_fib_more_branches}
-  \caption{An evaluation-heavy Hazel program with unused variable substitutions}
+  \caption{Adding variable substitutions to unused branches to the program in \Cref{fig:perf-fib}}
   \label{fig:perf-fib-more-branches}
 \end{listing}
 
 \begin{singlespace}
   \begin{table}
     \centering
-    \begin{tabular}{r|cc}
-      \hline
-      $n$ & \texttt{dev} branch & \texttt{eval-environment} branch \\
-      \hline\hline
-      22 & 495 & 377 \\
-      23 & 772 & 551 \\
-      24 & 1224 & 872 \\
-      25 & 1977 & 1378 \\
-      26 & 3149 & 2205 \\
-      \hline\hline
-    \end{tabular}
-    \caption{Time (ms) to compute $\text{fib}(n)$ with substitutions in unused branches}
-    \label{tab:perf-fib-more-branches}
+    \begin{subtable}{\textwidth}
+      \begin{tabular}{r|c|ccccc|ccccc}
+        \hline
+        & & \multicolumn{5}{c|}{Variables in unused branch} & \multicolumn{5}{c}{Extra global variables} \\
+        n & Regular & 2 & 4 & 6 & 8 & 10 & 2 & 4 & 6 & 8 & 10 \\
+        \hline\hline
+        22 & 334 & 394 & 509 & 539 & 658 & 677 & 339 & 305 & 302 & 339 & 336 \\
+        23 & 478 & 599 & 695 & 835 & 1116 & 1107 & 524 & 442 & 452 & 452 & 455 \\
+        24 & 775 & 929 & 1214 & 1332 & 1518 & 1686 & 744 & 700 & 729 & 794 & 708 \\
+        25 & 1233 & 1502 & 1874 & 2310 & 2398 & 2723 & 1171 & 1189 & 1134 & 1104 & 1231 \\
+        26 & 2019 & 2391 & 2939 & 3399 & 3872 & 4417 & 1841 & 1747 & 1761 & 1773 & 1780 \\
+        \hline\hline
+      \end{tabular}
+      \caption{\texttt{dev} branch}
+      \label{tab:perf-fib-dev}
+    \end{subtable} \\
+    \vspace{1em}
+    \begin{subtable}{\textwidth}
+      \begin{tabular}{r|c|ccccc|ccccc}
+        \hline
+        & & \multicolumn{5}{c|}{Variables in unused branch} & \multicolumn{5}{c}{Extra global variables} \\
+        n & Regular & 2 & 4 & 6 & 8 & 10 & 2 & 4 & 6 & 8 & 10 \\
+        \hline\hline
+        22 & 255 & 267 & 276 & 242 & 245 & 243 & 330 & 384 & 417 & 435 & 519 \\
+        23 & 406 & 374 & 376 & 358 & 366 & 330 & 497 & 576 & 573 & 593 & 660 \\
+        24 & 578 & 558 & 559 & 591 & 561 & 569 & 775 & 857 & 911 & 912 & 1037 \\
+        25 & 851 & 883 & 871 & 864 & 888 & 908 & 1209 & 1363 & 1469 & 1473 & 1684 \\
+        26 & 1318 & 1388 & 1382 & 1398 & 1399 & 1415 & 1935 & 2262 & 2302 & 2356 & 2492 \\
+        \hline\hline
+      \end{tabular}
+      \caption{\texttt{eval-environment} branch}
+      \label{tab:perf-fib-evalenv}
+    \end{subtable}
+
+    \caption{Time (ms) to compute $\text{fib}(n)$}
+    \label{tab:perf-fib-all}
   \end{table}
 \end{singlespace}
 
