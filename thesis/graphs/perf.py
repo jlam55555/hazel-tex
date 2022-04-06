@@ -53,7 +53,33 @@ data_renumbering = np.array([
     [26, -1, -1, -1, 1, 2, 1 ],
 ])
 
+data_far = np.array([
+    [7, 12, 17, 58, 4762964, 4762966, 4762966, 4762967],
+    [7, 21, 17, 69, 4762964, 12, 21, 13]
+])
+
 def run():
+    global data_far
+
+    n = np.arange(1, 9)
+    plt.figure()
+    plt.stem(n, data_far[0, :], 'r')
+    plt.gcf().tight_layout()
+    plt.grid()
+    plt.ylabel('Calls to evaluate')
+    plt.xlabel('Step number')
+    plt.semilogy()
+    plt.savefig(f'{IMG_DIR}perf_no_far.pdf')
+
+    plt.figure()
+    plt.stem(n, data_far[1, :], 'b')
+    plt.gcf().tight_layout()
+    plt.grid()
+    plt.ylabel('Calls to evaluate')
+    plt.xlabel('Step number')
+    plt.semilogy()
+    plt.savefig(f'{IMG_DIR}perf_far.pdf')
+
     global data_renumbering
 
     data_renumbering = data_renumbering.T
@@ -63,25 +89,27 @@ def run():
     renum_eev = data_renumbering[4:, :]
 
     plt.figure()
-    plt.stackplot(n[:15], np.log(renum_dev+.01), baseline='zero')
+    plt.stackplot(n[:15], renum_dev+.01, baseline='zero')
     plt.xlabel('Number of holes')
-    plt.ylabel('Log time (ms)')
-    plt.ylim([0, 25])
+    plt.ylabel('Time (ms)')
+    plt.ylim([1, 20000])
     plt.xlim([0, 26])
     plt.grid()
     plt.legend(['evaluate', 'postprocessing', 'equality check'])
     plt.gcf().tight_layout()
+    plt.semilogy()
     plt.savefig(f'{IMG_DIR}perf_renum_dev.pdf')
 
     plt.figure()
-    plt.stackplot(n, np.log(renum_eev+.01), baseline='zero')
+    plt.stackplot(n, renum_eev+.01, baseline='zero')
     plt.xlabel('Number of holes')
-    plt.ylabel('Log time (ms)')
-    plt.ylim([0, 25])
+    plt.ylabel('Time (ms)')
+    plt.ylim([1, 20000])
     plt.xlim([0, 26])
     plt.grid()
     plt.legend(['evaluate', 'postprocessing', 'equality check'])
     plt.gcf().tight_layout()
+    plt.semilogy()
     plt.savefig(f'{IMG_DIR}perf_renum_eev.pdf')
 
     global data_dev, data_eev
@@ -106,13 +134,14 @@ def run():
 
     # regular variables
     plt.figure()
-    plt.plot(n, np.log(reg_dev), 'r')
-    plt.plot(n, np.log(reg_eev), 'b')
+    plt.plot(n, reg_dev, 'r')
+    plt.plot(n, reg_eev, 'b')
     plt.legend(['dev', 'e-e'])
     plt.xlabel('n')
-    plt.ylabel('Log time (ms)')
+    plt.ylabel('Time (ms)')
     plt.gcf().tight_layout()
     plt.grid()
+    plt.semilogy()
     plt.savefig(f'{IMG_DIR}perf_fib.pdf')
 
     prefix = lambda pref, var: [pref + str(x) for x in var]
@@ -158,23 +187,3 @@ def run():
 
     plt.legend(prefix('dev n=', n) + prefix('e-e n=', n))
     plt.savefig(f'{IMG_DIR}perf_fib_more_branches.pdf')
-
-    # data = np.log(data)
-    # xs = np.array([28, 29, 30, 31, 32])
-
-    # plt.plot(xs, data[0,0,:])
-    # plt.plot(xs, data[0,1,:])
-    # plt.plot(xs, data[1,0,:])
-    # plt.plot(xs, data[1,1,:])
-    # plt.plot(xs, data[2,0,:])
-    # plt.plot(xs, data[2,1,:])
-
-    # plt.legend(['unique-hole-closures, unannot', 'unique-hole-closures, annot',
-    #             'rec-closures, unannot', 'rec-closures, annot',
-    #             'dev, unannot', 'dev, annot'])
-    # plt.ylabel('Log time (s)')
-    # plt.xlabel('n')
-    # plt.title('fib(n) evaluation times in Hazel')
-    # plt.grid()
-
-    # plt.savefig(IMG_DIR + 'subst_evalenv_fib_perf.pdf')
