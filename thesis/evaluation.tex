@@ -76,6 +76,28 @@ The quantitative results of this experiment are shown in \Cref{fig:perf-fib-all}
   \end{table}
 \end{singlespace}
 
+\begin{figure}
+  \centering
+  \includegraphics[width=0.7\textwidth]{img/perf_fib.pdf}
+  \caption{Performance of evaluating $\text{fib}(n)$}
+  \label{fig:perf-fib}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.7\textwidth]{img/perf_fib_more_vars.pdf}
+  \caption{Performance of evaluating $\text{fib}(n)$ with extra global variables}
+  \label{fig:perf-fib-more-vars}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.7\textwidth]{img/perf_fib_more_branches.pdf}
+  \caption{Performance of evaluating $\text{fib}(n)$ with an unused branch}
+  \label{fig:perf-fib-more-branches}
+\end{figure}
+
+
 \section{Postprocessing performance}
 \label{sec:evaluation-renumbering}
 
@@ -123,6 +145,22 @@ Consider the set of programs described by \Cref{fig:hole_renumbering_problem}.
     \label{tab:perf-hole-blowup}
   \end{table}
 \end{singlespace}
+
+\begin{figure}
+  \centering
+  \begin{subfigure}{0.7\textwidth}
+    \includegraphics[width=\textwidth]{img/perf_renum_dev.pdf}
+    \caption{\texttt{dev} branch}
+    \label{fig:perf-renum-dev}
+  \end{subfigure}
+  \begin{subfigure}{0.7\textwidth}
+    \includegraphics[width=\textwidth]{img/perf_renum_eev.pdf}
+    \caption{\texttt{eval-environment} branch}
+    \label{fig:perf-renum-eev}
+  \end{subfigure}
+  \caption{Performance of evaluating program in \Cref{fig:hole_renumbering_problem}}
+  \label{fig:perf-renum}
+\end{figure}
 
 \section{FAR performance}
 \label{sec:evaluation-far}

@@ -1,6 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 from common import IMG_DIR
+
+plt.rcParams.update({
+    'text.usetex': True
+})
 
 data_dev = np.array([
     [ 334, 394, 509, 539, 658, 677, 339, 305, 302, 339, 336 ],
@@ -19,9 +24,66 @@ data_eev = np.array([
     [ 1318, 1388, 1382, 1398, 1399, 1415, 1935, 2262, 2302, 2356, 2492 ],
 ])
 
-
+data_renumbering = np.array([
+    [1, 0, 0, 0, 0, 1, 0 ],
+    [2, 0, 0, 0, 0, 1, 0 ],
+    [3, 1, 2, 0, 0, 1, 0 ],
+    [4, 1, 1, 1, 1, 0, 0 ],
+    [5, 1, 1, 2, 0, 3, 0 ],
+    [6, 5, 1, 3, 1, 0, 0 ],
+    [7, 4, 5, 6, 2, 2, 0 ],
+    [8, 3, 3, 14, 0, 0, 0 ],
+    [9, 6, 18, 33, 1, 0, 1 ],
+    [10, 14, 29, 61, 0, 0, 0 ],
+    [11, 13, 41, 91, 3, 2, 0 ],
+    [12, 25, 145, 203, 2, 0, 1 ],
+    [13, 65, 578, 383, 2, 0, 0 ],
+    [14, 147, 2399, 924, 1, 3, 1 ],
+    [15, 226, 16597, 1603, 3, 0, 1 ],
+    [16, -1, -1, -1, 1, 0, 1 ],
+    [17, -1, -1, -1, 2, 1, 1 ],
+    [18, -1, -1, -1, 0, 3, 1 ],
+    [19, -1, -1, -1, 0, 0, 1 ],
+    [20, -1, -1, -1, 3, 4, 0 ],
+    [21, -1, -1, -1, 2, 0, 1 ],
+    [22, -1, -1, -1, 0, 2, 1 ],
+    [23, -1, -1, -1, 0, 3, 1 ],
+    [24, -1, -1, -1, 0, 6, 1 ],
+    [25, -1, -1, -1, 1, 4, 1 ],
+    [26, -1, -1, -1, 1, 2, 1 ],
+])
 
 def run():
+    global data_renumbering
+
+    data_renumbering = data_renumbering.T
+
+    n = data_renumbering[0, :]
+    renum_dev = data_renumbering[1:4, :15]
+    renum_eev = data_renumbering[4:, :]
+
+    plt.figure()
+    plt.stackplot(n[:15], np.log(renum_dev+.01), baseline='zero')
+    plt.xlabel('Number of holes')
+    plt.ylabel('Log time (ms)')
+    plt.ylim([0, 25])
+    plt.xlim([0, 26])
+    plt.grid()
+    plt.legend(['evaluate', 'postprocessing', 'equality check'])
+    plt.gcf().tight_layout()
+    plt.savefig(f'{IMG_DIR}perf_renum_dev.pdf')
+
+    plt.figure()
+    plt.stackplot(n, np.log(renum_eev+.01), baseline='zero')
+    plt.xlabel('Number of holes')
+    plt.ylabel('Log time (ms)')
+    plt.ylim([0, 25])
+    plt.xlim([0, 26])
+    plt.grid()
+    plt.legend(['evaluate', 'postprocessing', 'equality check'])
+    plt.gcf().tight_layout()
+    plt.savefig(f'{IMG_DIR}perf_renum_eev.pdf')
+
     global data_dev, data_eev
 
     n = np.arange(22, 27)
@@ -43,27 +105,59 @@ def run():
     print(extrabrch_dev, extrabrch_eev)
 
     # regular variables
-    plt.plot(n, reg_dev)
-    plt.plot(n, reg_eev)
-    plt.legend(['dev', 'eval-environment'])
-    plt.title('Regular')
-    plt.show()
+    plt.figure()
+    plt.plot(n, np.log(reg_dev), 'r')
+    plt.plot(n, np.log(reg_eev), 'b')
+    plt.legend(['dev', 'e-e'])
+    plt.xlabel('n')
+    plt.ylabel('Log time (ms)')
+    plt.gcf().tight_layout()
+    plt.grid()
+    plt.savefig(f'{IMG_DIR}perf_fib.pdf')
 
     prefix = lambda pref, var: [pref + str(x) for x in var]
 
     # extra vars
+    plt.figure()
     plt.plot(extravars_n, (extravars_dev / reg_dev).T)
     plt.plot(extravars_n, (extravars_eev / reg_eev).T)
-    plt.legend(prefix('dev ', n) + prefix('eval-environment ', n))
-    plt.title('Extra vars')
-    plt.show()
+    plt.xlabel('Extra global variables')
+    plt.ylabel('Relative elapsed time (normalized to 0 extra variables)')
+    plt.grid()
+    plt.gcf().tight_layout()
+
+    # color the plot
+    # https://stackoverflow.com/a/35971096/2397327
+    series = n.size
+    cms = [plt.cm.Reds, plt.cm.Blues]
+    colors = [cms[0](i) for i in np.linspace(0, 1, series)] + \
+        [cms[1](i) for i in np.linspace(0, 1, series)]
+    for i, j in enumerate(plt.gca().lines):
+        j.set_color(colors[i])
+
+    plt.legend(prefix('dev n=', n) + prefix('e-e n= ', n))
+    plt.savefig(f'{IMG_DIR}perf_fib_more_vars.pdf')
 
     # extra branch
+    plt.figure()
     plt.plot(extrabrch_n, (extrabrch_dev / reg_dev).T)
     plt.plot(extrabrch_n, (extrabrch_eev / reg_eev).T)
-    plt.legend(prefix('dev ', n) + prefix('eval-environment ', n))
-    plt.title('Extra brch')
-    plt.show()
+    plt.xlabel('Variables in unused branch')
+    plt.ylabel('Relative elapsed (normalized to 0 extra variables)')
+    plt.gcf().tight_layout()
+    plt.grid()
+
+    # color the plot
+    # https://stackoverflow.com/a/35971096/2397327
+    series = n.size
+    cms = [plt.cm.Reds, plt.cm.Blues]
+    colors = [cms[0](i) for i in np.linspace(0, 1, series)] + \
+        [cms[1](i) for i in np.linspace(0, 1, series)]
+    for i, j in enumerate(plt.gca().lines):
+        j.set_color(colors[i])
+
+    plt.legend(prefix('dev n=', n) + prefix('e-e n=', n))
+    plt.savefig(f'{IMG_DIR}perf_fib_more_branches.pdf')
 
     # data = np.log(data)
     # xs = np.array([28, 29, 30, 31, 32])
