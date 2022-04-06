@@ -68,6 +68,33 @@
 % https://stackoverflow.com/a/32388972
 \renewcommand{\listoflistingscaption}{\vspace{-40pt}}
 
+% https://tex.stackexchange.com/q/627249
+\usepackage{fancyvrb}
+\makeatletter
+% new fancyvrb options "above space" and "below vspace"
+\define@key{FV}{above vspace}[\topsep]{\def\FancyVerbAboveVspace{#1}}
+\define@key{FV}{below vspace}[\topsep]{\def\FancyVerbBelowVspace{#1}}
+% redefine existing option "vspace"
+\define@key{FV}{vspace}[\topsep]{%
+  \def\FancyVerbAboveVspace{#1}\def\FancyVerbBelowVspace{#1}}
+% init
+\fvset{vspace}
+% patch fancyvrb internals
+\xpatchcmd\FV@ListVSpace
+  {\@topsepadd=\FancyVerbVspace}
+  {\@topsepadd=\FancyVerbAboveVspace}
+  {}{\PatchFailed}
+\xpatchcmd\FV@EndList
+  {\@endparenv}
+  {\@topsepadd\dimexpr\@topsepadd-\FancyVerbAboveVspace
+                                 +\FancyVerbBelowVspace\relax
+   \@endparenv}
+  {}{\PatchFailed}
+\minted@def@optfv{vspace}
+\minted@def@optfv{above vspace}
+\minted@def@optfv{below vspace}
+\makeatother
+
 \begin{document}
 
 \doublespacing
