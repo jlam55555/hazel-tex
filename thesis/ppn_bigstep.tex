@@ -1,7 +1,59 @@
-\judgbox{TODO}{TODO}
+\judgbox{\hci,\pth\vdash d\ppn d'\dashv\hci'}{$d$ gets renumbered to $d'$}
 
 \begin{mathpar}
-  TODO
+  \Infer{\ppnl{}Const}{}{\hci,\pth\vdash c\ppn c\dashv\hci}
+  \and
+  \Infer{\ppnl{}Var}{}{\hci,\pth\vdash x\ppn x\dashv\hci}
+  \and
+  \Infer{\ppnl{}Lam}{
+    \hci,\pth\vdash d\ppn d'\dashv\hci'
+  }{\hci,\pth\vdash\lambda x:\tau.d\ppn\lambda x:\tau.d'\dashv\hci'}
+  \and
+  \Infer{\ppnl{}Ap}{
+    \hci,\pth\vdash d_1\ppn d_1'\dashv\hci' \\
+    \hci',\pth\vdash d_2\ppn d_2'\dashv\hci''
+  }{\hci,\pth\vdash d_1\ d_2\ppn d_1'\ d_2'\dashv\hci'}
+  \and
+  \Infer{\ppnl{}Asc}{
+    \hci,\pth\vdash d\ppn d'\dashv\hci'
+  }{\hci,\pth\vdash d:\tau\ppn d':\tau\dashv\hci'}
+  \and
+  \Infer{\ppnl{}EHoleNew}{
+    (u,e)\not\in\hci \\
+    i=\hid(H,u) \\
+    \hci,(u,i)\vdash\env\ppn\env'\dashv\hci' \\
+    \hci''=\hci,(u,e)\leftarrow(i,\{\pth\},\env')
+  }{\hci,\pth\vdash[\env^e]\hehole^u\ppn[\env'^e]\hehole^{u:i}\dashv\hci''}
+  \and
+  \Infer{\ppnl{}EHoleFound}{
+    \hci=\hci',(u,e)\leftarrow(i,\{\pth_i\},\env'^e) \\
+    \hci''=\hci,(u,e)\leftarrow(i,\{\pth_i\}\cup\{\pth\},\env'^e)
+  }{\hci,\pth\vdash[\env^e]\hehole^u\ppn[\env'^e]\hehole^{u:i}\dashv\hci''}
+  \and
+  \Infer{\ppnl{}NEHoleNew}{
+    (u,e)\not\in\hci \\
+    i=\hid(H,u) \\
+    \hci,(u,e),\vdash\env\ppn\env'\dashv\hci' \\
+    \hci''=\hci,(u,e)\leftarrow(i,\{\pth\},\env') \\
+    \hci'',\pth\vdash d\ppn d'\dashv\hci'''
+  }{\hci,\pth\vdash[\env^e]\hhole{d}^u\ppn[\env'^e]\hhole{d'}^{u:i}\dashv\hci'''}
+  \and
+  \Infer{\ppnl{}NEHoleFound}{
+    \hci=\hci',(u,e)\leftarrow(i,\{\pth_i\},\env'^e) \\
+    \hci''=\hci,(u,e)\leftarrow(i,\{\pth_i\}\cup\{\pth\},\env'^e) \\
+    \hci'',\pth\vdash d\ppn d'\dashv\hci'''
+  }{\hci,\pth\vdash[\env^e]\hhole{d}^u\ppn[\env'^e]\hhole{d'}^{u:i}\dashv\hci'''}
+\end{mathpar}
+
+\judgbox{\hci,\pth\vdash\env\ppn\env'\dashv\hci'}{$\env$ gets renumbered to $\env'$}
+
+\begin{mathpar}
+  \Infer{\ppnl{}EnvTriv}{}{\hci,\pth\vdash\varnothing\ppn\varnothing\dashv\varnothing}
+  \and
+  \Infer{\ppnl{}Env}{
+    \hci,\pth\vdash\env\ppn\env'\dashv\hci' \\
+    \hci',\pth\vdash d\ppn d'\dashv\hci''
+  }{\hci,\pth\vdash\env,x\leftarrow d\ppn\env',x\leftarrow d'\dashv\hci''}
 \end{mathpar}
 
 %%% Local Variables:

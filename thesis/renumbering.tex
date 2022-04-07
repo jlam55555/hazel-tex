@@ -34,28 +34,6 @@ An intuitive way of understanding the use of physical equality is that separate 
 
 Hole numbering is a process that follows evaluation and operates on the evaluation result\footnote{The function in the existing codebase that performs hole renumbering is \mintinline{ocaml}|Program.renumber|. We may refer to it throughout this text as ``hole numbering,'' ``hole renumbering,'' or ``hole tracking.''}. It assigns a hole instance number to each hole. The hole numbering algorithm is not discussed in the Hazelnut Live description. We also will not describe it as a set of judgments, for brevity. It is a breadth-first search of the result, recursing through holes. When a hole is encountered, it is assigned a unique hole instance number and added to a data structure \mintinline{ocaml}|HoleInstanceInfo.t| that keeps track of all hole instances. Each hole instance's hole number, hole instance number, hole closure environment, and path\footnote{The path of a hole is the recursive list of hole parents that must be traversed in order to reach a hole. In other words, this is the path to a hole if we envision the result expression as a tree, in which each hole is a node that fathers all of its variable binding expressions.} is stored in this data structure. The \mintinline{ocaml}|HoleInstanceInfo.t| is in turn stored in the \mintinline{ocaml}|Result.t| that stores all of the information about an evaluated program. The primary use of \mintinline{ocaml}|HoleInstanceInfo.t| is for the context inspector. With this data structure, users may easily iterate all instances of a selected hole, examine the hole path of a selected hole, examine the environment of a selected hole, or navigate to another hole instance.
 
-% \begin{singlespace}
-%   % see: https://tex.stackexchange.com/a/110156
-%   \begin{figure}
-%     \centering
-%     \begin{subfigure}{\textwidth}
-%       \begin{mdframed}[bottomline=false]
-%         \input{renumber_old_bigstep}
-%       \end{mdframed}
-%     \end{subfigure}
-%   \end{figure}
-%   \begin{figure}
-%     \ContinuedFloat
-%     \begin{subfigure}{\textwidth}
-%       \begin{mdframed}[topline=false]
-%         \input{renumber_old_bigstep2}
-%       \end{mdframed}
-%     \end{subfigure}
-%     \caption{Big-step semantics for the previous hole instance numbering algorithm}
-%     \label{fig:big-step-renumber-old-rules}
-%   \end{figure}
-% \end{singlespace}
-
 \section{Issues with the current implementation}
 \label{sec:current-problems}
 
@@ -137,6 +115,15 @@ To efficiently handle both of these interfaces, we require two different data st
 
 For convenience, we do not use two different symbols for these two data structures; the difference is purely an implementation detail regarding the construction of the data structure. The conversion from \mintinline{ocaml}|HoleClosureInfo_.t| to \mintinline{ocaml}|HoleClosureInfo.t| is trivial and will not be described here in detail. It simply involves looping over the unique hole closures and changing the mapping to be indexed by hole number and hole closure number.
 
+\subsection{The hole numbering algorithm}
+\label{sec:hole-numbering-algorithm}
+
+The hole numbering algorithm is shown in \Cref{fig:big-step-renumber-new-rules}. Constants and variables are left unchanged by the hole numbering algorithm. For ordinary expressions with subexpressions, the algorithm recurses through subexpressions.
+
+For hole expressions that have not been encountered before, the hole number and environment do not exist in $\hci$. A hole closure number $i=\hid(H,u)$ is generated to be unique out of hole closures for the hole $u$. We recursively postprocess the environment. Then the hole closure is inserted into $\hci$, along with the postprocessed environment.
+
+For hole expressions that have been encountered before, the hole number and environment do exist in $\hci$. We can use this to look up the hole closure number $i$, postprocessed environment $\env'$, and list of parents $\{\pth_i\}$ for this hole closure. We update the list of parents to include the current parent $\pth$, and return the hole numbered with $i$. Note that the environment does not need to be re-postprocessed.
+
 \begin{figure}
   \centering
   \begin{mdframed}
@@ -144,7 +131,7 @@ For convenience, we do not use two different symbols for these two data structur
       \input{ppn_bigstep}
     \end{singlespace}
   \end{mdframed}
-  \caption{Big-step semantics for hole closure numbering}
+  \caption{Hole closure numbering postprocessing semantics}
   \label{fig:big-step-renumber-new-rules}
 \end{figure}
 
@@ -153,14 +140,14 @@ For convenience, we do not use two different symbols for these two data structur
 
 The order of the numbers assigned to hole closures is not specified in the algorithm shown in \Cref{fig:big-step-renumber-new-rules}, but it is a consideration in the implementation. In the existing implementation, the evaluation result is traversed in a breadth-first search (BFS) order. On the other hand, our implementation is more simply implemented using a depth-first search (DFS) order. This changes the order that hole closures are encountered and numbered. While the hole closure number is not specified explicitly ordered value, certain orderings may be more intuitive to the user. A choice of explicit hole numbering order is left to future work.
 
-\section{Unification with closure post-processing}
-\label{sec:renumbering_memoization}
-
-\subsection{Modifications to the instance numbering rules}
-\label{sec:memoization-instance-numbering}
-
-\subsection{Unification with closure post-processing}
+\subsection{Unification with $\lambda$-conversion post-processing}
 \label{sec:unification-postprocessing}
+
+The overall postprocessing operation is shown in \Cref{fig:big-step-postprocessing-rules}. The postprocessing is the composition of the $\lambda$-conversion postprocessing and the hole numbering postprocessing.
+
+We can combine the two postprocessing steps into a single pass. This essentially involves incorporating the hole numbering rules into the closure and hole rules for $\lambda$-conversion postprocessing. This is how the two postprocessing steps are implemented. For brevity and readability, a combined set of judgments is not described in this paper.
+
+The hole numbering step limits the use of memoization in the postprocessing process. Environments cannot be entirely memoized because a hole must be re-postprocessed in order to add a new hole parent. In other words, if we memoize environments, then some hole parents would be missing because the holes in the environments would not be re-postprocessed. Thus we implement a partial memoization, where re-evaluation of an environment does not necessarily recurse into hole environments. This is not ideal, and a more elegant implementation of the postprocessing step is left for future work.
 
 \begin{figure}
   \centering
@@ -169,7 +156,7 @@ The order of the numbers assigned to hole closures is not specified in the algor
       \input{pp_bigstep}
     \end{singlespace}
   \end{mdframed}
-  \caption{Big-step semantics for post-processing}
+  \caption{Overall postprocessing judgment}
   \label{fig:big-step-postprocessing-rules}
 \end{figure}
 

@@ -707,7 +707,7 @@ If, however, hole 1 in the original edit state was a parenthesized expression, a
 
 It may be useful to thread some state throughout the evaluation process. This means that changes to this state by an earlier invocation to evaluate will affect later evaluations.
 
-The concept of keeping state has already appeared in several contexts. For hole postprocessing, the memoized hole closure info keeps track of seen environments (\Cref{sec:renumbering_memoization}). For evaluation, we keep track of the next unique environment identifier and memoize the evaluation of filled expressions (\Cref{sec:re-eval}). A theoretical discussion is revisited in \Cref{sec:env-purity}.
+The concept of keeping state has already appeared in several contexts. For postprocessing, the memoized hole closure info keeps track of seen environments (\Cref{sec:memoization}). For evaluation, we keep track of the next unique environment identifier and memoize the evaluation of filled expressions (\Cref{sec:re-eval}). A theoretical discussion is revisited in \Cref{sec:env-purity}.
 
 This becomes relevant again (with respect to evaluation) because resuming evaluation requires us to store the state after evaluation, and restore the state after evaluation. Adding more state variables also makes the implementation messier by increasing the number of variables to pass to and return from each of the numerous calls to \mintinline{ocaml}|Evaluator.evaluate|.
 

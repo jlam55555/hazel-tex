@@ -272,19 +272,6 @@ Note that while physical identity may be used to distinguish between different e
 
 During substitution postprocessing ($\pplc$), a mapping $\text{id}_\env\mapsto\env$ stores the set of substituted (postprocessed) environments. Upon encountering a closure in the evaluation result, it is looked up in this map. If it is found, the stored result is used. If it is not found, the environment is recursively substituted by applying $\pplco$ to each binding.
 
-% TODO: need to update these diagrams
-
-\begin{figure}
-  \centering
-  \begin{mdframed}
-    \begin{singlespace}
-      \input{pplc_memoization_bigstep}
-    \end{singlespace}
-  \end{mdframed}
-  \caption{Big-step semantics modifications for environment memoization}
-  \label{fig:big-step-memoization-rules}
-\end{figure}
-
 \section{Implementation considerations}
 \label{sec:evalenv_impl_considerations}
 

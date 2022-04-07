@@ -1,10 +1,10 @@
-\judgbox{d\pp(\hci,d')}{$d$ postprocess-evaluates to $d'$ with hole closure info $\hci$}
+\judgbox{d\pp(\hci,d')}{$d$ postprocesses to $d'$ with hole closure info $\hci$}
 
 \begin{mathpar}
   \Infer{PP-Result}{
     d\pplc d' \\
-    d'\ppn (\hci,d'')
-  }{d\pp(\hci,d'')}
+    \varnothing,\varnothing\vdash d'\ppn d''\dashv\hci
+  }{d\pp d''\dashv\hci}
 \end{mathpar}
 
 %%% Local Variables:
