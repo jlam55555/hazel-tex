@@ -1,24 +1,19 @@
 \chapter{Memoizing hole instance numbering using environments}
 \label{sec:renumbering}
 
-TODO: this chapter is currently a quick dump of handwritten stuff to typed text; need to partition this into sections
-
 \section{Rationale behind hole instances and unique hole closures}
 \label{sec:instance-illustration}
 
-% TODO: address the fact that this is not covered in detail in the Hazelnut paper, so we'll flesh it out here
-% was really glossed over
+Consider the program displayed in \Cref{fig:instance-illustration}. The evaluation result of the program is \[
+  [a\leftarrow[\varnothing]\hehole^1,x\leftarrow 3]\hehole^2
+  + [a\leftarrow[\varnothing]\hehole^1,x\leftarrow 4]\hehole^2
+\] Note that the two instances of \heh2 have different environments, and we thus distinguish between the two occurrences of \heh2 as separate \textbf{instances} of a hole. However, note that while there are also two instances of the hole \heh1 in the result, these share the same (physically equal) environment. No matter what expression we fill hole \heh1 with (for example, using the fill-and-resume operation) the hole will evaluate to the same value. This differs from the hole \heh2, whose filling may cause different instances to evaluate to different values due to non-capture-avoiding substitution. For example, filling hole \heh2 with the expression $x+2$ will cause the instances to resolve to $5$ and $6$, respectively.
 
 \begin{listing}
-\inputhminted{instance_illustration}
-\caption{Illustration of hole instances}
-\label{fig:instance-illustration}
+  \inputhminted{instance_illustration}
+  \caption{Illustration of hole instances}
+  \label{fig:instance-illustration}
 \end{listing}
-
-Consider the program displayed in \Cref{fig:instance-illustration}. The evaluation result of the program is \[
-[a\leftarrow[\varnothing]\hehole^1,x\leftarrow 3]\hehole^2
-+ [a\leftarrow[\varnothing]\hehole^1,x\leftarrow 4]\hehole^2
-\] Note that the two instances of \heh2 have different environments, and we thus distinguish between the two occurrences of \heh2 as separate \textbf{instances} of a hole. However, note that while there are also two instances of the hole \heh1 in the result, these share the same (physically equal) environment. No matter what expression we fill hole \heh1 with (for example, using the fill-and-resume operation) the hole will evaluate to the same value. This differs from the hole \heh2, whose filling may cause different instances to evaluate to different values due to non-capture-avoiding substitution. For example, filling hole \heh2 with the expression $x+2$ will cause the instances to resolve to $5$ and $6$, respectively.
 
 The current implementation assigns an identifier $i$ to each instance of a hole, and the instance number is unique between all instances of a hole. While this makes perfect sense for \heh2, the assignment of two separate holes to \heh1 may confuse Hazel users, since these hole instances are identical and filling them with any value will result in the same value. The solution is to unify all instances of a hole which share the same (physically equal) environment, and thus identify hole instances by hole number and environment. A set of hole instances that share the same environment will be called a \textbf{unique hole closure}, or simply \textbf{hole closure}\footnote{``Hole closure'' also is used to describe the generalized closure around hole expressions as described in \Cref{sec:env_model_evaluation}. Here we are referring to the set of instances of the same hole that share the same physical environment. Hence we call this interpretation ``unique hole closure'' to distinguish it from the former interpretation, but the interpretation should be clear from context.}.
 
@@ -29,9 +24,9 @@ To illustrate why physical equality is used to identify environments, consider t
 An intuitive way of understanding the use of physical equality is that separate \textit{instantiations} of the same hole should be distinguished. This is highly related to function applications. A hole may only appear multiple times in the result in two different ways: it may exist in the body of a function that is multiple times (multiple hole instantiations), or it may appear in a hole that is referenced from other holes (shared hole instantiation). An implication of this is that the values bound to an environment do not affect whether it is distinguished from another hole closure.
 
 \begin{listing}
-\inputhminted{physical_equality_illustration}
-\caption{Illustration of physical equality for environment memoization}
-\label{fig:physical-equality-illustration}
+  \inputhminted{physical_equality_illustration}
+  \caption{Illustration of physical equality for environment memoization}
+  \label{fig:physical-equality-illustration}
 \end{listing}
 
 % TODO: describe current hole instance numbering
@@ -71,10 +66,10 @@ Consider the program shown in \Cref{fig:sample_hazel_program}.
 \begin{listing}
   \centering
   \begin{hminted}
-let a = /\heh1/ in
-let b = /\lbd/ x . { a + x + /\heh2/ } in
-let c = /\heh3/ in
-/\heh4/ + b 1 + f /\heh5/
+    let a = /\heh1/ in
+    let b = /\lbd/ x . { a + x + /\heh2/ } in
+    let c = /\heh3/ in
+    /\heh4/ + b 1 + f /\heh5/
   \end{hminted}
   \caption{A seemingly innocuous Hazel program}
   \label{fig:sample_hazel_program}
@@ -92,16 +87,16 @@ A performance issue appears with the existing evaluator with the program shown i
 \begin{listing}
   \centering
   \begin{hminted}
-let a = /\heh1/ in
-let b = /\heh2/ in
-let c = /\heh3/ in
-let d = /\heh4/ in
-let e = /\heh5/ in
-let f = /\heh6/ in
-let g = /\heh7/ in
-/\dots/
-let x = /\heh{n}/ in
-/\heh{n+1}/
+    let a = /\heh1/ in
+    let b = /\heh2/ in
+    let c = /\heh3/ in
+    let d = /\heh4/ in
+    let e = /\heh5/ in
+    let f = /\heh6/ in
+    let g = /\heh7/ in
+    /\dots/
+    let x = /\heh{n}/ in
+    /\heh{n+1}/
   \end{hminted}
   \caption{A Hazel program that generates an exponential ($2^N$) number of total hole instances}
   \label{fig:hole_renumbering_problem}

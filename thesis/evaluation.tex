@@ -14,11 +14,17 @@ The demonstration of FAR is performed on the \texttt{fill-and-resume-backend} br
 
 To evaluate the performance of evaluation using the environment model, we benchmark the performance of a computationally-expensive function, the tree-recursive Fibonacci function. This function is chosen because it is computationally expensive and does not have a deep recursion depth\footnote{This is because Hazel does not implement TCO, and thus would overflow the stack with too much (tail-)recursion.}. It is also a complete program, i.e., it does not have holes and the hole renumbering and postprocessing steps are not of concern here.
 
-We try out a few variations of the $\text{fib}(n)$ function, shown in \Cref{fig:perf-fib}, for $n\in\{22,23,24,25,26\}$. These numbers were chosen somewhat arbitrarily. They are large enough to allow for reproducible results, and small enough to prevent excessively long runtimes. The first variation is shown in \Cref{fig:perf-fib-more-bindings}, which involves more global variables. The second variation is shown in \Cref{fig:perf-fib-more-branches}, in which an additional branch is added. This branch is never taken (as the third rule's pattern will always match), and it involves some instances of the variable $f$.
+For this experiment, the builtin variables and functions are removed. Restoring the builtins would be very similar to the second program variation described in \Cref{sec:eval-fib-variations}.
 
-For this experiment, the builtin variables and functions are removed. Restoring the builtins would be very similar to the second program variation.
+\subsection{A computationally heavy fibonacci program}
+\label{sec:eval-fib}
 
 The quantitative results of this experiment are shown in \Cref{tab:perf-fib-all}. The results of evaluating \Cref{fig:perf-fib} for various values of $n$ on the \texttt{dev} and \texttt{eval-environment} (abbreviated \texttt{e-e} in the legend) branches are shown in \Cref{fig:perf-fib-graph}. The \texttt{eval-environment} roughly decreases evaluation time by a small, roughly-constant factor for all values of $n$.
+
+\subsection{Variations on the fibonacci program}
+\label{sec:eval-fib-variations}
+
+We try out a few variations of the $\text{fib}(n)$ function, shown in \Cref{fig:perf-fib}, for $n\in\{22,23,24,25,26\}$. These numbers were chosen somewhat arbitrarily. They are large enough to allow for reproducible results, and small enough to prevent excessively long runtimes. The first variation is shown in \Cref{fig:perf-fib-more-bindings}, which involves more global variables. The second variation is shown in \Cref{fig:perf-fib-more-branches}, in which an additional branch is added. This branch is never taken (as the third rule's pattern will always match), and it involves some instances of the variable $f$.
 
 However, the two variations show the difference between evaluation with environments and evaluation with substitution. If we introduce additional global variables as in the first variation, we observe the behavior in \Cref{fig:perf-fib-more-vars-graph}. The performance of the evaluation with substitution is virtually unchanged, while the performance of evaluation with environments increases. The increase is not linear. We expect the slowdown to be logarithmic with respect to the number of elements in the environment. On the other hand, if more variables are introduced in an unevaluated branch as in the second variation, then we observe the opposite effect. This is shown in \Cref{fig:perf-fib-more-branches-graph}. The evaluation time when using substitution increases linearly with respect to the number of extra substitutions.
 
@@ -179,9 +185,15 @@ We compare the performance to evaluation on the \texttt{eval-environment} branch
 
 We explore two sample edit histories and the effect of FAR on the number of evaluation steps. The current implementation does not look back multiple edit states, so any fill operations will only occur if there is a valid fill from the previous edit state.
 
+\subsection{A motivating example}
+\label{sec:eval-far-motivating}
+
 We have an example edit sequence shown in \Cref{fig:far-program-history-fib}. This shows a possible edit sequence around the motivating example in \Cref{fig:far-motivation}. In it, we have an expensive calculation, and hope to resume the result without redoing the expensive computation. The table shows the sequence of edit states (excluding movement edits). For each edit state, the number of steps is shown if regular evaluation is shown, as well as the number of steps for FAR if there is a valid fill operation. The difference in evaluation steps between the FAR evaluation and the regular evaluation is shown (Step $\Delta$), as well as the cumulative difference in evaluation steps. For operations with no valid fill operation, the step difference is zero.
 
 We observe that for the operations before the introduction of the heavy computation $f\ 25$, there is not a significant difference in the number of steps between normal evaluation and FAR evaluation (when applicable). However, after the three steps after the introduction of this computation are valid FAR operations, and the FAR operation is extremely less expensive. A visualization for this is shown in \Cref{fig:perf-far}. With \Cref{fig:perf-no-far}, all edit states after the introduction of the heavy computation also involve the fibonacci calculation. However, in \Cref{fig:perf-far-far}, with FAR we see that subsequent calculations roughly only evaluate the filled expression. The cumulative difference in evaluation steps quickly adds up, as evidenced by \Cref{fig:far-program-history-fib}.
+
+\subsection{Decreased performance with FAR}
+\label{sec:eval-far-decreased}
 
 Another sample program is shown in \Cref{fig:far-program-history-simple}. This explores the result of a simpler and perhaps more average program, without an expensive computation. We observe that in this case, the fill operations are typically more expensive than regular operations. This is largely due to the lack of memoization of the re-evaluation of environments in closures, which is described as future work in \Cref{sec:far-improv-memo-envs}. However, the number of evaluation steps are reasonably on the same order of magnitude as normal evaluation.
 
