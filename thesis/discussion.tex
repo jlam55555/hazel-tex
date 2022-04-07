@@ -1,6 +1,15 @@
 \chapter{Discussion of theoretical results}
 \label{sec:discussion}
 
+\section{Expected performance differences between evaluating with substitution versus environments}
+\label{sec:expected-perf-diff}
+
+\Cref{sec:evaluation-evalenv} discusses the empirical results of a few experiments on the performance of evaluation using the substitution method as originally described and implemented, and evaluation using environments as described in this paper. The result of that section show that the performance gain is highly dependent on the program, and it is not unexpected to see the performance of the substitution model of evaluation to outperform the same program evaluated using the environment model. Thus it is difficult to provide a general result about which model is preferred, strictly for performance reasons. Instead, we only provide the highly-parameterized results in the results of the two variations of the fibonacci program.
+
+A way to remedy this is to collect information about expected or average programs, as described in \Cref{sec:collect-edit-statistics}. The same is true to determine average performance characteristics of FAR, although this would be related to collecting editing behavior, not characteristics of the program itself.
+
+A non-performance reason may tip the scale in favor of either using the substitution model or the evaluation model. As observed throughout this text, the substitution model is much simpler to formally state and implement, and may be sufficient in most use cases. However, environments allow for memoization. Environments also allow an implementation to be more amenable to lower-level implementations, because it does not require the runtime to keep a representation of the internal language (whereas substitution does). However, it is also important to keep in mind that environments in this implementation are closely tied to an immutable data structure (due to the frequency of copying and the efficiency of structural sharing), which may frustrate low-level implementations.
+
 \section{Purity of implementation}
 \label{sec:env-purity}
 The purity of implementation is a recurring theme. While it should not affect the capability of the implementation, there is a strong urge to keep the implementation pure. Elegance, complexity, and runtime overhead is traded off for purity. The main decisions regarding purity are summarized here, and left for the consideration of future implementors.
@@ -8,15 +17,6 @@ The purity of implementation is a recurring theme. While it should not affect th
 One offender of performance is the use of the fixpoint form when evaluating recursive functions. This involves extra evaluation steps for unwrapping fixpoints, and can be avoided with self-referential data structures, and more easily implemented using \mintinline{ocaml}|ref|s.
 
 The evaluation process becomes stateful. In other words, every call to \mintinline{ocaml}|Evaluator.evaluate| takes an \mintinline{ocaml}|EvalState.t| as both input and output. This maintains state but is still technically pure, much like a state monad. This state includes the environment identifier generator, the fill memoization context, and evaluation statistics such as evaluation steps. This complicates the formalization and the implementation, as we now have additional inputs and outputs to each evaluation judgment. This is also likely less performant than if some global state were used instead. This global state would have to be reset at the beginning of each evaluation or resumed evaluation.
-
-\section{Metatheorems governing FAR}
-\label{sec:far-meta}
-
-\todo{filling (from original paper)}
-
-\todo{commutativity}
-
-\todo{all closures will be evaluated exactly once -- this allows holes that have not yet been evaluated in the result to be successfully re-evaluated (assuming program terminates) and maintains the invariant that all closures will be evaluated at the end of evaluation}
 
 \section{FAR for notebook-style editing}
 \label{sec:notebook-ui}
@@ -38,7 +38,8 @@ Additionally, we have a reproducibility benefit here. In most notebook-style edi
       \begin{subfigure}[b]{0.4\paperwidth}
         \inputminted[frame=single]{matlab}{lstings/matlab_notebook_example.m}
         \caption{Sample notebook-style program in MATLAB}
-        \label{fig:matlab-notebook-example}    \end{subfigure}
+        \label{fig:matlab-notebook-example}
+      \end{subfigure}
       \qquad
       \begin{subfigure}[b]{0.4\paperwidth}
         \inputhminted{hazel_notebook_example}

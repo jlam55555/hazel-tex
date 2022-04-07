@@ -88,26 +88,30 @@ def run():
     renum_dev = data_renumbering[1:4, :15]
     renum_eev = data_renumbering[4:, :]
 
+    # add an extra row with the overall time
+    renum_dev = np.concatenate([renum_dev, np.sum(renum_dev, axis=0, keepdims=True)])
+    renum_eev = np.concatenate([renum_eev, np.sum(renum_eev, axis=0, keepdims=True)])
+
     plt.figure()
-    plt.stackplot(n[:15], renum_dev+.01, baseline='zero')
+    plt.plot(n[:15], (renum_dev+.01).T)
     plt.xlabel('Number of holes')
     plt.ylabel('Time (ms)')
     plt.ylim([1, 20000])
     plt.xlim([0, 26])
     plt.grid()
-    plt.legend(['evaluate', 'postprocessing', 'equality check'])
+    plt.legend(['evaluate', 'postprocessing', 'equality check', 'overall'])
     plt.gcf().tight_layout()
     plt.semilogy()
     plt.savefig(f'{IMG_DIR}perf_renum_dev.pdf')
 
     plt.figure()
-    plt.stackplot(n, renum_eev+.01, baseline='zero')
+    plt.plot(n, (renum_eev+.01).T)
     plt.xlabel('Number of holes')
     plt.ylabel('Time (ms)')
     plt.ylim([1, 20000])
     plt.xlim([0, 26])
     plt.grid()
-    plt.legend(['evaluate', 'postprocessing', 'equality check'])
+    plt.legend(['evaluate', 'postprocessing', 'equality check', 'overall'])
     plt.gcf().tight_layout()
     plt.semilogy()
     plt.savefig(f'{IMG_DIR}perf_renum_eev.pdf')

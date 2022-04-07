@@ -5,6 +5,10 @@ To evaluate performance, benchmarks were carried out using the \mintinline{ocaml
 
 There are a number of factors that may affect the consistency of the elapsed time benchmarks. Such factors include the quality of JSOO-generated Javascript, specifics of the Chrome V8 Javascript engine, inaccuracies in the Javascript timing function, and random system fluctuations.
 
+Evaluation of performance of the environment model of evaluation and of the memoized hole tracking are performed on the \texttt{dev} branch and the \texttt{eval-environment} branches of the Hazel repository. The latter branch implements our changes.
+
+The demonstration of FAR is performed on the \texttt{fill-and-resume-backend} branch. This branch is based on the \texttt{eval-environment} branch, and implements a one-step FAR operation. This branch does not achieve parity with the theoretical model of FAR presented in this work; unfinished work and future improvements to the current implementation of FAR are described in \Cref{sec:far-improvements}.
+
 \section{Evaluation performance using the environment model}
 \label{sec:evaluation-evalenv}
 
@@ -14,7 +18,11 @@ We try out a few variations of the $\text{fib}(n)$ function, shown in \Cref{fig:
 
 For this experiment, the builtin variables and functions are removed. Restoring the builtins would be very similar to the second program variation.
 
-The quantitative results of this experiment are shown in \Cref{tab:perf-fib-all}.
+The quantitative results of this experiment are shown in \Cref{tab:perf-fib-all}. The results of evaluating \Cref{fig:perf-fib} for various values of $n$ on the \texttt{dev} and \texttt{eval-environment} (abbreviated \texttt{e-e} in the legend) branches are shown in \Cref{fig:perf-fib-graph}. The \texttt{eval-environment} roughly decreases evaluation time by a small, roughly-constant factor for all values of $n$.
+
+However, the two variations show the difference between evaluation with environments and evaluation with substitution. If we introduce additional global variables as in the first variation, we observe the behavior in \Cref{fig:perf-fib-more-vars-graph}. The performance of the evaluation with substitution is virtually unchanged, while the performance of evaluation with environments increases. The increase is not linear. We expect the slowdown to be logarithmic with respect to the number of elements in the environment. On the other hand, if more variables are introduced in an unevaluated branch as in the second variation, then we observe the opposite effect. This is shown in \Cref{fig:perf-fib-more-branches-graph}. The evaluation time when using substitution increases linearly with respect to the number of extra substitutions.
+
+Combined, these variations show the expected behavior. The raw performance difference is not very large. Substitution ``eagerly'' evaluates by replacing all usages of the variable at binding time, whereas using environments ``lazily'' evaluates at lookup time. Introducing additional global variables increases the number of variables in each environment, slowing down evaluation with environments. However, this does not slow down substitution because these variables are never encountered after being bound. On the other hand, substitution necessarily traverses unevaluated branches, whereas evaluation with environment never reaches those branches.
 
 \begin{listing}
   \inputhminted{perf_fib}
@@ -80,30 +88,34 @@ The quantitative results of this experiment are shown in \Cref{tab:perf-fib-all}
   \centering
   \includegraphics[width=0.7\textwidth]{img/perf_fib.pdf}
   \caption{Performance of evaluating $\text{fib}(n)$}
-  \label{fig:perf-fib}
+  \label{fig:perf-fib-graph}
 \end{figure}
 
 \begin{figure}
   \centering
   \includegraphics[width=0.7\textwidth]{img/perf_fib_more_vars.pdf}
   \caption{Performance of evaluating $\text{fib}(n)$ with extra global variables}
-  \label{fig:perf-fib-more-vars}
+  \label{fig:perf-fib-more-vars-graph}
 \end{figure}
 
 \begin{figure}
   \centering
   \includegraphics[width=0.7\textwidth]{img/perf_fib_more_branches.pdf}
   \caption{Performance of evaluating $\text{fib}(n)$ with an unused branch}
-  \label{fig:perf-fib-more-branches}
+  \label{fig:perf-fib-more-branches-graph}
 \end{figure}
 
 
 \section{Postprocessing performance}
 \label{sec:evaluation-renumbering}
 
-Consider the set of programs described by \Cref{fig:hole_renumbering_problem}.
+Consider the set of programs described by \Cref{fig:hole_renumbering_problem}, which motivate the memoization of hole tracking (\Cref{sec:current-problems}) and the fast structural equality checking algorithm (\Cref{sec:fast-equals}).
 
-\todo{describe this code blowup example}
+We illustrate the performance issues by evaluating the performance issue. The results are shown in tabular form in \Cref{tab:perf-hole-blowup}, and visually in \Cref{fig:perf-renum-dev}. Due to the exponential blowup in elapsed time, we stop recording performance 15 \mintinline{ocaml}|let| statements.
+
+The exponential performance blowup occurs in three places: in evaluation (due to eager substitution of holes), in hole numbering during postprocessing, and in the structural equality check in \mintinline{ocaml}|Model.update_program|. All three occur due to the lack of memoization of hole closurse with a shared environment.
+
+We compare the performance to evaluation on the \texttt{eval-environment} branch which implements memoization of environments in hole numbering and structural equality. This is shown in \Cref{tab:perf-hole-blowup}, and visually in \Cref{fig:perf-renum-eev}. The evaluation time is greatly improved; total evaluation time remains roughly constant and never exceeds 7ms.
 
 \begin{singlespace}
   \begin{table}
@@ -165,6 +177,16 @@ Consider the set of programs described by \Cref{fig:hole_renumbering_problem}.
 \section{FAR performance}
 \label{sec:evaluation-far}
 
+We explore two sample edit histories and the effect of FAR on the number of evaluation steps. The current implementation does not look back multiple edit states, so any fill operations will only occur if there is a valid fill from the previous edit state.
+
+We have an example edit sequence shown in \Cref{fig:far-program-history-fib}. This shows a possible edit sequence around the motivating example in \Cref{fig:far-motivation}. In it, we have an expensive calculation, and hope to resume the result without redoing the expensive computation. The table shows the sequence of edit states (excluding movement edits). For each edit state, the number of steps is shown if regular evaluation is shown, as well as the number of steps for FAR if there is a valid fill operation. The difference in evaluation steps between the FAR evaluation and the regular evaluation is shown (Step $\Delta$), as well as the cumulative difference in evaluation steps. For operations with no valid fill operation, the step difference is zero.
+
+We observe that for the operations before the introduction of the heavy computation $f\ 25$, there is not a significant difference in the number of steps between normal evaluation and FAR evaluation (when applicable). However, after the three steps after the introduction of this computation are valid FAR operations, and the FAR operation is extremely less expensive. A visualization for this is shown in \Cref{fig:perf-far}. With \Cref{fig:perf-no-far}, all edit states after the introduction of the heavy computation also involve the fibonacci calculation. However, in \Cref{fig:perf-far-far}, with FAR we see that subsequent calculations roughly only evaluate the filled expression. The cumulative difference in evaluation steps quickly adds up, as evidenced by \Cref{fig:far-program-history-fib}.
+
+Another sample program is shown in \Cref{fig:far-program-history-simple}. This explores the result of a simpler and perhaps more average program, without an expensive computation. We observe that in this case, the fill operations are typically more expensive than regular operations. This is largely due to the lack of memoization of the re-evaluation of environments in closures, which is described as future work in \Cref{sec:far-improv-memo-envs}. However, the number of evaluation steps are reasonably on the same order of magnitude as normal evaluation.
+
+We note that we only provide evaluation step counts rather than benchmark times for this discussion of FAR. We do not find that benchmarking evaluation is necessary, as it is more or less unchanged from regular evaluation (except for treatment of closures). It may be useful to benchmark the structural diffing algorithm, but this may be more important once a multi-step FAR is implemented. The current structural diffing with a one-step FAR is a linear pass over the expression tree, which should have performance characteristics similar to other linear passes such as type-checking or elaboration, which are not a performance concern.
+
 \begin{singlespace}
   \begin{table}
     \centering
@@ -187,6 +209,22 @@ Consider the set of programs described by \Cref{fig:hole_renumbering_problem}.
     \label{fig:far-program-history-fib}
   \end{table}
 \end{singlespace}
+
+\begin{figure}
+  \centering
+  \begin{subfigure}{0.7\textwidth}
+    \includegraphics[width=\textwidth]{img/perf_no_far.pdf}
+    \caption{Normal evaluation}
+    \label{fig:perf-no-far}
+  \end{subfigure}
+  \begin{subfigure}{0.7\textwidth}
+    \includegraphics[width=\textwidth]{img/perf_far.pdf}
+    \caption{With one-step FAR}
+    \label{fig:perf-far-far}
+  \end{subfigure}
+  \caption{Number of evaluation steps per edit in \Cref{fig:far-program-history-fib}}
+  \label{fig:perf-far}
+\end{figure}
 
 \begin{singlespace}
   \begin{table}
@@ -212,22 +250,6 @@ Consider the set of programs described by \Cref{fig:hole_renumbering_problem}.
     \label{fig:far-program-history-simple}
   \end{table}
 \end{singlespace}
-
-\begin{figure}
-  \centering
-  \begin{subfigure}{0.7\textwidth}
-    \includegraphics[width=\textwidth]{img/perf_no_far.pdf}
-    \caption{Normal evaluation}
-    \label{fig:perf-no-far}
-  \end{subfigure}
-  \begin{subfigure}{0.7\textwidth}
-    \includegraphics[width=\textwidth]{img/perf_far.pdf}
-    \caption{With one-step FAR}
-    \label{fig:perf-far-far}
-  \end{subfigure}
-  \caption{Number of evaluation steps per edit in \Cref{fig:far-program-history-fib}}
-  \label{fig:perf-far}
-\end{figure}
 
 %%% Local Variables:
 %%% mode: latex
