@@ -9,7 +9,7 @@ Evaluation of performance of the environment model of evaluation and of the memo
 
 The demonstration of FAR is performed on the \texttt{fill-and-resume-backend} branch. This branch is based on the \texttt{eval-environment} branch, and implements a one-step FAR operation. This branch does not achieve parity with the theoretical model of FAR presented in this work; unfinished work and future improvements to the current implementation of FAR are described in \Cref{sec:far-improvements}.
 
-\section{Evaluation performance using the environment model}
+\section{Evaluation performance using the environment \\ model}
 \label{sec:evaluation-evalenv}
 
 To evaluate the performance of evaluation using the environment model, we benchmark the performance of a computationally-expensive function, the tree-recursive Fibonacci function. This function is chosen because it is computationally expensive and does not have a deep recursion depth\footnote{This is because Hazel does not implement TCO, and thus would overflow the stack with too much (tail-)recursion.}. It is also a complete program, i.e., it does not have holes and the hole renumbering and postprocessing steps are not of concern here.
@@ -24,7 +24,7 @@ The quantitative results of this experiment are shown in \Cref{tab:perf-fib-all}
 \subsection{Variations on the fibonacci program}
 \label{sec:eval-fib-variations}
 
-We try out a few variations of the $\text{fib}(n)$ function, shown in \Cref{fig:perf-fib}, for $n\in\{22,23,24,25,26\}$. These numbers were chosen somewhat arbitrarily. They are large enough to allow for reproducible results, and small enough to prevent excessively long runtimes. The first variation is shown in \Cref{fig:perf-fib-more-bindings}, which involves more global variables. The second variation is shown in \Cref{fig:perf-fib-more-branches}, in which an additional branch is added. This branch is never taken (as the third rule's pattern will always match), and it involves some instances of the variable $f$.
+We try out a few variations of the $\text{fib}(n)$ function, shown in \Cref{fig:perf-fib}. Results are collected for $n\in\{22,23,24,25,26\}$. These numbers were chosen somewhat arbitrarily. They are large enough to allow for reproducible results, and small enough to prevent excessively long runtimes. The first variation is shown in \Cref{fig:perf-fib-more-bindings}, which involves more global variables. The second variation is shown in \Cref{fig:perf-fib-more-branches}, in which an additional branch is added. This branch is never taken (as the third rule's pattern will always match), and it involves some instances of the variable $f$.
 
 However, the two variations show the difference between evaluation with environments and evaluation with substitution. If we introduce additional global variables as in the first variation, we observe the behavior in \Cref{fig:perf-fib-more-vars-graph}. The performance of the evaluation with substitution is virtually unchanged, while the performance of evaluation with environments increases. The increase is not linear. We expect the slowdown to be logarithmic with respect to the number of elements in the environment. On the other hand, if more variables are introduced in an unevaluated branch as in the second variation, then we observe the opposite effect. This is shown in \Cref{fig:perf-fib-more-branches-graph}. The evaluation time when using substitution increases linearly with respect to the number of extra substitutions.
 

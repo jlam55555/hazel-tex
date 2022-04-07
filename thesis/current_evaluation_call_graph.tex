@@ -1,7 +1,7 @@
 \begin{tikzpicture}
   \node[draw=red] (action) {\mintinline{ocaml}|ModelAction.EditAction.t|};
   \node[draw=black] (syn_action) [below=of action] {\mintinline{ocaml}|Action_Exp.syn_perform|};
-  \node[draw=red] (model) [right=80pt of syn_action] {\mintinline{ocaml}|Model.t|};
+  \node[draw=red] (model) [right=60pt of syn_action] {\mintinline{ocaml}|Model.t|};
   \node[draw=black] (elaborate) [below=of syn_action] {\mintinline{ocaml}|Elaborator_Exp.elab|};
   \node[draw=black] (detect_fill) [below=of elaborate] {\mintinline{ocaml}|DHExpDiff.diff_dhexp|};
   \node[draw=black] (preprocess) [below left=of detect_fill] {\mintinline{ocaml}|FillAndResume.preprocess|};

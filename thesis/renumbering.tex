@@ -21,7 +21,7 @@ To illustrate why physical equality is used to identify environments, consider t
   [x\leftarrow 2]\hehole^1 + [x\leftarrow 2]\hehole^1
 \] In this case, hole 1 has two instances with two environments with structurally equal bindings. If the argument to the second invocation of $f$ is changed to $3$, then the holes will have different environments and may thus fill to different values. This may be confusing to the Hazel user; what appears to be a single hole closure is actually two different hole closures which incidentally have the same values bound to its variables.
 
-An intuitive way of understanding the use of physical equality is that separate \textit{instantiations} of the same hole should be distinguished. This is highly related to function applications. A hole may only appear multiple times in the result in two different ways: it may exist in the body of a function that is multiple times (multiple hole instantiations), or it may appear in a hole that is referenced from other holes (shared hole instantiation). An implication of this is that the values bound to an environment do not affect whether it is distinguished from another hole closure.
+An intuitive way of understanding the use of physical equality is that separate \textit{instantiations} of the same hole should be distinguished. This is highly related to function applications. A hole may only appear multiple times in the result in two different ways: it may exist in the body of a function that is multiple times (multiple hole instantiations), or it may appear in a hole that is referenced from other holes (shared hole instantiation).
 
 \begin{listing}
   \inputhminted{physical_equality_illustration}
@@ -29,75 +29,47 @@ An intuitive way of understanding the use of physical equality is that separate 
   \label{fig:physical-equality-illustration}
 \end{listing}
 
-% TODO: describe current hole instance numbering
-% TODO: describe hole blowup problem
-% TODO: explain "renumbering" word (used in code)
-% TODO: discuss hole numbering order (old/new)
-% TODO: describe solution with memoization of environments
-% TODO: describe why hole parents breaks some memoization (again)
+\section{The existing hole instance numbering algorithm}
+\label{sec:existing-hole-numbering}
 
-\begin{singlespace}
-  % see: https://tex.stackexchange.com/a/110156
-  \begin{figure}
-    \centering
-    \begin{subfigure}{\textwidth}
-      \begin{mdframed}[bottomline=false]
-        \input{renumber_old_bigstep}
-      \end{mdframed}
-    \end{subfigure}
-  \end{figure}
-  \begin{figure}
-    \ContinuedFloat
-    \begin{subfigure}{\textwidth}
-      \begin{mdframed}[topline=false]
-        \input{renumber_old_bigstep2}
-      \end{mdframed}
-    \end{subfigure}
-    \caption{Big-step semantics for the previous hole instance numbering algorithm}
-    \label{fig:big-step-renumber-old-rules}
-  \end{figure}
-\end{singlespace}
+Hole numbering is a process that follows evaluation and operates on the evaluation result\footnote{The function in the existing codebase that performs hole renumbering is \mintinline{ocaml}|Program.renumber|. We may refer to it throughout this text as ``hole numbering,'' ``hole renumbering,'' or ``hole tracking.''}. It assigns a hole instance number to each hole. The hole numbering algorithm is not discussed in the Hazelnut Live description. We also will not describe it as a set of judgments, for brevity. It is a breadth-first search of the result, recursing through holes. When a hole is encountered, it is assigned a unique hole instance number and added to a data structure \mintinline{ocaml}|HoleInstanceInfo.t| that keeps track of all hole instances. Each hole instance's hole number, hole instance number, hole closure environment, and path\footnote{The path of a hole is the recursive list of hole parents that must be traversed in order to reach a hole. In other words, this is the path to a hole if we envision the result expression as a tree, in which each hole is a node that fathers all of its variable binding expressions.} is stored in this data structure. The \mintinline{ocaml}|HoleInstanceInfo.t| is in turn stored in the \mintinline{ocaml}|Result.t| that stores all of the information about an evaluated program. The primary use of \mintinline{ocaml}|HoleInstanceInfo.t| is for the context inspector. With this data structure, users may easily iterate all instances of a selected hole, examine the hole path of a selected hole, examine the environment of a selected hole, or navigate to another hole instance.
+
+% \begin{singlespace}
+%   % see: https://tex.stackexchange.com/a/110156
+%   \begin{figure}
+%     \centering
+%     \begin{subfigure}{\textwidth}
+%       \begin{mdframed}[bottomline=false]
+%         \input{renumber_old_bigstep}
+%       \end{mdframed}
+%     \end{subfigure}
+%   \end{figure}
+%   \begin{figure}
+%     \ContinuedFloat
+%     \begin{subfigure}{\textwidth}
+%       \begin{mdframed}[topline=false]
+%         \input{renumber_old_bigstep2}
+%       \end{mdframed}
+%     \end{subfigure}
+%     \caption{Big-step semantics for the previous hole instance numbering algorithm}
+%     \label{fig:big-step-renumber-old-rules}
+%   \end{figure}
+% \end{singlespace}
 
 \section{Issues with the current implementation}
 \label{sec:current-problems}
 
-Consider the program shown in \Cref{fig:sample_hazel_program}.
+Consider the program shown in \Cref{fig:hole_renumbering_problem}. A performance issue appears with the existing evaluator with the program shown in \Cref{fig:hole_renumbering_problem}\footnote{This was first brought to attention by a GitHub issue at \url{https://github.com/hazelgrove/hazel/issues/536}.}. As we increase the number of consecutive \mintinline{ocaml}|let| expressions, we get an exponential slowdown that makes evaluation impractical for $n>10$. The results of running this program for several values of $n$ is shown in tabular form in \Cref{tab:perf-hole-blowup} and graphically at \Cref{fig:perf-renum-dev}.
+
+For now, let us consider the case when $n=3$. When evaluating with environments\footnote{When evaluating using the substitution model, evaluation also slows down exponentially, because the variables are eagerly substituted into the hole environments. We do not have a performance issue with evaluation with environments because of lazy variable lookups.}, the result is shown in \Cref{fig:hole-renumbering-solution-structure}.
+
+The program slowdown happens in the hole numbering process. Recall from \Cref{sec:existing-hole-numbering} that the hole numbering process is a simple tree traversal algorithm. Thus, each time a hole (with the same environment) is encountered, it and all of its descendant holes will be given more hole instance numbers. This leads to the hole numbering shown in \Cref{fig:hole-renumbered-result}. We see that there are four instances of hole 1, two instances of hole 2, and one instance of hole 3. In sum, we see that there are eight total hole instances. It should be intuitive that the number of holes increases by powers of two; the total number of holes (including the instance of hole 4 in this case) will be $2^N$.
+
+Clearly this is undesirable from an efficiency perspective. It is also undesirable from the perspective that there is only one instantiation of each of the holes. While there are multiple paths to each node, we would like to change the representation to match that of the unique hole closures or hole instantiations as described in \Cref{sec:instance-illustration}.
 
 \begin{listing}
   \centering
-  \begin{hminted}
-    let a = /\heh1/ in
-    let b = /\lbd/ x . { a + x + /\heh2/ } in
-    let c = /\heh3/ in
-    /\heh4/ + b 1 + f /\heh5/
-  \end{hminted}
-  \caption{A seemingly innocuous Hazel program}
-  \label{fig:sample_hazel_program}
-\end{listing}
-
-A performance issue appears with the existing evaluator with the program shown in \Cref{fig:hole_renumbering_problem}.
-
-% TODO: describe performance issue
-
-% TODO: describe the existing hole renumbering implementation
-
-\section{Hole instances and closures}
-\label{sec:hole_instances_and_closures}
-
-\begin{listing}
-  \centering
-  \begin{hminted}
-    let a = /\heh1/ in
-    let b = /\heh2/ in
-    let c = /\heh3/ in
-    let d = /\heh4/ in
-    let e = /\heh5/ in
-    let f = /\heh6/ in
-    let g = /\heh7/ in
-    /\dots/
-    let x = /\heh{n}/ in
-    /\heh{n+1}/
-  \end{hminted}
+  \inputhminted{holes_consecutive}
   \caption{A Hazel program that generates an exponential ($2^N$) number of total hole instances}
   \label{fig:hole_renumbering_problem}
 \end{listing}
@@ -126,20 +98,20 @@ A performance issue appears with the existing evaluator with the program shown i
   \begin{tikzpicture}
     \node[] (hole41) {$[\env^4]\hehole^{4:1}$};
     \node[below=of hole41] (hole31) {$[\env^3]\hehole^{3:1}$};
-    \node[below=of hole31] (hole21) {$[\env^2]\hehole^{2:1}$};
-    \node[below=of hole21] (hole11) {$[\varnothing]\hehole^{1:1}$};
-    \node[right=of hole21] (hole12) {$[\varnothing]\hehole^{1:2}$};
-    \node[right=of hole12] (hole13) {$[\varnothing]\hehole^{1:3}$};
-    \node[above=of hole13] (hole22) {$[\env^2]\hehole^{2:2}$};
-    \node[right=of hole22] (hole14) {$[\varnothing]\hehole^{1:4}$};
+    \node[below=of hole31] (hole21) {$[\env^2]\hehole^{2:2}$};
+    \node[below=of hole21] (hole11) {$[\varnothing]\hehole^{1:4}$};
+    \node[left=of hole21] (hole12) {$[\varnothing]\hehole^{1:3}$};
+    \node[left=of hole12] (hole13) {$[\varnothing]\hehole^{1:2}$};
+    \node[above=of hole13] (hole22) {$[\env^2]\hehole^{2:1}$};
+    \node[left=of hole22] (hole14) {$[\varnothing]\hehole^{1:1}$};
 
-    \draw[->] (hole41) to[] node[right] {$c$} (hole31);
-    \draw[->] (hole41) to[] node[below left] {$b$} (hole22);
-    \draw[->] (hole41) to[] node[above right] {$a$} (hole14);
-    \draw[->] (hole31) to[] node[right] {$b$} (hole21);
-    \draw[->] (hole31) to[] node[above right] {$a$} (hole12);
-    \draw[->] (hole22) to[] node[above right] {$a$} (hole13);
-    \draw[->] (hole21) to[] node[above right] {$a$} (hole11);
+    \draw[->] (hole41) to[] node[left] {$c$} (hole31);
+    \draw[->] (hole41) to[] node[below right] {$b$} (hole22);
+    \draw[->] (hole41) to[] node[above left] {$a$} (hole14);
+    \draw[->] (hole31) to[] node[left] {$b$} (hole21);
+    \draw[->] (hole31) to[] node[above left] {$a$} (hole12);
+    \draw[->] (hole22) to[] node[above left] {$a$} (hole13);
+    \draw[->] (hole21) to[] node[above left] {$a$} (hole11);
   \end{tikzpicture}
   \caption{Numbered hole instances in the result of \Cref{fig:hole_renumbering_problem}}
   \label{fig:hole-renumbered-result}
@@ -148,10 +120,22 @@ A performance issue appears with the existing evaluator with the program shown i
 \subsection{Hole instance path versus hole closure parents}
 \label{sec:closure-parents}
 
+Visually, we would like to change the hole tracking to use a representation more similar to \Cref{fig:hole-renumbering-solution-structure} rather than that of \Cref{fig:hole-renumbered-result}. In the old representation, each hole instance is uniquely identified by a hole number and hole path.
 
+In the new representation, hole instantiations are uniquely identified by hole number and environment, and are not uniquely identified by a path anymore. Thus, for each hole closure we instead keep track of a list of its parent holes.
+
+We note that these two representations of a graph are equivalent\footnote{This structure is more specifically a join-semilattice.}, assuming that nodes sharing an environment are considered to be physically equal. The first describes the path to each node, while the latter is a well-known adjacency list. Either representation of a graph can be used to construct the other, but the latter is much more efficient in the case of a dense graph.
+
+Changing the structure from using hole paths to hole parents forces a minor change to the Hazel UI. When a user selects a hole, rather than showing the path to the hole, the list of parents to the hole are shown instead.
 
 \section{Algorithmic concerns and a two-stage approach}
 \label{sec:two-stage-renumber}
+
+To efficiently build the new hole-tracking data structure, we expect to have a fast lookup of hole numbers and environment identifiers. On the other hand, we want the interface of this data structure to be similar to the interface of \mintinline{ocaml}|HoleInstanceInfo.t|: the user should be able to look up environments by hole number and hole closure number.
+
+To efficiently handle both of these interfaces, we require two different data structures. The first is an auxiliary data structure \mintinline{ocaml}|HoleClosureInfo_.t| that is a map $\hci:(u,\sigma)\mapsto(i,\pth)$ (where $\pth$ indicates the list of hole closure parents). The second is the data structure that will be used for the context inspector and hole closure lookups, \mintinline{ocaml}|HoleClosureInfo.t|, that is a map $\hci:(u,i)\mapsto(\sigma,\pth)$. The maps are implemented as hashmaps for efficient lookups and updates\footnote{Note that this is one of the few places where a hashtable implementation is appropriate in the context of this project, since we do not copy these data structures. However, there will likely not be a major performance benefit; the main benefit lies in memoizing environments.}. The first stage of this algorithm is to build the \mintinline{ocaml}|HoleClosureInfo_.t|; the second stage is to convert it to a \mintinline{ocaml}|HoleClosureInfo.t|\footnote{It is a good time to bring up whether algorithmic efficiency is a matter of concern at all }.
+
+For convenience, we do not use two different symbols for these two data structures; the difference is purely an implementation detail regarding the construction of the data structure. The conversion from \mintinline{ocaml}|HoleClosureInfo_.t| to \mintinline{ocaml}|HoleClosureInfo.t| is trivial and will not be described here in detail. It simply involves looping over the unique hole closures and changing the mapping to be indexed by hole number and hole closure number.
 
 \begin{figure}
   \centering
@@ -164,8 +148,12 @@ A performance issue appears with the existing evaluator with the program shown i
   \label{fig:big-step-renumber-new-rules}
 \end{figure}
 
+\subsection{Hole closure numbering order}
+\label{sec:numbering-order}
 
-\section{Memoization and unification with closure post-processing}
+The order of the numbers assigned to hole closures is not specified in the algorithm shown in \Cref{fig:big-step-renumber-new-rules}, but it is a consideration in the implementation. In the existing implementation, the evaluation result is traversed in a breadth-first search (BFS) order. On the other hand, our implementation is more simply implemented using a depth-first search (DFS) order. This changes the order that hole closures are encountered and numbered. While the hole closure number is not specified explicitly ordered value, certain orderings may be more intuitive to the user. A choice of explicit hole numbering order is left to future work.
+
+\section{Unification with closure post-processing}
 \label{sec:renumbering_memoization}
 
 \subsection{Modifications to the instance numbering rules}
@@ -185,13 +173,14 @@ A performance issue appears with the existing evaluator with the program shown i
   \label{fig:big-step-postprocessing-rules}
 \end{figure}
 
-\subsection{Fast evaluation result structural equality checking}
+\section{Fast structural equality checking}
 \label{sec:fast-equals}
 
-\section{Differences in the hole instance numbering}
-\label{sec:differences_numbering}
+After the hole instance numbering is solved, there is an additional performance issue that is related to a recursive traversal of the evaluation result. After evaluation and hole numbering, there is an additional step (located in \mintinline{ocaml}{Model.update_program}) that compares two evaluation results (\mintinline{ocaml}|Result.t|) using a structural equality\footnote{Structural equality (\mintinline{ocaml}|==|) is implemented by recursively checking the value equality of two expressions, and can be thought of as a tree traversal.} check.
 
-% two-stage to one-stage approach
+This step is also very slow, so we memoize it by environments. We implement a manual structural checking algorithm, \mintinline{ocaml}|DHExp.fast_equals|. For any leaf node (node with no subexpressions), the value of the node is compared for equality. For branch nodes (nodes with subexpressions), the nodes are equal if subexpressions are equal and if the node's properties are equal. Importantly, the equality check for environments is simply to check if the environment identifiers are equal.
+
+A comparison of the performance before and after this change can be visualized in \Cref{tab:perf-hole-blowup}.
 
 %%% Local Variables:
 %%% mode: latex

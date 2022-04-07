@@ -1,0 +1,10 @@
+let a = /\heh1/ in
+let b = /\heh2/ in
+let c = /\heh3/ in
+let d = /\heh4/ in
+let e = /\heh5/ in
+let f = /\heh6/ in
+let g = /\heh7/ in
+/\dots/
+let x = /\heh{n}/ in
+/\heh{n+1}/
