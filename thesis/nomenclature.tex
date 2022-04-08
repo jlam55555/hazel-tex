@@ -81,12 +81,9 @@
     $d\textsf{ value}$ & Value \\
     $d\textsf{ final}$ & Final \\
     $\env\vdash d\Downarrow d'$ & Evaluation \\
-    $d\pp d'$ & Postprocessing \\
-    $d\pplc d'$ & Postprocessing ($\lambda$-conversion) \\
-    $d\ppn(\hci,d')$ & Postprocessing (hole closure numbering) \\
     \hline\hline
   \end{tabular}
-  \caption{Hazel evaluation and postprocessing judgments}
+  \caption{Hazel evaluation judgments}
   \label{tab:symb_hazel_dhexp}
 \end{table}
 
@@ -96,10 +93,13 @@
     \hline\hline
     $\hci$ & Hole instance/closure information \\
     $\hid$ & Hole instance/closure id generation function \\
-    $\pth$ & Hole instance \\
+    $\pth$ & Hole closure parent \\
+    $d\pp d'$ & Postprocessing \\
+    $d\pplc d'$ & Postprocessing ($\lambda$-conversion) \\
+    $\hci,\pth\vdash d\ppn d'\dashv\hci'$ & Postprocessing (hole closure numbering) \\
     \hline\hline
   \end{tabular}
-  \caption{Hazel postprocessing}
+  \caption{Hazel postprocessing judgments}
   \label{tab:symb_hazel_dhexp}
 \end{table}
 

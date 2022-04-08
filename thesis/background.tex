@@ -3,7 +3,7 @@
 
 This chapter is intended to provide a primer to the theory of functional programming and programming languages, as relevant to this work on Hazel. The work performed for this thesis is concerned with the dynamic semantics of Hazel.
 
-\Cref{sec:prog-lang-def} is concerned with explaining the notation used throughout this paper to describe formal systems. \Cref{sec:fp-lc} is concerned with incrementally building up the conceptual foundation for the gradually-typed $\lambda$-calculus, which Hazel is heavily based on. In this section, the syntax and static semantics of the $\lambda$-calculus are explored; even though not directly tied to the work performed in this, these are critical to understanding the Hazel system. Much of the material presented in this section is standard material in a introductory text in programming language theory such as \cite{harper2016practical}. \Cref{sec:interpreters} provides some detail on different types of programming language implementations, which is standard material in an introductory compilers text such as \cite{aho86}. In particular, this section sheds some light on the rationale behind switching from an evaluation model based on substitution to an evaluation model based on environments, which forms a large part of this thesis work. \Cref{sec:prog-intf} provides an overview of structural editors. Finally, \Cref{sec:cmtt} provides some background on contextual modal type theory (CMTT), which forms the conceptual precedent for the hole-filling operation.
+\Cref{sec:prog-lang-def} is concerned with explaining the notation used throughout this paper to describe formal systems. \Cref{sec:fp-lc} is concerned with incrementally building up the conceptual foundation for the gradually-typed $\lambda$-calculus, which Hazel is heavily based on. In this section, the syntax and static semantics of the $\lambda$-calculus are explored; even though not directly tied to the work performed in this, these are critical to understanding the Hazel system. Much of the material presented in this section is standard material in a introductory text in programming language theory such as \cite{harper2016practical}. \Cref{sec:interpreters} provides some detail on different types of programming language implementations, which is standard material in an introductory compilers text such as \cite{aho86}. In particular, this section sheds some light on the rationale behind switching from an evaluation model based on substitution to an evaluation model based on environments, which forms a large part of this thesis work. \Cref{sec:prog-intf} provides an overview of structural editors.
 
 \section{Specifications of programming languages}
 \label{sec:prog-lang-def}
@@ -497,11 +497,6 @@ Burckhardt et al. describes live programming environments as providing continuou
 Computational notebooks, such as in IPython/Jupyter Notebook \cite{perez2007ipython} or MATLAB, is another trend in programming languages that has been popular in scientific applications. They provide much feedback about program's dynamic state, especially interactively or graphically. Notebook-style editing allows one to intersperse editing and evaluation of a program. Programs may be run in sections (potentially out of order), maintaining state between sections evaluations -- this is typically for efficiency reasons. There is a large design space in current computational notebooks, with many possible variations in code evaluation, editing semantics, and displaying notebook outputs \cite{lau2020design}.
 
 Hazel may be considered a live editor as it attempts to eliminate the feedback gap, by providing static and dynamic feedback throughout the lifetime of then program. The fill-and-resume functionality described in \cite{conf/popl/HazelnutLive19} and implemented in this work provide a novel possible implementation of notebook-like partial evaluation.
-
-\section{Contextual modal type theory}
-\label{sec:cmtt}
-
-\todo{implement this section; background for hole filling}
 
 %%% Local Variables:
 %%% mode: latex

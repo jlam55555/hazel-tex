@@ -9,14 +9,14 @@ Evaluation of performance of the environment model of evaluation and of the memo
 
 The demonstration of FAR is performed on the \texttt{fill-and-resume-backend} branch. This branch is based on the \texttt{eval-environment} branch, and implements a one-step FAR operation. This branch does not achieve parity with the theoretical model of FAR presented in this work; unfinished work and future improvements to the current implementation of FAR are described in \Cref{sec:far-improvements}.
 
-\section{Evaluation performance using the environment \\ model}
+\section{Evaluation of performance using the environment model}
 \label{sec:evaluation-evalenv}
 
 To evaluate the performance of evaluation using the environment model, we benchmark the performance of a computationally-expensive function, the tree-recursive Fibonacci function. This function is chosen because it is computationally expensive and does not have a deep recursion depth\footnote{This is because Hazel does not implement TCO, and thus would overflow the stack with too much (tail-)recursion.}. It is also a complete program, i.e., it does not have holes and the hole renumbering and postprocessing steps are not of concern here.
 
 For this experiment, the builtin variables and functions are removed. Restoring the builtins would be very similar to the second program variation described in \Cref{sec:eval-fib-variations}.
 
-\subsection{A computationally heavy fibonacci program}
+\subsection{A computationally expensive fibonacci program}
 \label{sec:eval-fib}
 
 The quantitative results of this experiment are shown in \Cref{tab:perf-fib-all}. The results of evaluating \Cref{fig:perf-fib} for various values of $n$ on the \texttt{dev} and \texttt{eval-environment} (abbreviated \texttt{e-e} in the legend) branches are shown in \Cref{fig:perf-fib-graph}. The \texttt{eval-environment} roughly decreases evaluation time by a small, roughly-constant factor for all values of $n$.
@@ -32,7 +32,7 @@ Combined, these variations show the expected behavior. The raw performance diffe
 
 \begin{listing}
   \inputhminted{perf_fib}
-  \caption{An evaluation-heavy Hazel program with no holes}
+  \caption{A computationally expensive Hazel program with no holes}
   \label{fig:perf-fib}
 \end{listing}
 
