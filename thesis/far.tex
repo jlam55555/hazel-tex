@@ -600,18 +600,7 @@ Step counting may be implemented simply by incrementing the count on each call t
 \section{Differences from the substitution model}
 \label{sec:far-sub}
 
-The FAR operation is much simpler when evaluating with substitution rather than with environments. With substitution, we eliminate the need for pre- and post-processing steps, and dealing with re-evaluating closures. However, this comes at the cost of not being able to memoize repeated instances of the same hole closure. The original description of FAR from \cite{conf/popl/HazelnutLive19} is reproduced in \Cref{fig:far-substitution}. The equals (=) operator is used to indicate the FAR operation here; it is meant to symbolize the mix of substitution and evaluation that is presented here. The hole closure notation from \cite{conf/popl/HazelnutLive19}, in which the hole closure is represented using a subscript, is also used here, since the substitution model doesn't have the concept of separate closures.
-
-\begin{figure}
-  \centering
-  \begin{mdframed}
-    \begin{singlespace}
-      \input{far_substitution}
-    \end{singlespace}
-  \end{mdframed}
-  \caption{FAR using the substitution model, reproduced from \cite{conf/popl/HazelnutLive19}}
-  \label{fig:far-substitution}
-\end{figure}
+The FAR operation is much simpler when evaluating with substitution rather than with environments. With substitution, we eliminate the need for pre- and post-processing steps, and dealing with re-evaluating closures. However, this comes at the cost of not being able to memoize repeated instances of the same hole closure. The original description of FAR from \cite{conf/popl/HazelnutLive19} is reproduced in \Cref{sec:far-substitution}. The equals (=) operator is used to indicate the FAR operation here; it is meant to symbolize the mix of substitution and evaluation that is presented here. The hole closure notation from \cite{conf/popl/HazelnutLive19}, in which the hole closure is represented using a subscript, is also used here, since the substitution model doesn't have the concept of separate closures.
 
 What remains the same between the environment model and the substitution model is the need for an algorithm to detect the fill parameters, for which the structural diff algorithm presented in \Cref{sec:far-detect-structural-diff} is still applicable.
 

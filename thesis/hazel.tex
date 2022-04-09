@@ -59,7 +59,7 @@ Previously, we have been introducing concepts using a pseudo-mathematical notati
 
 Hazel is implemented in Reason (alternatively, ReasonML), which is a dialect of OCaml that offers a JavaScript-like syntax. The Reason code used in this report will be limited to function names and types. Module names are denoted \texttt{PascalCase}, whereas function and type names are \texttt{snake\_case}. Conventionally, OCaml modules that export a type export a single type called \texttt{t}. As an example, \mintinline{ocaml}|DHExp.t| refers to the primarily-relevant type from the \mintinline{ocaml}|DHExp| module, the type that represents internal expressions $d$. On the other hand, \mintinline{ocaml}|Evaluator.evaluate| refers to the \mintinline{ocaml}|evaluate| function in the \mintinline{ocaml}|Evaluator| module. All functions and types will be prefixed with their module names for maximum clarity.
 
-\section{Hazel semantics}
+\section{Hazelnut semantics}
 \label{sec:hazel-semantics}
 
 Hazel is rigorously defined using a bidirectional semantics. A high-level overview of the foundational papers on Hazelnut (syntax and static semantics) and Hazelnut Live (elaboration and dynamic semantics) is provided here, but a thorough explanation is deferred to the original descriptions \cite{conf/popl/Hazelnut17,conf/popl/HazelnutLive19}.
@@ -67,22 +67,27 @@ Hazel is rigorously defined using a bidirectional semantics. A high-level overvi
 \subsection{Hazelnut syntax}
 \label{sec:hazel-syntax}
 
-The grammar of Hazel's external language is defined as follows.
+The grammar of Hazelnut's external language is reproduced in \Cref{fig:hazelnut-syntax}.
 
-\begin{singlespace}
-  \begin{align*}
-    \tau &::= \tau\to\tau
-           \mid b
-           \mid \tehole \\
-    e &::= c
-        \mid x
-        \mid\lambda x:\tau.e
-        \mid e\ e
-        \mid e:\tau
-        \mid \hehole
-        \mid \hhole{e}
-  \end{align*}
-\end{singlespace}
+\begin{figure}
+  \centering
+  \begin{singlespace}
+    \begin{align*}
+      \tau &::= \tau\to\tau
+             \mid b
+             \mid \tehole \\
+      e &::= c
+          \mid x
+          \mid\lambda x:\tau.e
+          \mid e\ e
+          \mid e:\tau
+          \mid \hehole
+          \mid \hhole{e}
+    \end{align*}
+  \end{singlespace}  
+  \caption{Hazelnut syntax}
+  \label{fig:hazelnut-syntax}
+\end{figure}
 
 This is very similar to \gtlc{}. The $\gtlch{}$ type is rewritten as $\tehole$ and pronounced the ``hole type.'' An expression form for type ascription is added. Most notably, there is the addition of empty and non-empty expression holes, which are denoted $\hehole$ and $\hhole{e}$, respectively.
 
