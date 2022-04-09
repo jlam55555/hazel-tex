@@ -1,6 +1,13 @@
 \chapter{Future work}
 \label{sec:future_work}
 
+\section{Simplification of the postprocessing algorithms}
+\label{sec:postprocessing-simplification}
+
+The postprocessing algorithms presented in \Cref{sec:postprocessing-substitution,sec:hole-numbering-algorithm} are both memoized to avoid repeatedly postprocessing an environment multiple times. However, the latter algorithm (hole numbering) complicates memoization. This is due to the fact that holes need to be re-postprocessed each time it is encountered in a new parent in order to track the closure parents.
+
+It would be desirable if we can avoid working around this, perhaps by reformulating the way hole parents are tracked. A possible solution is to implementing hole parent tracking as a separate postprocessing pass after hole closure numbering.
+
 \section{Improvements to FAR}
 \label{sec:far-improvements}
 
@@ -52,6 +59,13 @@ Another useful feature to evaluate FAR is to show evaluation statistics in the U
 The effects of switching evaluation to use environments instead of substitution, and the effect of different methods of choosing a previous edit state for FAR may drastically change the expected performance gain. We may only quantify expected differences in performance when concerned with specific types of programs or editing patterns.
 
 Thus it will be useful to collect empirical statistics about user editing patterns, in order to gain a useful insight into the general expected effect on performance of this work. This information will likely help inform many other Hazel subprojects. Since Hazel is hosted online and is accessible to all, collecting usage statistics is technically very easy. Other online programming language environments, such as the Hedy incremental programming environment for programming education \cite{hermans2020hedy,gilsing2021gradual}, have collected user editing statistics to help direct their work.
+
+\section{Generalization of memoized methods}
+\label{sec:generalized-memoization}
+
+Memoization plays an important part of this work. Memoization of environment plays a role in the $\lambda$-conversion postprocessing (\Cref{sec:postprocessing-substitution}), hole numbering postprocessing (\Cref{sec:hole-numbering-algorithm}), structural equality checking (\Cref{sec:fast-equals}), evaluation of filled expressions (\Cref{sec:re-eval}), and re-evaluation of environments (\Cref{sec:far-improv-memo-envs}). Despite this, each time memoization is used, the implementation and formalization are ad hoc. This is due to the scattered discovery of performance problems and realization that memoization would be useful.
+
+A future implementation of memoized algorithms will be well-served by a generalized characterization of memoization by environments. This should include a generalized notation, so that new memoized algorithms can be easily introduced. This should also include a precise characterization of what algorithms may be memoized; for example, the difficulty presented in \Cref{sec:postprocessing-simplification} is due to the difficulty of memoizing the hole parent tracking process as part of the hole numbering process.
 
 \section{Mechanization of metatheorems and rules}
 \label{sec:formalization}
