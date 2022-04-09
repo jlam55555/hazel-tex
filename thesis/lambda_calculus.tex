@@ -1,0 +1,315 @@
+\chapter{Primer to the $\lambda$-calculus}
+\label{sec:lambda-calculus-primer}
+
+This appendix acts as a self-contained primer on the $\lambda$-calculus, which serves as the theoretical foundation for the Hazel programming language and many other functional programming languages. Much of this material comes from a standard introductory text in programming languages, such as \cite{harper2016practical}. While this thesis focuses on the dynamic semantics, we do not attempt to separate it from the grammar and static semantics of the $\lambda$-calculus, for they are intimately connected.
+
+\section{The untyped $\lambda$-calculus}
+\label{sec:lambda-calculus}
+
+Church introduced the \textit{untyped $\lambda$-calculus} \ulc{} as an example of a simple universal language of computable functions, and it forms the foundation for the syntax and evaluation semantics of functional programming languages.
+
+The grammar of \ulc{} is very simple, only comprising three forms (excluding parentheses\footnote{The imperative programmer with a background in a C-family language be warned: parentheses are not required for function application. Rather, space (\textvisiblespace) is an infix operator that represents function application in \ulc{} and many functional languages. It traditionally is left-associative and has the highest precedence of any infix operator. Parentheses around function arguments are only required when it affects the order of operations. An exception to this rule in functional programming is in the LISP family of languages, in which parentheses specify function application rather than operator precedence, and space separates operators and operands, but that is not the interpretation here.}), shown in \Cref{syntax-ulc}.
+
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \begin{align*}
+        e &::= x\tag{variable}\\
+          &\mid \lambda x.e\tag{$\lambda$-abstraction}\\
+          &\mid e\ e\tag{function application}
+      \end{align*}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Grammar of \ulc}
+  \label{fig:syntax-ulc}
+\end{figure}
+
+The static semantics of this syntax are very simple: every expression in \ulc{} is well-fromed if all variables are bound by some binder\footnote{There are no typing rules in the static semantics, because there is only a single type: the recursive arrow type $\tau::=\tau\to\tau$. Thus, it may be more correct to say that \ulc{} is ``uni-typed'' as opposed to ``untyped,'' as noted in \cite{harper2016practical}. Thus no type errors will occur when evaluating a (well-formed) expression in \ulc{}.}.
+
+The dynamic semantics are similarly simple, shown in \Cref{fig:dynamic-semantics-ulc} using a big-step semantics. $\lambda$-abstractions are values (expressions that evaluate to themselves), and application is applied by substituting variables\footnote{The substitution of the function variable during function application is known as $\beta$-reduction. Renaming of bound variables (a process known as $\alpha$-conversion) is used to avoid substituting variables of the same name bound by a different binder.}.
+
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \begin{mathpar}
+        \Infer{\ulc{}-ELam}{}{\lambda x.e\Downarrow\lambda x.e}
+        \and
+        \Infer{\ulc{}-EAp}{
+          e_1\Downarrow\lambda x.e_1' \\
+          [e_2/x]e_1'\Downarrow e
+        }{e_1\ e_2\Downarrow e}
+      \end{mathpar}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Dynamic semantics for \ulc}
+  \label{fig:dynamic-semantics-ulc}
+\end{figure}
+
+\ulc{} is an example of a Turing-complete language. One of the key characteristics to such a language is the ability to implement recursive algorithms. To implement recursion, a function must be able to refer to itself. Since there is no construct to bind an expression to a variable other than $\lambda$-abstractions (i.e., there is no construct such as OCaml's \mintinline{ocaml}|let rec| expressions or other standalone variable declarations), one must pass a self-reference of a function to itself. For example, let us consider the example of a factorial function in \ulc{}\footnote{For sake of illustration, the language is extended with a conditional statement, integers, and simple integer operators.}.
+
+\[\text{fact'}\equiv\lambda f.\lambda x.\text{if }x=0\text{ then }1\text{ else }x*f(x-1)\]
+
+To facilitate the recursion, we need the help of an auxiliary operator which converts a recursive function formulated with a self-reference parameter as shown above. The Y-combinator is such an operator. The operation of this operator is made clear by working through the $\beta$-reduction of the \texttt{fact} function.
+
+\begin{singlespace}
+  \begin{gather*}
+    Y\equiv\lambda f.(\lambda x.f(x\ x))\ (\lambda x.f(x\ x)) \\
+    \text{fact}\equiv Y\ \text{fact'}
+  \end{gather*}
+\end{singlespace}
+
+A more thorough discussion of \ulc{} and the Y-combinator is left to standard material on programming language theory, such as \cite{harper2016practical}.
+
+\section{The simply-typed $\lambda$-calculus}
+\label{sec:stlc}
+
+While the $\lambda$-calculus is Turing complete and sufficient to represent any computation, it is not practical in terms of efficiency or usability if all data is represented with functions\footnote{All data may be represented in terms of functions with a notation called the Church encoding. For example, there are standard Church encodings for natural numbers, for boolean values and conditionals, and for pairs (\texttt{cons}), which can be used to construct structured data.}.
+
+The \textit{simply-typed $\lambda$-calculus} (STLC) \stlc{} extends \ulc{} with one or more base types $b_i$, such as integers, booleans, or floating-point numbers. Consider the case of a single base type $b$. The extended grammar is shown in \Cref{fig:syntax-gtlc}.
+
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \begin{align*}
+        \tau &::=\tau\to\tau\tag{function type} \\
+             &\mid b\tag{base type} \\
+        e &::= c\tag{constant} \\
+             &\mid x\tag{variable} \\
+             &\mid\lambda x:\tau.e\tag{type-annotated function} \\
+             &\mid e\ e\tag{function application} \\
+             &\mid \fix f:\tau.e\tag{fixpoint}
+      \end{align*}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Syntax of \stlc}
+  \label{fig:syntax-gtlc}
+\end{figure}
+
+The grammar is extended to include constants of the base type. The type of functions parameters must be annotated\footnote{This is in the simplest case of type-assignment. With a type inference system such as bidirectional typing as described in \Cref{sec:static-semantics}, some type annotations may be optional.}.
+
+We now define what it means for a program in \stlc{} to be well-typed. The typing judgments shown in \Cref{fig:statics-stlc} assign a type to a \stlc{} program.
+
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \begin{mathpar}
+        \Infer{\stlc{}-TConst}{}{\Gamma\vdash c:b}
+        \and
+        \Infer{\stlc{}-TVar}{}{\Gamma,x:\tau\vdash x:\tau}
+        \and
+        \Infer{\stlc{}-TLam}{
+          \Gamma,x:\tau_1\vdash e:\tau_2
+        }{\Gamma\vdash(\lambda x:\tau_1.e):\tau_2}
+        \and
+        \Infer{\stlc{}-TAp}{
+          \Gamma\vdash e_1:\tau_1\to\tau \\
+          \Gamma\vdash e_2:\tau_1
+        }{\Gamma\vdash e_1\ e_2:\tau}
+        \and
+        \Infer{\stlc{}-TFix}{}{\Gamma\vdash(\fix f:\tau.e):\tau}
+      \end{mathpar}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Static semantics of \stlc}
+  \label{fig:statics-stlc}
+\end{figure}
+
+The dynamic semantics are not much different than \ulc{}. Additional evaluation rules are defined for constants and fixpoints; evaluation of $\lambda$-abstractions and function application remains the same. The dynamic semantics are shown in \Cref{fig:dynamics-stlc}.
+
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \begin{mathpar}
+        \Infer{\stlc{}-EConst}{}{c\Downarrow c}
+        \and
+        \Infer{\stlc{}-ELam}{}{\lambda x:\tau.e \Downarrow \lambda x:\tau.e}
+        \and
+        \Infer{\stlc{}-EAp}{
+          e_1\Downarrow\lambda x:\tau.e_1' \\
+          [e_2/x]e_1'\Downarrow e
+        }{e_1\ e_2\Downarrow e}
+        \and
+        \Infer{\stlc{}-EFix}{[\fix f:\tau.e/f]e\Downarrow e'}{\fix f:\tau.e \Downarrow e'}
+        \and
+      \end{mathpar}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Dynamic semantics of \stlc}
+  \label{fig:dynamics-stlc}
+\end{figure}
+
+We may characterize type systems by establishing certain desirable properties. One such property is \textit{soundness}. Soundness means that if a program in \stlc{} type-checks, then it will not fail with a type error at run-time. This property is not necessary to prove for \ulc{} because there is only one type in \ulc{}, the recursive type $\tau::=\tau\to\tau$.
+
+There is an additional expression form in \stlc{}. This is the \textit{fixpoint form}, $\fix f:\tau.e$. The fixpoint is a primitive operator with the same purpose and evaluation behavior as the Y-combinator: it allows for self-reference, and thus general recursion. The reason for the explicit fixpoint operator is that the Y-combinator is ill-typed. Self-reference is inherently poorly-typed and requires a primitive operator, since it involves a function which takes itself as a parameter (leading to an infinitely-recursive arrow type). With the $\fix$ operator, we may express the factorial function as shown below\footnote{In this example, we assume that the base type $b\equiv\text{int}$, and that conditionals and primitive integer operations extend \stlc{}.}.
+
+\begin{equation*}
+  \text{fact}\equiv\fix f:\text{int}\to \text{int}.\lambda x:\text{int}.\text{if }x=0\text{ then }1\text{ else }x*f(x-1)
+\end{equation*}
+
+The fixpoint operator is introduced in Plotkin's System PCF \cite{harper2016practical}, and is used to implement recursion in Hazel's evaluator, which uses a substitution-based evaluation.
+
+\stlc{} is a practical foundation for many functional languages. Standard exercises include extending \stlc{} with multiple base types (such as integers and booleans), conditional expressions, \texttt{let}-expressions, and \texttt{case}-expressions. The basic type system can be extended to use type inference algorithms or support more advanced types.
+
+\section{The gradually-typed $\lambda$-calculus}
+\label{sec:gradual}
+
+We have discussed \stlc{}, which involves a simple \textit{static typing} system, as type checks are part of the static semantics. However, we may extend \ulc{} with an additional base type but without a static semantics. In this case, a well-formed expression may fail at run-time due to type errors -- thus, types are checked in the dynamic semantics and this is known as \textit{dynamic typing}. The benefit of static typing is soundness and performance (as run-time type checks are relatively slow). The benefit of dynamic checking is to avoid annotating types\footnote{Note that type inference systems in a statically-typed system also allow for reduced type-annotations, but may still require some annotations when not enough information is given for type inference.}, and thus more quickly prototype or refactor programs.
+
+A hybrid approach is the \textit{gradually-typed $\lambda$-calculus} \gtlc{}, originally proposed by Siek and Taha \cite{Siek06gradualtyping,siek2015refined}\footnote{The material presented in this section originates from Siek et al. \cite{Siek06gradualtyping,siek2015refined}, but the notation conventions follow from Hazelnut Live \cite{conf/popl/HazelnutLive19} in order to stay consistent with the rest of this paper. The symbol for the hole type $\gtlch{}$ originates from \cite{siek2015refined}. The cast calculus notation is an improved notation introduced in \cite{siek2015refined} and also used in \cite{conf/popl/HazelnutLive19}.}. In \gtlc{}, all type annotations are optional and offer a ``pay-as-you-go'' benefit. A completely unannotated \gtlc{} program acts like dynamic typing (\ulc{} extended with base type(s) but no static semantics), with run-time casts and the ability for run-time type failures. A completely annotated \gtlc{} program is equivalent to a \stlc{} program. The performance cost of run-time casts and the possibility of run-time type failures only occurs when evaluating expressions with unannotated terms.
+
+The grammar of \gtlc{} is almost exactly the same as \stlc, except that we add a new type $\gtlch$, indicating an unspecified type. Now, $\lambda$-abstractions annotated with this type may be considered to be unannotated. We define the notation $\lambda x.e\equiv\lambda x:\gtlch.e$.
+
+The static semantics of \gtlc{}, shown in \Cref{fig:statics-gtlc}, is expectedly also similar to \stlc. The only rule that differs is the rule for function application. We also write a new rule for subsumption, which states that if $\Gamma\vdash e:\tau$, then $e$ may also be assigned any consistent type.
+
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \begin{mathpar}
+        \Infer{\gtlc{}-TAp}{
+          \Gamma\vdash e_1:\tau_1 \\
+          \arrmatch{\tau_1}{\tau_2\to\tau_3} \\
+          \Gamma\vdash e_2:\tau_3 \\
+        }{\Gamma\vdash e_1\ e_2:\tau_3}
+        \and
+        \Infer{\gtlc{}-TSub}{
+          \Gamma\vdash e:\tau \\
+          \tau\sim\tau'
+        }{\Gamma\vdash e:\tau'}
+      \end{mathpar}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Updated static semantics of \gtlc}
+  \label{fig:statics-gtlc}
+\end{figure}
+
+Two new judgments are introduced here. The first is the \textit{matched arrow judgment} $\arrmatch{\tau_1^-}{(\tau_2\to\tau_3)^+}$, which is a notational convenience which allows us to write a single rule for arrow types, which may either be a hole or an arrow type. This judgment is defined by the rules in \Cref{fig:matched-arrow}.
+
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \judgbox{\arrmatch{\tau}{\tau_1\to\tau_2}}{$\tau$ has matched arrow type $\tau_1\to\tau_2$}
+      \begin{mathpar}
+        \Infer{MAHole}{}{\arrmatch{\gtlch}{\gtlch\to\gtlch}}
+        \and
+        \Infer{MAArr}{}{\arrmatch{\tau_1\to\tau_2}{\tau_1\to\tau_2}}
+      \end{mathpar}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Matched arrow judgment}
+  \label{fig:matched-arrow}
+\end{figure}
+
+The second new judgment is the \textit{type consistency judgment} $\tau_1^-\sim\tau_2^-$. This judgment defines the typing relation of the unknown type to other types: every type is consistent to the hole type. Thus any type will type-check where a hole is expected, and vice versa. This relation is reflexive, symmetric, and non-transitive\footnote{It may seem unintuitive at first that type consistency is a symmetric relationship, because it may seem more like a subtyping relation. However, a major revolution in Siek and Taha's original formulation of \gtlc{} is that the symmetric subtyping relation is more suitable than the subtyping relations that had been explored in earlier works such as Thatte's quasi-static typing \cite{Siek06gradualtyping}.}. The rules for type consistency are shown in \Cref{fig:type-consistency}.
+
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \judgbox{\tau_1\sim\tau_2}{$\tau_1$ is consistent with $\tau_2$}
+      \begin{mathpar}
+        \Infer{TCHoleTyp}{}{\gtlch\sim\tau}
+        \and
+        \Infer{TCTypHole}{}{\tau\sim\gtlch}
+        \and
+        \Infer{TCArr}{
+          \tau_1\sim\tau_1' \\
+          \tau_2\sim\tau_2'
+        }{(\tau_1\to\tau_2)\sim(\tau_1'\to\tau_2)}
+        \and
+      \end{mathpar}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Type consistency judgment}
+  \label{fig:type-consistency}
+\end{figure}
+
+Evaluation of a gradually-typed language introduces a cast calculus, which performs run-time type checking. To do this, we design another language, \gtclc{}, whose grammar is identical to \gtlc{} except for the introduction of a new expression form indicating a run-time cast, $d\langle\tau\Rightarrow\tau'\rangle$. We also define the notation $d\langle\tau\Rightarrow\tau'\Rightarrow\tau''\rangle\equiv d\langle\tau\Rightarrow\tau'\rangle\langle\tau'\Rightarrow\tau''\rangle$. We refer to \gtlc{} as the \textit{external language} and \gtclc{} as the \textit{internal language}. We denote expressions in \gtlc{} with the letter $e$ and expressions in \gtclc{} with the letter $d$. We only define static semantics on \gtlc{} and only define dynamic semantics on \gtclc{}. The process of converting from the external language to the internal language (i.e., the process of cast-insertion) is called \textit{elaboration}.
+
+Usually, elaboration includes the type-checking operation rather than being a separate operation. Elaboration fails iff type checking fails. A theorem may be stated that the type assigned by elaboration is the same as the type assigned by the type assignment judgment.
+
+The elaboration process is governed by the judgment $\Gamma^-\vdash e^-\leadsto d^+:\tau^+$. For most expression types, the expression in the external language elaborates to itself. The only exception is function applications, in which dynamic casts are inserted. The elaboration process is described in \Cref{fig:elaboration-gtlc}.
+
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \judgbox{\Gamma\vdash e\leadsto d:\tau}{$e$ elaborates to $d$ of type $\tau$ given typing context $\Gamma$}
+    \begin{singlespace}
+      \begin{mathpar}
+        \Infer{\gtlc-ElConst}{}{\Gamma\vdash c\leadsto c:b}
+        \and
+        \Infer{\gtlc-ElLam}{
+          \Gamma,x:\tau_1\vdash e:\tau_2
+        }{\Gamma\vdash\lambda x:\tau_1.e\leadsto (\lambda x:\tau_1.e):\tau_1\to\tau_2}
+        \and
+        \Infer{\gtlc-ElFix}{
+        }{\Gamma\vdash\fix f:\tau.e\leadsto (\fix f:\tau.e):\tau}
+        \and
+        \Infer{\gtlc-ElApp}{
+          \Gamma\vdash e_1\leadsto d_1:\tau_1 \\
+          \arrmatch{\tau_1}{\tau_3\to\tau_4} \\
+          \Gamma\vdash e_2\leadsto d_2:\tau_2 \\
+          \tau_2\sim\tau_3
+        }{\Gamma\vdash e_1\ e_2\leadsto (d_1\langle\tau_1\Rightarrow\tau_3\to\tau_4\rangle)\ (d_2\langle\tau_2\Rightarrow\tau_5\rangle):\tau_4}
+      \end{mathpar}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Elaboration in \gtlc}
+  \label{fig:elaboration-gtlc}
+\end{figure}
+
+We may now define a dynamic semantics on \gtclc. The following dynamic semantics is simplified from Siek et. al's formulation for the sake of clarity\footnote{Siek \cite{siek2015refined} introduces the idea of \textit{ground types} and the \textit{matched-ground judgment}. Casts can only succeed or fail between ground types. Additionally, Siek et al. describes \textit{blames} and \textit{frames} to encapsulate errors. Ground types are carried over to Hazelnut Live's formulation \cite{conf/popl/HazelnutLive19}, but blames and frames are not currently implemented in Hazel.} and is not intended to be a precise description of the evaluation semantics. As before, the dynamic semantics are described using a big-step notation, where the judgment $d^-\textsf{ final}$ indicates that $d$ is a value\footnote{The small-step semantics is perhaps be more clear here, as it more clearly illustrates the isolated effect of the cast operation. Both Siek et al. \cite{Siek06gradualtyping,siek2015refined} and Hazelnut Live \cite{conf/popl/HazelnutLive19} describe the dynamic semantics using a small-step semantics. Hazelnut Live adds the concept of the \textit{final judgment} to delineate values. However, we use a big-step semantics to remain consistent with the rest of the notation in this work.}. There is also the possibility of a dynamic cast error, given by rule \gtclc-ECastFail. The dynamic semantics is shown in \Cref{fig:dynamics-gtlc}.
+
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \begin{mathpar}
+        \Infer{\gtclc-VConst}{}{c\textsf{ final}}
+        \and
+        \Infer{\gtclc-VLam}{}{\lambda x:\tau.d\textsf{ final}}
+        \and
+        \Infer{\gtclc-VBoxedVal}{}{e\langle\tau\Rightarrow\gtlch\rangle\textsf{ final}}
+        \and
+        \Infer{\gtclc-EVal}{d\textsf{ final}}{d\Downarrow d}
+        \and
+        \Infer{\gtclc-EFix}{[\fix f:\tau.d/f]d\Downarrow d'}{\fix f:\tau.d\Downarrow d'}
+        \and
+        \Infer{\gtclc-EAp}{
+          d_1\Downarrow\lambda x:\tau.d_1' \\
+          [d_2/x]d_1\Downarrow d
+        }{d_1\ d_2\Downarrow d}
+        \and
+        \Infer{\gtclc-ECastAp}{
+          d_1\Downarrow d_1'\langle\tau_1\to\tau_2\Rightarrow\tau_1'\to\tau_2'\rangle \\
+          (d_1'\ (d_2\langle\tau_1'\Rightarrow\tau_1\rangle))\langle\tau_2\Rightarrow\tau_2'\rangle\Downarrow d
+        }{d_1\ d_2\Downarrow d}
+        \and
+        \Infer{\gtclc-ECastId}{
+          d\Downarrow d'
+        }{d\langle\tau\Rightarrow\tau\rangle\Downarrow d'}
+        \and
+        \Infer{\gtclc-ECastSucceed}{
+          d\Downarrow d'
+        }{d\langle\tau\Rightarrow\gtlch\Rightarrow\tau\rangle\Downarrow d'}
+        \and
+        \Infer{\gtclc-ECastFail}{}{d\langle\tau\Rightarrow\gtlch\Rightarrow\tau'\rangle\textsf{ castfail}}
+      \end{mathpar}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Dynamic semantics of \gtclc}
+  \label{fig:dynamics-gtlc}
+\end{figure}
+
+Hazel's core calculus heavily borrows from \gtlc{} and \gtclc{}. The rules for casts will remain unchanged for the dynamic semantics when switching to use the environment mode of evaluation.
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:
