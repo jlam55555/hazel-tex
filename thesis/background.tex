@@ -15,22 +15,29 @@ Note that the specification of a programming language is orthogonal to its \text
 \subsection{Syntax}
 \label{sec:syntax}
 
-The syntax of a programming language is defined by a grammar. The grammar described in the original paper on Hazelnut \cite{conf/popl/Hazelnut17} is reproduced below as an example.
+The syntax of a programming language is defined by a grammar. The grammar described in Hazelnut \cite{conf/popl/Hazelnut17} is reproduced in \Cref{fig-sample-grammar} as an example.
 
-\begin{singlespace}
-  \begin{align*}
-    \tau &::= \tau\to\tau
-         \mid\tnum
-         \mid\hehole \\
-    e &::= x
-         \mid\lambda x.e
-         \mid e\ e
-         \mid e+e
-         \mid e:\tau
-         \mid\hehole
-         \mid\hhole{e}
-  \end{align*}
-\end{singlespace}
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \begin{align*}
+        \tau &::= \tau\to\tau
+               \mid\tnum
+               \mid\hehole \\
+        e &::= x
+            \mid\lambda x.e
+            \mid e\ e
+            \mid e+e
+            \mid e:\tau
+            \mid\hehole
+            \mid\hhole{e}
+      \end{align*}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{A sample grammar}
+  \label{fig:sample-grammar}
+\end{figure}
 
 In this simple grammar, we have two productions: types and expressions. A type may have one of three forms: the $\tnum$ type, an arrow (function) type, or the hole type (similar to the $\gtlch$ type from the GTLC described in \Cref{sec:gradual}). An expression may be a variable, a $\lambda$-abstraction\footnote{This may have several names depending on the context and programming language, such as: $\lambda$-function, function literal, arrow function, anonymous function, or simply function. $\lambda$-abstractions are unary by definition -- higher-arity functions may be constructed via \textit{function currying}.}, a primitive binary operation, a type ascription, an empty hole, or a non-empty hole. Hole expressions and the hole type are specific to Hazel. Parentheses are not shown in this grammar; they are optional except to specify order of operations.
 
@@ -40,11 +47,20 @@ Due to Hazelnut being a structural edit calculus (as described in \Cref{sec:stru
 
 \subsection{Notation for semantics}
 \label{sec:semantics-notation}
-In formal logic, a standard notation for \textit{rules of inference} is shown below.
-\begin{singlespace}
-  \[\Infer{SampleRule}{p_1 \\ p_2 \\ \dots \\ p_n}{q}\]
-\end{singlespace}
-$p_1,p_2,\dots,p_n$ are the \textit{antecedents} (alternatively, \textit{premises}) and $q$ is the single \textit{consequent} (alternatively, \textit{conclusion}). Each of $p_1,p_2,\dots,p_n,q$ is a \textit{judgment} (alternatively, \textit{proposition} or \textit{statement}). We may pronounce this rule as ``if all of $p_1,p_2,\dots,p_n$ are true, then $q$ must be true.'' Note that the antecedent of the rule is the logical conjunction of the antecedants $\bigwedge_{i=1}^n p_i$. The logical disjunction of antecedants $\bigvee_{i=1}^n p_i$ is expressed by writing separate rules with the same consequent. A rule with zero premises is an \textit{axiom}, i.e., the conclusion is vacuously true. We may build up a formal logic system using such rules. Note that the set of judgments that form the consequents of a rule, as well as the set of rules in a formal system, are both unordered; however, any computer program that carries out these judgments must choose some order in which to evaluate the set of antecedents or the order in which to evaluate a set of equally-viable rules.
+In formal logic, a standard notation for \textit{rules of inference} is shown in \Cref{fig:sample-inference-rule}. $p_1,p_2,\dots,p_n$ are the \textit{antecedents} (alternatively, \textit{premises}) and $q$ is the single \textit{consequent} (alternatively, \textit{conclusion}). Each of $p_1,p_2,\dots,p_n,q$ is a \textit{judgment} (alternatively, \textit{proposition} or \textit{statement}). We may pronounce this rule as ``if all of $p_1,p_2,\dots,p_n$ are true, then $q$ must be true.'' Note that the antecedent of the rule is the logical conjunction of the antecedants $\bigwedge_{i=1}^n p_i$. The logical disjunction of antecedants $\bigvee_{i=1}^n p_i$ is expressed by writing separate rules with the same consequent. A rule with zero premises is an \textit{axiom}, i.e., the conclusion is vacuously true. We may build up a formal logic system using such rules. Note that the set of judgments that form the consequents of a rule, as well as the set of rules in a formal system, are both unordered; however, any computer program that carries out these judgments must choose some order in which to evaluate the set of antecedents or the order in which to evaluate a set of equally-viable rules.
+
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \begin{equation*}
+        \Infer{RuleName}{p_1 \\ p_2 \\ \dots \\ p_n}{q}
+      \end{equation*}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Notation for an inference rule}
+  \label{fig:sample-inference-rule}
+\end{figure}
 
 Each new judgment form will be introduced annotated with the modes of each term. For example, the typing judgment $\Gamma^-\vdash e^-:\tau^+$ indicates that $\Gamma$ and $e$ are inputs to the judgment and $\tau$ is an output of the judgment. If there are no terms with output mode in a judgment, then the ability to logically construct the judgment is its sole (boolean) output.
 
@@ -59,53 +75,67 @@ The \textit{static semantics} of a programming language describes properties of 
 
 It is formative to provide an overview of type checking. While the static semantics is not very important to the core work in this thesis, a fundamental understanding is key to understanding the motivation and bidirectionally-typed action calculus behind Hazel, as well as understanding the formulation of gradual typing described in \Cref{sec:gradual}.
 
-The \textit{typing judgment} $\Gamma^-\vdash e^-:\tau^+$ states that, with respect to the typing context $\Gamma$, the expression $e$ is well-typed with type $\tau$. The typing context is a set of variable typing judgments $\{x:\tau\}$. A few sample typing judgments are shown below.
+The \textit{typing judgment} $\Gamma^-\vdash e^-:\tau^+$ states that, with respect to the typing context $\Gamma$, the expression $e$ is well-typed with type $\tau$. The typing context is a set of variable typing judgments $\{x:\tau\}$. A few sample typing judgments are shown in \Cref{fig:sample-typing-rules}.
 
-\begin{singlespace}
-  \begin{mathpar}
-    \Infer{TNum}{}{\Gamma\vdash\hnum{n}:\tnum}
-    \and
-    \Infer{TVar}{}{\Gamma,x:\tau\vdash x:\tau}
-    \and
-    \Infer{TAnnArr}{
-      \Gamma,x:\tau_1\vdash e:\tau_2
-    }{\Gamma\vdash(\lambda x:\tau_1.e):\tau_1\to\tau_2}
-    \and
-    \Infer{TAp}{
-      \Gamma\vdash e_2:\tau_1 \\
-      \Gamma\vdash e_1:\tau_1\to\tau_2
-    }{\Gamma\vdash e_1\ e_2:\tau_2}
-  \end{mathpar}
-\end{singlespace}
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \begin{mathpar}
+        \Infer{TNum}{}{\Gamma\vdash\hnum{n}:\tnum}
+        \and
+        \Infer{TVar}{}{\Gamma,x:\tau\vdash x:\tau}
+        \and
+        \Infer{TAnnArr}{
+          \Gamma,x:\tau_1\vdash e:\tau_2
+        }{\Gamma\vdash(\lambda x:\tau_1.e):\tau_1\to\tau_2}
+        \and
+        \Infer{TAp}{
+          \Gamma\vdash e_2:\tau_1 \\
+          \Gamma\vdash e_1:\tau_1\to\tau_2
+        }{\Gamma\vdash e_1\ e_2:\tau_2}
+      \end{mathpar}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Sample typing rules}
+  \label{fig:sample-typing-rules}
+\end{figure}
 
 There are a few noteworthy items here. The syntax $\Gamma,x:\tau$ indicates the typing context $\Gamma$ extended with the binding $x:\tau$. Thus, when it is part of the consequent, it means that we are stating the typing judgment with respect to a different typing context $\Gamma'=\Gamma,x:\tau$. The type of a number is always $\tnum$. The type of a variable may only be determined if its type exists in the typing context (which, according to this limited set of rules, may only be extended during a function application). Lambda expressions can only be typed if they are fully-annotated: i.e., if the argument's type is annotated and the body is also assigned a type. This example typing system is very minimal and not practical for larger systems: every $\lambda$-abstraction would have to be typed for the entire expression to be well-typed. Consider even the simple example $(\lambda x.x)\ 2$, which cannot be typed according to the simple system above due to the unannotated $\lambda$-abstraction.
 
-A type system that allows for fewer type annotations, while remaining reasonably simple to formulate and implement, is \textit{bidirectional typing} \cite{Dunfield_2022,chlipala2005strict,pierce2000local}, or \textit{local type inference}. Bidirectional typing involves two typing judgments: the \textit{synthetic type judgment} $\Gamma^-\vdash e^-\Rightarrow\tau^+$ (pronounced ``given typing context $\Gamma$, expression $e$ synthesizes type $\tau$), and the \textit{analytic type judgment} $\Gamma^-\vdash e^-\Leftarrow\tau^-$ (pronounced ``given typing context $\Gamma$, expression $e$ analyzes against type $\tau$). The synthetic type judgment outputs a type (the exact or ``narrowest'' type of the expression), whereas the analytic type judgment takes a type as an input and ``checks'' the expression against that (``wider'') type. With these two judgments, we loosen the antecedant judgments when synthesizing a type. We re-express the above type assignment system into a similar bidirectional type system.
+A type system that allows for fewer type annotations, while remaining reasonably simple to formulate and implement, is \textit{bidirectional typing} \cite{Dunfield_2022,chlipala2005strict,pierce2000local}, or \textit{local type inference}. Bidirectional typing involves two typing judgments: the \textit{synthetic type judgment} $\Gamma^-\vdash e^-\Rightarrow\tau^+$ (pronounced ``given typing context $\Gamma$, expression $e$ synthesizes type $\tau$), and the \textit{analytic type judgment} $\Gamma^-\vdash e^-\Leftarrow\tau^-$ (pronounced ``given typing context $\Gamma$, expression $e$ analyzes against type $\tau$). The synthetic type judgment outputs a type (the exact or ``narrowest'' type of the expression), whereas the analytic type judgment takes a type as an input and ``checks'' the expression against that (``wider'') type. With these two judgments, we loosen the antecedant judgments when synthesizing a type. We re-express the above type assignment system into a similar bidirectional type system, shown in \Cref{fig:bidirectional-typing}.
 
-\begin{singlespace}
-  \begin{mathpar}
-    \Infer{TSynNum}{}{\Gamma\vdash\hnum{n}\Rightarrow\tnum}
-    \and
-    \Infer{TSynVar}{}{\Gamma,x:\tau\vdash x\Rightarrow\tau}
-    \and
-    \Infer{TSynAnnArr}{
-      \Gamma,x:\tau_1\vdash e\Rightarrow\tau_2
-    }{\Gamma\vdash(\lambda x:\tau_1.e)\Rightarrow\tau_1\to\tau_2}
-    \and
-    \Infer{TSynAp}{
-      \Gamma\vdash e_2\Rightarrow\tau_1 \\
-      \Gamma\vdash e_1\Leftarrow\tau_1\to\tau_2
-    }{\Gamma\vdash e_1\ e_2\Rightarrow\tau_2}
-    \and
-    \Infer{TAnaArr}{
-      \Gamma,x:\tau_1\vdash e\Leftarrow\tau_2
-    }{\Gamma\vdash\lambda x.e\Leftarrow\tau_1\to\tau_2}
-    \and
-    \Infer{TAnaSubsume}{
-      \Gamma\vdash e\Rightarrow\tau
-    }{\Gamma\vdash e\Leftarrow\tau}
-  \end{mathpar}
-\end{singlespace}
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \begin{mathpar}
+        \Infer{TSynNum}{}{\Gamma\vdash\hnum{n}\Rightarrow\tnum}
+        \and
+        \Infer{TSynVar}{}{\Gamma,x:\tau\vdash x\Rightarrow\tau}
+        \and
+        \Infer{TSynAnnArr}{
+          \Gamma,x:\tau_1\vdash e\Rightarrow\tau_2
+        }{\Gamma\vdash(\lambda x:\tau_1.e)\Rightarrow\tau_1\to\tau_2}
+        \and
+        \Infer{TSynAp}{
+          \Gamma\vdash e_2\Rightarrow\tau_1 \\
+          \Gamma\vdash e_1\Leftarrow\tau_1\to\tau_2
+        }{\Gamma\vdash e_1\ e_2\Rightarrow\tau_2}
+        \and
+        \Infer{TAnaArr}{
+          \Gamma,x:\tau_1\vdash e\Leftarrow\tau_2
+        }{\Gamma\vdash\lambda x.e\Leftarrow\tau_1\to\tau_2}
+        \and
+        \Infer{TAnaSubsume}{
+          \Gamma\vdash e\Rightarrow\tau
+        }{\Gamma\vdash e\Leftarrow\tau}
+      \end{mathpar}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Simple bidirectional type system}
+  \label{fig:bidirectional-typing}
+\end{figure}
 
 Now, we may synthesize the type of $(\lambda x.x)\ 2$; the derivation uses all of the rules above. Note the presence of the last rule; \textit{subsumption} states that an expression analyzes against its synthesized type, which should fit the earlier intuition of type synthesis producing the ``narrowest'' type and type analysis checking against a ``wider'' type. Subsumption allows us to avoid manually writing type analysis rules for most types.
 
@@ -124,40 +154,61 @@ The style of rules that are used to define the dynamic semantics of a programmin
 
 The first of these styles is \textit{structural operational semantics} as introduced by Plotkin \cite{plotkin1981structural} (alternatively, \textit{small-step semantics}). In the small-step semantics, the \textit{evaluation judgment} is $e_1^-\to e_2^+$, where $e_1$ and $e_2$ are expressions in the language.
 
-For example, let us describe the dynamic semantics of an addition operation using a small-step semantics. This is described using the following three rules:
+For example, let us describe the dynamic semantics of an addition operation using a small-step semantics. This is described using the three rules shown in \Cref{fig:small-step-addition}.
 
-\begin{singlespace}
-  \begin{mathpar}
-    \Infer{EPlus$_1$-Small}{e_1\to e_1'}{e_1+e_2\to e_1'+e_2}
-    \and
-    \Infer{EPlus$_2$-Small}{e_2\to e_2'}{\hnum{n_1}+e_2\to \hnum{n_1}+e_2'}
-    \and
-    \Infer{EPlus$_3$-Small}{}{\hnum{n_1}+\hnum{n_2}\to\hnum{n_1+n_2}}
-  \end{mathpar}
-\end{singlespace}
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \begin{mathpar}
+        \Infer{EPlus$_1$-Small}{e_1\to e_1'}{e_1+e_2\to e_1'+e_2}
+        \and
+        \Infer{EPlus$_2$-Small}{e_2\to e_2'}{\hnum{n_1}+e_2\to \hnum{n_1}+e_2'}
+        \and
+        \Infer{EPlus$_3$-Small}{}{\hnum{n_1}+\hnum{n_2}\to\hnum{n_1+n_2}}
+      \end{mathpar}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Small-step dynamic semantics for addition}
+  \label{fig:small-step-addition}
+\end{figure}
 
 The algorithm carries itself out as follows: while $e_1$ is reducible, reduce it using some applicable evaluation rule. Once $e_1$ becomes a value, the first rule is no longer applicable (as $e_1$ cannot further reduce) and $e_2$ reduces until it too is a value. Finally, the third rule is applicable, and reduces the expression down to a single number literal. Note that if either $e_1$ or $e_2$ do not reduce down to a number literal, then the expression will not evaluate fully; this kind of failure cannot happen in a strongly-typed language due to typing rules.
 
 The second of these styles is \textit{natural operational semantics} as introduced by Kahn \cite{Kahn1987NaturalS} (alternatively, \textit{big-step semantics}). In the big-step semantics, the evaluation judgment is $e^-\Downarrow v^+$, where $e$ is an expression in the language, and $v\textsf{ value}$.
 
-To express the evaluation of addition in the big-step semantics, we need only a single rule. In this case, the antecedants indicate that the subexpressions must be recursively evaluated, but (as noted earlier) this notably doesn't specify the order of evaluation of the antecedants, unlike the small-step notation.
+To express the evaluation of addition in the big-step semantics, we need only a single rule, shown in \Cref{fig:big-step-addition}. In this case, the antecedants indicate that the subexpressions must be recursively evaluated, but (as noted earlier) this notably doesn't specify the order of evaluation of the antecedants, unlike the small-step notation.
 
-\begin{singlespace}
-  \begin{mathpar}
-    \Infer{EPlus-B}{
-      e_1\Downarrow\hnum{n_1} \\
-      e_2\Downarrow\hnum{n_2} \\
-    }{e_1+e_2\Downarrow\hnum{n_1+n_2}}
-  \end{mathpar}
-\end{singlespace}
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \begin{mathpar}
+        \Infer{EPlus-B}{
+          e_1\Downarrow\hnum{n_1} \\
+          e_2\Downarrow\hnum{n_2} \\
+        }{e_1+e_2\Downarrow\hnum{n_1+n_2}}
+      \end{mathpar}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Big-step dynamic semantics for addition}
+  \label{fig:big-step-addition}
+\end{figure}
 
-In the big-step notation, values are distinguished by the judgment $v\Downarrow v$; i.e., values evaluate to themselves. In the small-step notation, there will be no applicable rule to further reduce a value. Following the notation from \cite{conf/popl/Hazelnut17,conf/popl/HazelnutLive19}, we can alternatively write this using the equivalent judgment $v^-\textsf{ value}$. In the stereotypical untyped $\lambda$-calculus, the only values are $\lambda$-abstractions. We can denote this using the axiom:
+In the big-step notation, values are distinguished by the judgment $v\Downarrow v$; i.e., values evaluate to themselves. In the small-step notation, there will be no applicable rule to further reduce a value. Following the notation from \cite{conf/popl/Hazelnut17,conf/popl/HazelnutLive19}, we can alternatively write this using the equivalent judgment $v^-\textsf{ value}$. In the stereotypical untyped $\lambda$-calculus, the only values are $\lambda$-abstractions. We can denote this using the axiom in \Cref{fig:value-judgment}.
 
-\begin{singlespace}
-  \begin{mathpar}
-    \Infer{VLam}{}{\lambda x.e\textsf{ value}}
-  \end{mathpar}
-\end{singlespace}
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \begin{mathpar}
+        \Infer{VLam}{}{\lambda x.e\textsf{ value}}
+      \end{mathpar}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Values in \ulc}
+  \label{fig:value-judgment}
+\end{figure}
 
 In Hazel, we have other base types such as integers, floats, and booleans, which also have axiomatic $\textsf{value}$ judgments. For composite data such as pairs or injections (binary sum type constructors), the expression is a value iff its subexpression(s) are values.
 
@@ -182,30 +233,44 @@ Functional languages are based on Alonzo Church's $\lambda$ calculus \cite{harpe
 
 Church introduced the \textit{untyped $\lambda$-calculus} \ulc{} as an example of a simple universal language of computable functions, and it forms the foundation for the syntax and evaluation semantics of functional programming languages.
 
-The grammar of \ulc{} is very simple, only comprising three forms (excluding parentheses\footnote{The imperative programmer with a background in a C-family language be warned: parentheses are not required for function application. Rather, space (\textvisiblespace) is an infix operator that represents function application in \ulc{} and many functional languages. It traditionally is left-associative and has the highest precedence of any infix operator. Parentheses around function arguments are only required when it affects the order of operations. An exception to this rule in functional programming is in the LISP family of languages, in which parentheses specify function application rather than operator precedence, and space separates operators and operands, but that is not the interpretation here.}), shown below.
+The grammar of \ulc{} is very simple, only comprising three forms (excluding parentheses\footnote{The imperative programmer with a background in a C-family language be warned: parentheses are not required for function application. Rather, space (\textvisiblespace) is an infix operator that represents function application in \ulc{} and many functional languages. It traditionally is left-associative and has the highest precedence of any infix operator. Parentheses around function arguments are only required when it affects the order of operations. An exception to this rule in functional programming is in the LISP family of languages, in which parentheses specify function application rather than operator precedence, and space separates operators and operands, but that is not the interpretation here.}), shown in \Cref{syntax-ulc}.
 
-\begin{singlespace}
-  \begin{align*}
-    e &::= x\tag{variable}\\
-      &\mid \lambda x.e\tag{$\lambda$-abstraction}\\
-      &\mid e\ e\tag{function application}
-  \end{align*}
-\end{singlespace}
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \begin{align*}
+        e &::= x\tag{variable}\\
+          &\mid \lambda x.e\tag{$\lambda$-abstraction}\\
+          &\mid e\ e\tag{function application}
+      \end{align*}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Grammar of \ulc}
+  \label{fig:syntax-ulc}
+\end{figure}
 
 The static semantics of this syntax are very simple: every expression in \ulc{} is well-fromed if all variables are bound by some binder\footnote{There are no typing rules in the static semantics, because there is only a single type: the recursive arrow type $\tau::=\tau\to\tau$. Thus, it may be more correct to say that \ulc{} is ``uni-typed'' as opposed to ``untyped,'' as noted in \cite{harper2016practical}. Thus no type errors will occur when evaluating a (well-formed) expression in \ulc{}.}.
 
-The dynamic semantics are similarly simple, shown below using a big-step semantics. $\lambda$-abstractions are values (expressions that evaluate to themselves), and application is applied by substituting variables\footnote{The substitution of the function variable during function application is known as $\beta$-reduction. Renaming of bound variables (a process known as $\alpha$-conversion) is used to avoid substituting variables of the same name bound by a different binder.}.
+The dynamic semantics are similarly simple, shown in \Cref{fig:dynamic-semantics-ulc} using a big-step semantics. $\lambda$-abstractions are values (expressions that evaluate to themselves), and application is applied by substituting variables\footnote{The substitution of the function variable during function application is known as $\beta$-reduction. Renaming of bound variables (a process known as $\alpha$-conversion) is used to avoid substituting variables of the same name bound by a different binder.}.
 
-\begin{singlespace}
-  \begin{mathpar}
-    \Infer{\ulc{}-ELam}{}{\lambda x.e\Downarrow\lambda x.e}
-    \and
-    \Infer{\ulc{}-EAp}{
-      e_1\Downarrow\lambda x.e_1' \\
-      [e_2/x]e_1'\Downarrow e
-    }{e_1\ e_2\Downarrow e}
-  \end{mathpar}
-\end{singlespace}
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \begin{mathpar}
+        \Infer{\ulc{}-ELam}{}{\lambda x.e\Downarrow\lambda x.e}
+        \and
+        \Infer{\ulc{}-EAp}{
+          e_1\Downarrow\lambda x.e_1' \\
+          [e_2/x]e_1'\Downarrow e
+        }{e_1\ e_2\Downarrow e}
+      \end{mathpar}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Dynamic semantics for \ulc}
+  \label{fig:dynamic-semantics-ulc}
+\end{figure}
 
 \ulc{} is an example of a Turing-complete language. One of the key characteristics to such a language is the ability to implement recursive algorithms. To implement recursion, a function must be able to refer to itself. Since there is no construct to bind an expression to a variable other than $\lambda$-abstractions (i.e., there is no construct such as OCaml's \mintinline{ocaml}|let rec| expressions or other standalone variable declarations), one must pass a self-reference of a function to itself. For example, let us consider the example of a factorial function in \ulc{}\footnote{For sake of illustration, the language is extended with a conditional statement, integers, and simple integer operators.}.
 
@@ -227,60 +292,81 @@ A more thorough discussion of \ulc{} and the Y-combinator is left to standard ma
 
 While the $\lambda$-calculus is Turing complete and sufficient to represent any computation, it is not practical in terms of efficiency or usability if all data is represented with functions\footnote{All data may be represented in terms of functions with a notation called the Church encoding. For example, there are standard Church encodings for natural numbers, for boolean values and conditionals, and for pairs (\texttt{cons}), which can be used to construct structured data.}.
 
-The \textit{simply-typed $\lambda$-calculus} (STLC) \stlc{} extends \ulc{} with one or more base types $b_i$, such as integers, booleans, or floating-point numbers. Consider the case of a single base type $b$. The extended grammar is shown below.
+The \textit{simply-typed $\lambda$-calculus} (STLC) \stlc{} extends \ulc{} with one or more base types $b_i$, such as integers, booleans, or floating-point numbers. Consider the case of a single base type $b$. The extended grammar is shown in \Cref{fig:syntax-gtlc}.
 
-\begin{singlespace}
-  \begin{align*}
-    \tau &::=\tau\to\tau\tag{function type} \\
-         &\mid b\tag{base type} \\
-    e &::= c\tag{constant} \\
-         &\mid x\tag{variable} \\
-         &\mid\lambda x:\tau.e\tag{type-annotated function} \\
-         &\mid e\ e\tag{function application} \\
-         &\mid \fix f:\tau.e\tag{fixpoint}
-  \end{align*}
-\end{singlespace}
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \begin{align*}
+        \tau &::=\tau\to\tau\tag{function type} \\
+             &\mid b\tag{base type} \\
+        e &::= c\tag{constant} \\
+             &\mid x\tag{variable} \\
+             &\mid\lambda x:\tau.e\tag{type-annotated function} \\
+             &\mid e\ e\tag{function application} \\
+             &\mid \fix f:\tau.e\tag{fixpoint}
+      \end{align*}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Syntax of \stlc}
+  \label{fig:syntax-gtlc}
+\end{figure}
 
 The grammar is extended to include constants of the base type. The type of functions parameters must be annotated\footnote{This is in the simplest case of type-assignment. With a type inference system such as bidirectional typing as described in \Cref{sec:static-semantics}, some type annotations may be optional.}.
 
-We now define what it means for a program in \stlc{} to be well-typed. The following typing judgments assign a type to a \stlc{} program.
+We now define what it means for a program in \stlc{} to be well-typed. The typing judgments shown in \Cref{fig:statics-stlc} assign a type to a \stlc{} program.
 
-\begin{singlespace}
-  \begin{mathpar}
-    \Infer{\stlc{}-TConst}{}{\Gamma\vdash c:b}
-    \and
-    \Infer{\stlc{}-TVar}{}{\Gamma,x:\tau\vdash x:\tau}
-    \and
-    \Infer{\stlc{}-TLam}{
-      \Gamma,x:\tau_1\vdash e:\tau_2
-    }{\Gamma\vdash(\lambda x:\tau_1.e):\tau_2}
-    \and
-    \Infer{\stlc{}-TAp}{
-      \Gamma\vdash e_1:\tau_1\to\tau \\
-      \Gamma\vdash e_2:\tau_1
-    }{\Gamma\vdash e_1\ e_2:\tau}
-    \and
-    \Infer{\stlc{}-TFix}{}{\Gamma\vdash(\fix f:\tau.e):\tau}
-  \end{mathpar}
-\end{singlespace}
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \begin{mathpar}
+        \Infer{\stlc{}-TConst}{}{\Gamma\vdash c:b}
+        \and
+        \Infer{\stlc{}-TVar}{}{\Gamma,x:\tau\vdash x:\tau}
+        \and
+        \Infer{\stlc{}-TLam}{
+          \Gamma,x:\tau_1\vdash e:\tau_2
+        }{\Gamma\vdash(\lambda x:\tau_1.e):\tau_2}
+        \and
+        \Infer{\stlc{}-TAp}{
+          \Gamma\vdash e_1:\tau_1\to\tau \\
+          \Gamma\vdash e_2:\tau_1
+        }{\Gamma\vdash e_1\ e_2:\tau}
+        \and
+        \Infer{\stlc{}-TFix}{}{\Gamma\vdash(\fix f:\tau.e):\tau}
+      \end{mathpar}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Static semantics of \stlc}
+  \label{fig:statics-stlc}
+\end{figure}
 
-The dynamic semantics are not much different than \ulc{}. Additional evaluation rules are defined for constants and fixpoints; evaluation of $\lambda$-abstractions and function application remains the same.
+The dynamic semantics are not much different than \ulc{}. Additional evaluation rules are defined for constants and fixpoints; evaluation of $\lambda$-abstractions and function application remains the same. The dynamic semantics are shown in \Cref{fig:dynamics-stlc}.
 
-\begin{singlespace}
-  \begin{mathpar}
-    \Infer{\stlc{}-EConst}{}{c\Downarrow c}
-    \and
-    \Infer{\stlc{}-ELam}{}{\lambda x:\tau.e \Downarrow \lambda x:\tau.e}
-    \and
-    \Infer{\stlc{}-EAp}{
-      e_1\Downarrow\lambda x:\tau.e_1' \\
-      [e_2/x]e_1'\Downarrow e
-    }{e_1\ e_2\Downarrow e}
-    \and
-    \Infer{\stlc{}-EFix}{[\fix f:\tau.e/f]e\Downarrow e'}{\fix f:\tau.e \Downarrow e'}
-    \and
-  \end{mathpar}
-\end{singlespace}
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \begin{mathpar}
+        \Infer{\stlc{}-EConst}{}{c\Downarrow c}
+        \and
+        \Infer{\stlc{}-ELam}{}{\lambda x:\tau.e \Downarrow \lambda x:\tau.e}
+        \and
+        \Infer{\stlc{}-EAp}{
+          e_1\Downarrow\lambda x:\tau.e_1' \\
+          [e_2/x]e_1'\Downarrow e
+        }{e_1\ e_2\Downarrow e}
+        \and
+        \Infer{\stlc{}-EFix}{[\fix f:\tau.e/f]e\Downarrow e'}{\fix f:\tau.e \Downarrow e'}
+        \and
+      \end{mathpar}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Dynamic semantics of \stlc}
+  \label{fig:dynamics-stlc}
+\end{figure}
 
 We may characterize type systems by establishing certain desirable properties. One such property is \textit{soundness}. Soundness means that if a program in \stlc{} type-checks, then it will not fail with a type error at run-time. This property is not necessary to prove for \ulc{} because there is only one type in \ulc{}, the recursive type $\tau::=\tau\to\tau$.
 
@@ -303,116 +389,148 @@ A hybrid approach is the \textit{gradually-typed $\lambda$-calculus} \gtlc{}, or
 
 The grammar of \gtlc{} is almost exactly the same as \stlc, except that we add a new type $\gtlch$, indicating an unspecified type. Now, $\lambda$-abstractions annotated with this type may be considered to be unannotated. We define the notation $\lambda x.e\equiv\lambda x:\gtlch.e$.
 
-The static semantics of \gtlc{} is expectedly also similar to \stlc. The only rule that differs is the rule for function application. We also write a new rule for subsumption, which states that if $\Gamma\vdash e:\tau$, then $e$ may also be assigned any consistent type.
+The static semantics of \gtlc{}, shown in \Cref{fig:statics-gtlc}, is expectedly also similar to \stlc. The only rule that differs is the rule for function application. We also write a new rule for subsumption, which states that if $\Gamma\vdash e:\tau$, then $e$ may also be assigned any consistent type.
 
-\begin{singlespace}
-  \begin{mathpar}
-    \Infer{\gtlc{}-TAp}{
-      \Gamma\vdash e_1:\tau_1 \\
-      \arrmatch{\tau_1}{\tau_2\to\tau_3} \\
-      \Gamma\vdash e_2:\tau_3 \\
-    }{\Gamma\vdash e_1\ e_2:\tau_3}
-    \and
-    \Infer{\gtlc{}-TSub}{
-      \Gamma\vdash e:\tau \\
-      \tau\sim\tau'
-    }{\Gamma\vdash e:\tau'}
-  \end{mathpar}
-\end{singlespace}
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \begin{mathpar}
+        \Infer{\gtlc{}-TAp}{
+          \Gamma\vdash e_1:\tau_1 \\
+          \arrmatch{\tau_1}{\tau_2\to\tau_3} \\
+          \Gamma\vdash e_2:\tau_3 \\
+        }{\Gamma\vdash e_1\ e_2:\tau_3}
+        \and
+        \Infer{\gtlc{}-TSub}{
+          \Gamma\vdash e:\tau \\
+          \tau\sim\tau'
+        }{\Gamma\vdash e:\tau'}
+      \end{mathpar}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Updated static semantics of \gtlc}
+  \label{fig:statics-gtlc}
+\end{figure}
 
-Two new judgments are introduced here. The first is the \textit{matched arrow judgment} $\arrmatch{\tau_1^-}{(\tau_2\to\tau_3)^+}$, which is a notational convenience which allows us to write a single rule for arrow types, which may either be a hole or an arrow type. This judgment is defined by the following rules.
+Two new judgments are introduced here. The first is the \textit{matched arrow judgment} $\arrmatch{\tau_1^-}{(\tau_2\to\tau_3)^+}$, which is a notational convenience which allows us to write a single rule for arrow types, which may either be a hole or an arrow type. This judgment is defined by the rules in \Cref{fig:matched-arrow}.
 
-\begin{singlespace}
-  \begin{mathpar}
-    \Infer{MAHole}{}{\arrmatch{\gtlch}{\gtlch\to\gtlch}}
-    \and
-    \Infer{MAArr}{}{\arrmatch{\tau_1\to\tau_2}{\tau_1\to\tau_2}}
-  \end{mathpar}
-\end{singlespace}
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \judgbox{\arrmatch{\tau}{\tau_1\to\tau_2}}{$\tau$ has matched arrow type $\tau_1\to\tau_2$}
+      \begin{mathpar}
+        \Infer{MAHole}{}{\arrmatch{\gtlch}{\gtlch\to\gtlch}}
+        \and
+        \Infer{MAArr}{}{\arrmatch{\tau_1\to\tau_2}{\tau_1\to\tau_2}}
+      \end{mathpar}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Matched arrow judgment}
+  \label{fig:matched-arrow}
+\end{figure}
 
-The second new judgment is the \textit{type consistency judgment} $\tau_1^-\sim\tau_2^-$. This judgment defines the typing relation of the unknown type to other types: every type is consistent to the hole type. Thus any type will type-check where a hole is expected, and vice versa. This relation is reflexive, symmetric, and non-transitive\footnote{It may seem unintuitive at first that type consistency is a symmetric relationship, because it may seem more like a subtyping relation. However, a major revolution in Siek and Taha's original formulation of \gtlc{} is that the symmetric subtyping relation is more suitable than the subtyping relations that had been explored in earlier works such as Thatte's quasi-static typing \cite{Siek06gradualtyping}.}.
+The second new judgment is the \textit{type consistency judgment} $\tau_1^-\sim\tau_2^-$. This judgment defines the typing relation of the unknown type to other types: every type is consistent to the hole type. Thus any type will type-check where a hole is expected, and vice versa. This relation is reflexive, symmetric, and non-transitive\footnote{It may seem unintuitive at first that type consistency is a symmetric relationship, because it may seem more like a subtyping relation. However, a major revolution in Siek and Taha's original formulation of \gtlc{} is that the symmetric subtyping relation is more suitable than the subtyping relations that had been explored in earlier works such as Thatte's quasi-static typing \cite{Siek06gradualtyping}.}. The rules for type consistency are shown in \Cref{fig:type-consistency}.
 
-\begin{singlespace}
-  \begin{mathpar}
-    \Infer{TCHoleTyp}{}{\gtlch\sim\tau}
-    \and
-    \Infer{TCTypHole}{}{\tau\sim\gtlch}
-    \and
-    \Infer{TCArr}{
-      \tau_1\sim\tau_1' \\
-      \tau_2\sim\tau_2'
-    }{(\tau_1\to\tau_2)\sim(\tau_1'\to\tau_2)}
-    \and
-  \end{mathpar}
-\end{singlespace}
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \judgbox{\tau_1\sim\tau_2}{$\tau_1$ is consistent with $\tau_2$}
+      \begin{mathpar}
+        \Infer{TCHoleTyp}{}{\gtlch\sim\tau}
+        \and
+        \Infer{TCTypHole}{}{\tau\sim\gtlch}
+        \and
+        \Infer{TCArr}{
+          \tau_1\sim\tau_1' \\
+          \tau_2\sim\tau_2'
+        }{(\tau_1\to\tau_2)\sim(\tau_1'\to\tau_2)}
+        \and
+      \end{mathpar}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Type consistency judgment}
+  \label{fig:type-consistency}
+\end{figure}
 
 Evaluation of a gradually-typed language introduces a cast calculus, which performs run-time type checking. To do this, we design another language, \gtclc{}, whose grammar is identical to \gtlc{} except for the introduction of a new expression form indicating a run-time cast, $d\langle\tau\Rightarrow\tau'\rangle$. We also define the notation $d\langle\tau\Rightarrow\tau'\Rightarrow\tau''\rangle\equiv d\langle\tau\Rightarrow\tau'\rangle\langle\tau'\Rightarrow\tau''\rangle$. We refer to \gtlc{} as the \textit{external language} and \gtclc{} as the \textit{internal language}. We denote expressions in \gtlc{} with the letter $e$ and expressions in \gtclc{} with the letter $d$. We only define static semantics on \gtlc{} and only define dynamic semantics on \gtclc{}. The process of converting from the external language to the internal language (i.e., the process of cast-insertion) is called \textit{elaboration}.
 
 Usually, elaboration includes the type-checking operation rather than being a separate operation. Elaboration fails iff type checking fails. A theorem may be stated that the type assigned by elaboration is the same as the type assigned by the type assignment judgment.
 
-The elaboration process is governed by the judgment $\Gamma^-\vdash e^-\leadsto d^+:\tau^+$. For most expression types, the expression in the external language elaborates to itself. The only exception is function applications, in which dynamic casts are inserted.
+The elaboration process is governed by the judgment $\Gamma^-\vdash e^-\leadsto d^+:\tau^+$. For most expression types, the expression in the external language elaborates to itself. The only exception is function applications, in which dynamic casts are inserted. The elaboration process is described in \Cref{fig:elaboration-gtlc}.
 
-\begin{singlespace}
-  \begin{mathpar}
-    \Infer{\gtlc-ElConst}{}{\Gamma\vdash c\leadsto c:b}
-    \and
-    \Infer{\gtlc-ElLam}{
-      \Gamma,x:\tau_1\vdash e:\tau_2
-    }{\Gamma\vdash\lambda x:\tau_1.e\leadsto (\lambda x:\tau_1.e):\tau_1\to\tau_2}
-    \and
-    \Infer{\gtlc-ElFix}{
-    }{\Gamma\vdash\fix f:\tau.e\leadsto (\fix f:\tau.e):\tau}
-    \and
-    \Infer{\gtlc-ElApp}{
-      \Gamma\vdash e_1\leadsto d_1:\tau_1 \\
-      \arrmatch{\tau_1}{\tau_3\to\tau_4} \\
-      \Gamma\vdash e_2\leadsto d_2:\tau_2 \\
-      \tau_2\sim\tau_3
-    }{\Gamma\vdash e_1\ e_2\leadsto (d_1\langle\tau_1\Rightarrow\tau_3\to\tau_4\rangle)\ (d_2\langle\tau_2\Rightarrow\tau_5\rangle):\tau_4}
-  \end{mathpar}
-\end{singlespace}
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \judgbox{\Gamma\vdash e\leadsto d:\tau}{$e$ elaborates to $d$ of type $\tau$ given typing context $\Gamma$}
+    \begin{singlespace}
+      \begin{mathpar}
+        \Infer{\gtlc-ElConst}{}{\Gamma\vdash c\leadsto c:b}
+        \and
+        \Infer{\gtlc-ElLam}{
+          \Gamma,x:\tau_1\vdash e:\tau_2
+        }{\Gamma\vdash\lambda x:\tau_1.e\leadsto (\lambda x:\tau_1.e):\tau_1\to\tau_2}
+        \and
+        \Infer{\gtlc-ElFix}{
+        }{\Gamma\vdash\fix f:\tau.e\leadsto (\fix f:\tau.e):\tau}
+        \and
+        \Infer{\gtlc-ElApp}{
+          \Gamma\vdash e_1\leadsto d_1:\tau_1 \\
+          \arrmatch{\tau_1}{\tau_3\to\tau_4} \\
+          \Gamma\vdash e_2\leadsto d_2:\tau_2 \\
+          \tau_2\sim\tau_3
+        }{\Gamma\vdash e_1\ e_2\leadsto (d_1\langle\tau_1\Rightarrow\tau_3\to\tau_4\rangle)\ (d_2\langle\tau_2\Rightarrow\tau_5\rangle):\tau_4}
+      \end{mathpar}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Elaboration in \gtlc}
+  \label{fig:elaboration-gtlc}
+\end{figure}
 
-We may now define a dynamic semantics on \gtclc. The following dynamic semantics is simplified from Siek et. al's formulation for the sake of clarity\footnote{Siek \cite{siek2015refined} introduces the idea of \textit{ground types} and the \textit{matched-ground judgment}. Casts can only succeed or fail between ground types. Additionally, Siek et al. describes \textit{blames} and \textit{frames} to encapsulate errors. Ground types are carried over to Hazelnut Live's formulation \cite{conf/popl/HazelnutLive19}, but blames and frames are not currently implemented in Hazel.} and is not intended to be a precise description of the evaluation semantics. As before, the dynamic semantics are described using a big-step notation, where the judgment $d^-\textsf{ final}$ indicates that $d$ is a value\footnote{The small-step semantics is perhaps be more clear here, as it more clearly illustrates the isolated effect of the cast operation. Both Siek et al. \cite{Siek06gradualtyping,siek2015refined} and Hazelnut Live \cite{conf/popl/HazelnutLive19} describe the dynamic semantics using a small-step semantics. Hazelnut Live adds the concept of the \textit{final judgment} to delineate values. However, we use a big-step semantics to remain consistent with the rest of the notation in this work.}.
+We may now define a dynamic semantics on \gtclc. The following dynamic semantics is simplified from Siek et. al's formulation for the sake of clarity\footnote{Siek \cite{siek2015refined} introduces the idea of \textit{ground types} and the \textit{matched-ground judgment}. Casts can only succeed or fail between ground types. Additionally, Siek et al. describes \textit{blames} and \textit{frames} to encapsulate errors. Ground types are carried over to Hazelnut Live's formulation \cite{conf/popl/HazelnutLive19}, but blames and frames are not currently implemented in Hazel.} and is not intended to be a precise description of the evaluation semantics. As before, the dynamic semantics are described using a big-step notation, where the judgment $d^-\textsf{ final}$ indicates that $d$ is a value\footnote{The small-step semantics is perhaps be more clear here, as it more clearly illustrates the isolated effect of the cast operation. Both Siek et al. \cite{Siek06gradualtyping,siek2015refined} and Hazelnut Live \cite{conf/popl/HazelnutLive19} describe the dynamic semantics using a small-step semantics. Hazelnut Live adds the concept of the \textit{final judgment} to delineate values. However, we use a big-step semantics to remain consistent with the rest of the notation in this work.}. There is also the possibility of a dynamic cast error, given by rule \gtclc-ECastFail. The dynamic semantics is shown in \Cref{fig:dynamics-gtlc}.
 
-\begin{singlespace}
-  \begin{mathpar}
-    \Infer{\gtclc-VConst}{}{c\textsf{ final}}
-    \and
-    \Infer{\gtclc-VLam}{}{\lambda x:\tau.d\textsf{ final}}
-    \and
-    \Infer{\gtclc-VBoxedVal}{}{e\langle\tau\Rightarrow\gtlch\rangle\textsf{ final}}
-    \and
-    \Infer{\gtclc-EVal}{d\textsf{ final}}{d\Downarrow d}
-    \and
-    \Infer{\gtclc-EFix}{[\fix f:\tau.d/f]d\Downarrow d'}{\fix f:\tau.d\Downarrow d'}
-    \and
-    \Infer{\gtclc-EAp}{
-      d_1\Downarrow\lambda x:\tau.d_1' \\
-      [d_2/x]d_1\Downarrow d
-    }{d_1\ d_2\Downarrow d}
-    \and
-    \Infer{\gtclc-ECastAp}{
-      d_1\Downarrow d_1'\langle\tau_1\to\tau_2\Rightarrow\tau_1'\to\tau_2'\rangle \\
-      (d_1'\ (d_2\langle\tau_1'\Rightarrow\tau_1\rangle))\langle\tau_2\Rightarrow\tau_2'\rangle\Downarrow d
-    }{d_1\ d_2\Downarrow d}
-    \and
-    \Infer{\gtclc-ECastId}{
-      d\Downarrow d'
-    }{d\langle\tau\Rightarrow\tau\rangle\Downarrow d'}
-    \and
-    \Infer{\gtclc-ECastSucceed}{
-      d\Downarrow d'
-    }{d\langle\tau\Rightarrow\gtlch\Rightarrow\tau\rangle\Downarrow d'}
-  \end{mathpar}
-\end{singlespace}
-
-There is also the possibility of a dynamic cast error.
-
-\begin{singlespace}
-  \begin{mathpar}
-    \Infer{\gtclc-ECastFail}{}{d\langle\tau\Rightarrow\gtlch\Rightarrow\tau'\rangle\textsf{ castfail}}
-  \end{mathpar}
-\end{singlespace}
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \begin{mathpar}
+        \Infer{\gtclc-VConst}{}{c\textsf{ final}}
+        \and
+        \Infer{\gtclc-VLam}{}{\lambda x:\tau.d\textsf{ final}}
+        \and
+        \Infer{\gtclc-VBoxedVal}{}{e\langle\tau\Rightarrow\gtlch\rangle\textsf{ final}}
+        \and
+        \Infer{\gtclc-EVal}{d\textsf{ final}}{d\Downarrow d}
+        \and
+        \Infer{\gtclc-EFix}{[\fix f:\tau.d/f]d\Downarrow d'}{\fix f:\tau.d\Downarrow d'}
+        \and
+        \Infer{\gtclc-EAp}{
+          d_1\Downarrow\lambda x:\tau.d_1' \\
+          [d_2/x]d_1\Downarrow d
+        }{d_1\ d_2\Downarrow d}
+        \and
+        \Infer{\gtclc-ECastAp}{
+          d_1\Downarrow d_1'\langle\tau_1\to\tau_2\Rightarrow\tau_1'\to\tau_2'\rangle \\
+          (d_1'\ (d_2\langle\tau_1'\Rightarrow\tau_1\rangle))\langle\tau_2\Rightarrow\tau_2'\rangle\Downarrow d
+        }{d_1\ d_2\Downarrow d}
+        \and
+        \Infer{\gtclc-ECastId}{
+          d\Downarrow d'
+        }{d\langle\tau\Rightarrow\tau\rangle\Downarrow d'}
+        \and
+        \Infer{\gtclc-ECastSucceed}{
+          d\Downarrow d'
+        }{d\langle\tau\Rightarrow\gtlch\Rightarrow\tau\rangle\Downarrow d'}
+        \and
+        \Infer{\gtclc-ECastFail}{}{d\langle\tau\Rightarrow\gtlch\Rightarrow\tau'\rangle\textsf{ castfail}}
+      \end{mathpar}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Dynamic semantics of \gtclc}
+  \label{fig:dynamics-gtlc}
+\end{figure}
 
 Hazel's core calculus heavily borrows from \gtlc{} and \gtclc{}. The rules for casts will remain unchanged for the dynamic semantics when switching to use the environment mode of evaluation.
 
@@ -461,7 +579,7 @@ The most traditional programming interface is the text source file. In this case
 
 A major use case for structural editing is for the purpose of programming education. By eliminating syntactic errors, the student may shift their attention more towards semantic issues in their code. For example, Carnegie Mellon University developed a series of structural editors (GNOME, MacGnome, and ACSE)  targeted at programming education \cite{miller1994evolution}. Scratch is a graphical structural editor targeted at younger students (aged 8-16) developed at MIT \cite{maloney2010scratch}. Programming education is one of the main proposed use cases for Hazel, such as its use in Hazel Tutor \cite{potter2020hazel}.
 
-Structure editors are not limited to programming education. mebbdr is a structure editor for embedded programming \cite{voelter2012mbeddr}, and Lamdu is a structure editor for a Haskell-like functional programming language \cite{lotem_chuchem}.
+Structure editors are not limited to programming education. mbeddr is a structure editor for embedded programming \cite{voelter2012mbeddr}, and Lamdu is a structure editor for a Haskell-like functional programming language \cite{lotem_chuchem}.
 
 One of the major drawbacks of structural editing is the decrease in usability by restricting the set of edit actions. The degree to which an editor ``resists local changes'' is a property known as \textit{viscosity} \cite{green1989cognitive}. Structural and visual editing is expectedly more viscous than unstructured plaintext editing. Reducing the viscosity of structural editing is not a goal of Hazel, but a related project at the University of Michigan, Tylr \cite{tylr}, tackles the problem of editing viscosity and may make its way into future versions of Hazel.
 
