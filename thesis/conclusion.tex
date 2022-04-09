@@ -1,7 +1,7 @@
 \chapter{Conclusions and recommendations}
 \label{sec:concl}
 
-This thesis explores several advancements to the evaluation model in Hazel, an implementation of a live programming editor with typed holes. We develop rules and a metatheory for the propesd changes as well as a working implementation for most of the rules provided.
+This thesis explores several pracatical advancements to the dynamic semantics of Hazel, an implementation of a live programming editor with typed holes. We develop rules and a metatheory for the propesd changes as well as a working implementation for most of the rules provided.
 
 The first proposed change is the switch from using variable substitution at binding time to storing variables in an environment at lookup time. This implementation leads to the introduction of closures to the internal language of Hazel, as well as a postprocessing step to restore the same result that would have been achieved by evaluation using the substitution model. Initially, we begin with the conventional function closures and the hole closures introduced in Hazelnut. Later, we introduce generalized closures, which subsume function and hole closures, and represent any paused evaluation. Generalized closures play a critical role in FAR.
 

@@ -255,6 +255,9 @@ Since this is a very high-level view of the program, many details are abstracted
 \section{FAR examples}
 \label{sec:far-examples}
 
+\subsection{Motivating example}
+\label{sec:far-motivating-example}
+
 We revisit the program from \Cref{fig:far-motivation}, reproduced in \Cref{fig:far-simple-reproduced}. This hole fill operation is very simple, replacing a hole with a value. We also observe the behavior of the preprocessing operation, which marks closures for re-evaluation and encapsulates filled expressions with the hole closure number for memoization.
 
 \begin{figure}
@@ -308,6 +311,9 @@ We revisit the program from \Cref{fig:far-motivation}, reproduced in \Cref{fig:f
   \caption{FAR simple example}
   \label{fig:far-simple-example}
 \end{figure}
+
+\subsection{Introducing and removing static type errors}
+\label{sec:far-static-error-examples}
 
 Now, consider the program shown in \Cref{fig:far-introduce-type-error}. In this fill operation, we introduce a new static type error (non-empty hole). The non-empty hole is inserted automatically during the action semantics and appears naturally in the diff, so we do not need to perform any special handling for it. Similarly, in the case of \Cref{fig:far-remove-type-error}, a non-empty hole is removed by filling with a type-consistent expression. This allows static type errors to be ``fixed'' and evaluation to resume past where it had stopped.
 
@@ -413,6 +419,9 @@ Now, consider the program shown in \Cref{fig:far-introduce-type-error}. In this 
   \label{fig:far-remove-type-error}
 \end{figure}
 
+\subsection{Example requiring recursive evaluation of closure environment}
+\label{sec:far-closure-recursion-example}
+
 In \Cref{fig:far-fill-hole-in-hole-env} we fill a hole that does not exist directly in the result, but exists in a hole closure environment. This illustrates the need to recursively re-evaluate closure environments.
 
 \begin{figure}
@@ -465,6 +474,9 @@ In \Cref{fig:far-fill-hole-in-hole-env} we fill a hole that does not exist direc
   \caption{FAR fill hole in hole environment example}
   \label{fig:far-fill-hole-in-hole-env}
 \end{figure}
+
+\subsection{Hole fill expression memoization example}
+\label{sec:far-hole-fill-memoization-example}
 
 The program in \Cref{fig:far-hole-closure-memoization} shows the necessity of memoizing by hole closure number, in order to preserve the same result as if evaluating normally. In this example, we have two instances of hole 1 in the result. Since there is only one instantiation of hole 1, these are two instances of the same hole closure. If there were no memoization of filled expressions, then the filled expression $f\ 1$ would be evaluated twice. This is problematic because function application generates new environments (and new environment identifiers), so the two instances would have different closures and thus be considered two separate hole closures, even when they come from the same instantiation. Since the filled expression is memoized, the two instances of the hole have closures with the same environment identifier (indicated by the same superscript $i$ on the closure environments).
 
