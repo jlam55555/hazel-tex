@@ -4,17 +4,10 @@
 \section{Motivation}
 \label{sec:far-motivation}
 
-\begin{listing}
-  \centering
-  \inputhminted{far_motivation}
-  \caption{A sample program with an expensive calculation stored in a hole's environment}
-  \label{fig:far-motivation}
-\end{listing}
-
 Consider the program shown in \Cref{fig:far-motivation}. In this program, the calculation of $x=\text{fib }30$ is arbitrarily chosen to represent a computationally-expensive operation. The result of this program is \[
   [f\leftarrow [\varnothing]\lambda x.\{\dots\},x\leftarrow 832040]\hehole^1
 \]
-Now, if we want to ``fill'' hole 1 with the expression $x+2$, then it would seem extremely wasteful to have to re-compute the value of $x$. After all, the computation remains exactly the same, and the only part that we are changing uses the result of the previous computation. Moreover, we realize that the end result stores the computed value of $x$ in the hole's closure's environment. Rather than filling the expression $x+2$ in the hole in the original program, we may instead fill the hole in the evaluated program result, and ``resume'' evaluation.
+Now, if we want to ``fill'' hole 1 with the expression $x+2$, then it would seem wasteful to have to re-compute the value of $x$. After all, the computation bound to $x$ is exactly the same. Moreover, we realize that the evaluation result stores the computed value of $x$ in the hole's closure's environment. Rather than re-evaluating the original program, we may instead \textit{fill} the hole in the evaluated program result, and then \textit{resume} evaluation.
 \begin{gather*}
   [f\leftarrow [\varnothing]\lambda x.\{\dots\},x\leftarrow 832040](x+2) \\
   832040+2 \\
@@ -22,7 +15,14 @@ Now, if we want to ``fill'' hole 1 with the expression $x+2$, then it would seem
 \end{gather*}
 Here we observe that the generalized closures surrounding holes and other stopped evaluations allow us to capture the environment for future computation.
 
-This is the \textit{fill-and-resume} (\textit{FAR}) operation that is described in Hazelnut Live \cite{conf/popl/HazelnutLive19}. It is described in terms of a substitution-based evaluation semantics, and with respect to its theoretic foundations in contextual modal type theory (CMTT), but does not specify any details with regard to its implementation, such as the extraction of the expression and hole for the fill operation. Hazelnut Live also describes the practical memoization problem with the suggestion to ``cache more than one recent edit state to take full advantage of hole filling'' -- we present a structural diffing\footnote{``Diffing'' taken to mean the action of performing a (structural) diff operation between two edit states.} algorithm that easily allows us to fill a hole from an arbitrary past edit state.
+\begin{listing}
+  \centering
+  \inputhminted{far_motivation}
+  \caption{A sample program with an expensive calculation stored in a hole's environment}
+  \label{fig:far-motivation}
+\end{listing}
+
+This is the \textit{fill-and-resume} (\textit{FAR}) operation that is described in Hazelnut Live \cite{conf/popl/HazelnutLive19}. It is described in terms of a substitution-based evaluation semantics, and with respect to its theoretic foundations in contextual modal type theory (CMTT). We provide the first implementation of such an operation. Hazelnut Live also describes a practical problem with fill operations that take place over multiple edit actions ($n$-step FAR), with the suggestion to ``cache more than one recent edit state to take full advantage of hole filling.'' We present a structural diffing\footnote{``Diffing'' taken to mean the action of performing a (structural) diff operation between two edit states.} algorithm in \Cref{sec:far-detect-structural-diff} that easily allows us to detect and fill a hole from an arbitrary past edit state.
 
 \section{The FAR process}
 \label{sec:far-process}
@@ -33,8 +33,8 @@ The fill-and-resume process can be broken into the following sequence.
 \item Obtain a previous edit state with which to fill from the model.
 \item Determine whether a fill operation is appropriate. If it is not, perform regular evaluation of the program, and do not continue to the following steps.
 \item If the fill operation is valid, then obtain the fill parameters (the internal expression to fill, and the hole number from the previous edit state with which to fill).
-\item Pre-process the evaluation result to prepare for (re-)evaluation.
-\item Re-evaluate.
+\item \textbf{Fill.} Pre-process the evaluation result to prepare for (re-)evaluation.
+\item \textbf{Resume.} Re-evaluate.
 \item Pos-process the evaluation result for display purposes.
 \item Update the model with the evaluation results.
 \end{enumerate}
@@ -66,210 +66,98 @@ We may remedy this specific case by grouping together consecutive construction a
   2+3*(5) \\
   2+3*(5+\hehole^1)
 \end{gather*}
-The final edit state in this sequence is actually a valid fill of the first edit state of the sequence\footnote{There are actually multiple valid fill operations here. Another valid fill operation occurs between the third edit state and all of the following edit states.}, such that $u=1$ and $d=5+\hehole^1$. However, an algorithm to trace the edit actions to determine that this is a valid fill may be difficult, since there is an incomprehensible mix of construct, delete, and movement edit actions. Even worse, the edits actually go outside the original hole, which likely makes the algorithm intractable. Thus, we wish for a more robust solution that is independent of the edit sequence between two states.
+The final edit state in this sequence is actually a valid fill of the first edit state of the sequence\footnote{There are actually multiple valid fill operations here. Another valid fill operation occurs between the third edit state and all of the following edit states.}, such that $u=1$ and $d=5+\hehole^1$. However, an algorithm to trace the edit actions to determine that this is a valid fill may be difficult, since there is an incomprehensible mix of construct, delete, and movement edit actions. Even worse, the edits traverse outside the original hole, which likely makes the algorithm intractable.
+
+This method is only tractable for 1-step FAR or simple cases of grouped edit actiosn. We wish for a more robust yet still simple solution that is independent of the edit sequence between two states.
 
 \subsubsection{Structural diffing between two edit states}
 \label{sec:far-detect-structural-diff}
 
-Instead of observing the edit action, we may instead attempt to find the root of the difference between any two edit states, and determine if that is the the difference gives valid fill parameters. This has the benefit of being a relatively simple algorithm, while overcoming the limitation of the previous method because it is path-independent.
+Instead of observing the edit action, we may instead attempt to find the root of the difference between any two edit states, and determine if that is the the difference gives valid fill parameters. This has the benefit of being a relatively simple algorithm, while overcoming the limitation of the previous method and allowing for $n$-step FAR.
 
-The structural diff algorithm takes two expressions as input and returns one of three diff judgments\footnote{The following notations for diffing are chosen somewhat arbitrarily. The triangle seems appropriate because it has a variant with an equals bar ($\nodiff{}{}$), as well as a ``no fill'' ($\nfdiff{}{}{}{}$) and ``fill'' variant ($\fdiff{}{}{}{}$). The triangle is also horizontally asymmetric, which mirrors the fact that the diff relation is asymmetric.}. $\nodiff{d_1}{d_2}$ indicates \textit{no diff} between $d_1$ and $d_2$. $\nfdiff{d_1}{d_2}$ indicates a \textit{non-fill diff} from $d_1$ to $d_2$. $\fdiff{d_1}{d_2}{u}{d}$ indicates a \textit{fill diff} of hole $u$ with expression $d$ from $d_1$ to $d_2$.
+The structural diff algorithm takes two expressions as input and returns one of three diff judgments\footnote{The following notations for diffing are chosen somewhat arbitrarily. The triangle seems appropriate because it has a variant with an equals bar ($\nodiff{}{}$), as well as a ``no fill'' ($\nfdiff{}{}{}{}$) and ``fill'' variant ($\fdiff{}{}{}{}$). The triangle is also horizontally asymmetric, which mirrors the fact that the diff relation is asymmetric.}. $\nodiff{d_1^-}{d_2^-}$ indicates \textit{no diff} between $d_1$ and $d_2$. $\nfdiff{d_1^-}{d_2^-}$ indicates a \textit{non-fill diff} from $d_1$ to $d_2$. $\fdiff{d_1^-}{d_2^-}{u^+}{d^+}$ indicates a \textit{fill diff} of hole $u$ with expression $d$ from $d_1$ to $d_2$.
 
-We also define two shorthand operators for notational convenience. $\sdiff{d_1}{d_2}{u}{d}$ indicates \textit{some (non-empty) diff} from $d_1$ to $d_2$, which may or may not be a fill difference. $\adiff{d_1}{d_2}{u}{d}$ indicates \textit{any diff} (potentially no diff). Both notations are used to avoid writing multiple similar rules, where the only change in the rules is diff judgment type.
+We also define two shorthand operators for notational convenience. $\sdiff{d_1^-}{d_2^-}{u^+}{d^+}$ indicates \textit{some (non-empty) diff} from $d_1$ to $d_2$, which may or may not be a fill difference. $\adiff{d_1^-}{d_2^-}{u^+}{d^+}$ indicates \textit{any diff} (potentially no diff). Both notations are used to avoid writing multiple similar rules, where the only change in the rules is diff judgment type. The behavior of these notations is described in \Cref{fig:diff-abbrev}.
 
-\todo{put the following in a figure, and move to another file}
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \input{diff_abbrev}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Structural diffing abbreviated judgments}
+  \label{fig:diff-abbrev}
+\end{figure}
 
-\begin{singlespace}
-  \judgbox{\sdiff{d_1}{d_2}{u}{d}}{Some (non-empty) diff between $d_1$ and $d_2$.}
-  \begin{mathpar}
-    \Infer{SDiffNFDiffSome}{
-      \nfdiff{d_1}{d_2}
-    }{\sdiff{d_1}{d_2}{\varnothing}{\varnothing}}
-    \and
-    \Infer{SDiffFDiffSome}{
-      \fdiff{d_1}{d_2}{u}{d}
-    }{\sdiff{d_1}{d_2}{u}{d}} \\
-    \and
-    \Infer{SDiffSomeNFDiff}{
-      \sdiff{d_1}{d_2}{\varnothing}{\varnothing}
-    }{\nfdiff{d_1}{d_2}}
-    \and
-    \Infer{SDiffSomeFDiff}{
-      \sdiff{d_1}{d_2}{u}{d}
-    }{\fdiff{d_1}{d_2}{u}{d}}
-  \end{mathpar}
+For convenience, we define the judgment\footnote{The relation $\sim$ is already defined to mean type consistency when applied to types. This interpretation applies when the relation is applied to internal expressions.} $\formsame{d_1^-}{d_2^-}$ to mean that $d_1$ and $d_2$ are of the same \textit{expression form}. We use the term expression form or \textit{expression variant} to indicate the variant types of \mintinline{ocaml}|DHExp.t|. For example, empty holes and constants of the base type are different expression forms. Empty holes and non-empty holes are also different forms per the grammar. The rules shown in \Cref{fig:form-equal} should require no further explanation.
 
-  \judgbox{\adiff{d_1}{d_2}{u}{d}}{Any (possibly-empty) diff between $d_1$ and $d_2$.}
-  \begin{mathpar}
-    \Infer{ADiffNoDiffAny}{
-      \nodiff{d_1}{d_2}
-    }{\adiff{d_1}{d_2}{\cdot}{\varnothing}}
-    \and
-    \Infer{ADiffNFDiffAny}{
-      \nfdiff{d_1}{d_2}
-    }{\adiff{d_1}{d_2}{\varnothing}{\varnothing}}
-    \and
-    \Infer{ADiffFDiffAny}{
-      \fdiff{d_1}{d_2}{u}{d}
-    }{\adiff{d_1}{d_2}{u}{d}}
-    \and
-    \Infer{ADiffAnyNoDiff}{
-      \adiff{d_1}{d_2}{\cdot}{\varnothing}
-    }{\nodiff{d_1}{d_2}}
-    \and
-    \Infer{ADiffAnyNFDiff}{
-      \sdiff{d_1}{d_2}{\varnothing}{\varnothing}
-    }{\nfdiff{d_1}{d_2}}
-    \and
-    \Infer{ADiffAnyFDiff}{
-      \sdiff{d_1}{d_2}{u}{d}
-    }{\fdiff{d_1}{d_2}{u}{d}}
-  \end{mathpar}
-\end{singlespace}
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \input{form_equal}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Form equality judgment}
+  \label{fig:form-equal}
+\end{figure}
 
-We break up the diff judgments into cases. First, we may consider the case of two holes of different \textit{expression forms}\footnote{We use the term \textit{expression form} or \textit{expression variant} to indicate the variant types of \mintinline{ocaml}|DHExp.t|. For example, empty holes and constants of the base type are different expression forms. Empty holes and non-empty holes are also different forms per the grammar.}.
+We divide up the structural diffing algorithm into cases based on expression forms.
 
-For convenience, we define the judgment $\formsame{d_1}{d_2}$ to mean that $d_1$ and $d_2$ are of the same expression form\footnote{The relation $\sim$ is already defined to mean type consistency when applied to types. This interpretation applies when the relation is applied to internal expressions.}. We may more concretely express this judgment by the following rules.
+\begin{description}
+\item[Expressions with different forms] If the two expressions have different forms, then the current node is necessarily the diff root. It is a fill diff iff the left expression is a hole (DFNEqEHole, DFNEqNEHole, DFNEqNonHole).
 
-\begin{singlespace}
-  \begin{mathpar}
-    \Infer{FEqConst}{}{\formsame{c_1}{c_2}}
-    \and
-    \Infer{FEqVar}{}{\formsame{x_1}{x_2}}
-    \and
-    \Infer{FEqLam}{}{\formsame{\lambda x.d_1}{\lambda x.d_2}}
-    \and
-    \Infer{FEqAp}{}{\formsame{e_1\ e_2}{e_1'\ e_2'}}
-    \and
-    \Infer{FEqAsc}{}{\formsame{e:\tau}{e':\tau'}}
-    \and
-    \Infer{FEqEHole}{}{\formsame{\hehole^u}{\hehole^{u'}}}
-    \and
-    \Infer{FEqNEHole}{}{\formsame{\hhole{d}^u}{\hhole{d'}^{u'}}}
-  \end{mathpar}
-\end{singlespace}
+  These rules are shown in \Cref{fig:structural-diff-diff}.
+  
+\item[Expressions with the same non-hole form] If the two expressions have the same form, then we need to check the root node and its subexpression(s). For expressions with no subexpressions, there is a non fill diff iff the expressions differ (DFEqConstNEq, DFEqConstEq, DFEqVarNEq).
+  
+  For expressions with a single subexpression, we first check if there are any differences, ignoring the subexpression. If there is a difference, then the current node is the non fill diff root. Otherwise, we pass through the diff from the child node (DFEqLamNEq$_1$, DFEqLamNEq$_2$, DFEqLamEq, DFEqAscNEq, DFEqAscEq).
 
-If the two expressions have different forms, then the current node is necessarily the diff root. It is a fill diff iff the left expression is a hole.
+  The last case to check for non-hole expressions are expressions with more than one subexpression. In this case, we first check if there exist any differences outside the subexpressions, which would result in a non fill diff rooted at the current node. Otherwise, if there are no subexpression diffs, then the result is no diff. If more than one subexpression has a diff, then the diff is a non fill diff rooted at the current node. The last case is when exactly one child has a diff, which would be passed through. This is the case for the binary function application expression form (DFEqApEq$_1$, DFEqApEq$_2$, DFEqApEq$_3$, DFEqApEq$_4$).
 
-\begin{singlespace}
-  \begin{mathpar}
-    \Infer{DFNEqEHole}{
-      \formdiff{\hehole^u}{d_2}
-    }{\fdiff{\hehole^u}{d_2}{u}{d_2}}
-    \and
-    \Infer{DFNEqNEHole}{
-      \formdiff{\hhole{d}^u}{d_2}
-    }{\fdiff{\hhole{d}^u}{d_2}{u}{d_2}}
-    \and
-    \Infer{DFNEqNonHole}{
-      d_1\ne\hehole^u \\
-      d_1\ne\hhole{d}^u \\
-      \formdiff{d_1}{d_2}
-    }{\nfdiff{d_1}{d_2}}
-    \and
-  \end{mathpar}
-\end{singlespace}
+  In the minimal $\lambda$-calculus grammars specified for Hazel, the only expression form of plural subexpression arity is function application, but the following description extends to higher numbers of subexpressions (such as the case for \mintinline{ocaml}|case| expressions with arbitrary numbers of rules.
 
-If the two expressions have the same form, then we need to check the root node and its subexpression(s). For expressions with no subexpressions, there is a non fill diff iff the expressions differ.
+  These rules are shown in \Cref{fig:structural-diff-non-holes}.
 
-\begin{singlespace}
-  \begin{mathpar}
-    \Infer{DFEqConstNEq}{c_1\ne c_2}{\nfdiff{c_1}{c_2}}
-    \and
-    \Infer{DFEqConstEq}{}{\nodiff{c}{c}}
-    \and
-    \Infer{DFEqVarNEq}{x_1\ne x_2}{\nfdiff{x_1}{x_2}}
-    \and
-    \Infer{DFEqVarEq}{}{\nodiff{x}{x}}
-  \end{mathpar}
-\end{singlespace}
+\item[Expressions with the same hole form] The last case to consider is the comparison of two hole expressions of the same form. The empty hole case is very similar to the nullary subexpression case (DFEqEHoleNEq, DFEqEHoleEq). The non-empty hole case is very similar to the unary subexpression case (DFEqNEHoleNEq, DFEqNEHoleEq$_1$, DFEqNEHoleEq$_2$), except for a special rule that propagates non-fill diffs upwards to be a fill diff rooted in the current hole (DFEqNEHoleEqProp). This allows for diffs that are not rooted directly in a hole to be filled in their nearest non-empty hole parent node.
 
-For expressions with a single subexpression, we first check if there are any differences, ignoring the subexpression. If there is a difference, then the current node is the non fill diff root. Otherwise, we pass through the diff from the child node.
-
-\begin{singlespace}
-  \begin{mathpar}
-    \Infer{DFEqLamNEq$_1$}{
-      x_1\ne x_2
-    }{\nfdiff{\lambda x_1:\tau_1.d_1}{\lambda x_2:\tau_2.d_2}}
-    \and
-    \Infer{DFEqLamNEq$_2$}{
-      \tau_1\ne\tau_2
-    }{\nfdiff{\lambda x:\tau_1.d_1}{\lambda x:\tau_2.d_2}}
-    \and
-    \Infer{DFEqLamEq}{
-      \adiff{d_1}{d_2}{u}{d}
-    }{\adiff{\lambda x:\tau.d_1}{\lambda x:\tau.d_2}{u}{d}}
-    \and
-    \Infer{DFEqAscNEq}{
-      \tau_1\ne\tau_2
-    }{\nfdiff{d_1:\tau_1}{d_2:\tau_2}}
-    \and
-    \Infer{DFEqAscEq}{
-      \adiff{d_1}{d_2}{u}{d}
-    }{\adiff{d_1:\tau}{d_2:\tau}{u}{d}}
-  \end{mathpar}
-\end{singlespace}
-
-The last case to check for non-hole expressions are expressions with more than one subexpression. In this case, we first check if there exist any differences outside the subexpressions, which would result in a non fill diff rooted at the current node. Otherwise, if there are no subexpression diffs, then the result is no diff. If more than one subexpression has a diff, then the diff is a non fill diff rooted at the current node. The last case is when exactly one child has a diff, which would be passed through. This is illustrated below with the binary function application expression form.
-
-\begin{singlespace}
-  \begin{mathpar}
-    \Infer{DFEqApEq$_1$}{
-      \nodiff{d_1}{d_1'} \\
-      \nodiff{d_2}{d_2'} \\
-    }{\nodiff{d_1\ d_2}{d_1'\ d_2}}
-    \and
-    \Infer{DFEqApEq$_2$}{
-      \sdiff{d_1}{d_1'}{u}{d} \\
-      \sdiff{d_2}{d_2'}{u'}{d'} \\
-    }{\nodiff{d_1\ d_2}{d_1'\ d_2}}
-    \and
-    \Infer{DFEqApEq$_3$}{
-      \nodiff{d_1}{d_1'} \\
-      \sdiff{d_2}{d_2'}{u}{d} \\
-    }{\sdiff{d_1\ d_2}{d_1'\ d_2}{u}{d}}
-    \and
-    \Infer{DFEqApEq$_4$}{
-      \sdiff{d_1}{d_1'}{u}{d} \\
-      \nodiff{d_2}{d_2'} \\
-    }{\sdiff{d_1\ d_2}{d_1'\ d_2}{u}{d}}
-  \end{mathpar}
-\end{singlespace}
-
-In the minimal $\lambda$-calculus grammars specified for Hazel, the only expression form of plural subexpression arity is function application, but the following description extends to higher numbers of subexpressions (such as the case for \mintinline{ocaml}|case| expressions with arbitrary numbers of rules.
-
-The last case to consider is the comparison of two hole expressions of the same form. The empty hole case is very similar to the nullary subexpression case. The non-empty hole case is very similar to the unary subexpression case, except for a special rule that propagates non-fill diffs upwards to be a fill diff rooted in the current hole. This allows for diffs that are not rooted directly in a hole to be filled in their nearest non-empty hole parent node.
-
-\begin{singlespace}
-  \begin{mathpar}
-    \Infer{DFEqEHoleNEq}{
-      u\ne u'
-    }{\fdiff{\hehole^u}{\hehole^{u'}}{u}{\hehole^{u'}}}
-    \and
-    \Infer{DFEqEHoleEq}{
-    }{\nodiff{\hehole^u}{\hehole^u}}
-    \and
-    \Infer{DFEqNEHoleNEq}{
-      u\ne u'
-    }{\fdiff{\hhole{d}^u}{\hhole{d'}^{u'}}{u}{\hhole{d'}^{u'}}}
-    \and
-    \Infer{DFEqNEHoleEq$_1$}{
-      \nodiff{d}{d'}
-    }{\nodiff{\hhole{d}^u}{\hhole{d'}^u}}
-    \and
-    \Infer{DFEqNEHoleEq$_2$}{
-      \fdiff{d}{d'}{u'}{d''}
-    }{\fdiff{\hhole{d}^u}{\hhole{d'}^u}{u'}{d''}}
-    \and
-    \Infer{DFEqNEHoleEqProp}{
-      \nfdiff{d}{d'}
-    }{\fdiff{\hhole{d}^u}{\hhole{d'}^u}{u}{\hhole{d'}^u}}
-  \end{mathpar}
-\end{singlespace}
-
-\todo{metatheorems regarding the diff algorithm}
-
+  These rules are shown in \Cref{fig:structural-diff-holes}.
+\end{description}
 The diff algorithm begins by performing the structural diff between the elaborated program state of a past edit state $d_{old}$ and the current edit state $d_{cur}$. A FAR operation is only valid if the diff judgment is a fill diff $\fdiff{d_{old}}{d_{cur}}{u}{d}$, which gives us the FAR parameters $u$ and $d$.
+
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \input{structural_diff_diff}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Structural diffing of different expression forms}
+  \label{fig:structural-diff-diff}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \input{structural_diff_non_holes}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Structural diffing of non-hole expressions}
+  \label{fig:structural-diff-non-holes}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \input{structural_diff_holes}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Structural diffing of hole expressions}
+  \label{fig:structural-diff-holes}
+\end{figure}
 
 \subsubsection{Performance tradeoffs of the two detection algorithms}
 \label{sec:far-detect-compare}
@@ -278,7 +166,7 @@ In the most na\"ive form, the previous algorithm's efficiency is $O(\log E)$, wh
 
 The structural diff algorithm presented in this section is $O(E)$, since it traverses each node (once) until it finds a difference. However, if one travels backwards multiple edit states, then the cost is $O(SE)$, where $S$ is the number of edit states compared using this algorithm. While this is much more expensive than the previous algorithm, we assume that the program size is relatively small, causing delay only on the order of milliseconds. However, it may be able to find a valid fill-and-resume in many more cases than the previous algorithm, potentially saving a much longer repeated evaluation time.
 
-\subsection{Pre-processing the evaluation result for re-evaluation}
+\subsection{``Fill'': pre-processing the evaluation result for re-evaluation}
 \label{sec:far-preprocessing}
 
 Before beginning the re-evaluation, we would like to substitute all instances of the hole in the previous evaluation result $\dresult$ with the substituted expression. Each time a the hole $\ufill$ is encountered, it is replaced with the fill expression $\dfill$. This way, we can simply reinvoke the evaluation function on the past program result and expect it to resume the evaluation.
@@ -291,67 +179,42 @@ Another issue to tackle is the problem that closures were previously considered 
 
 \todo{write the previous statement as a metatheorem}
 
-The (re-)evaluation of a closure is given by the rule EClosure.
-
-\begin{singlespace}
-  \begin{mathpar}
-    \Infer{EClosure}{
-      \env\vdash d\Downarrow d'
-    }{\env'\vdash[\env]d\Downarrow d'}
-  \end{mathpar}
-\end{singlespace}
-
-For efficiency reasons, we will only want to re-evaluate all closures in the result exactly once. To do this, we set a flag for the closure that indicates that it should be re-evaluated. This preprocessing step will recurse through $\dresult$ and set the flag to true for all closures. All closures that result from an evaluation judgment will have the flag set to false. The above closure evaluation rule is only for closures with the re-eval flag set to true. Closures with the re-eval flag set to false will act as values and evaluate to themselves, which is the same as the original evaluation behavior described in \Cref{sec:generalized-closures-eval-boundary}. We denote closures with the re-eval flag set to false using the established notation for closures $[\env]d$\footnote{This allows previous discussions of closures to remain valid, since they take the interpretation that the re-eval flag is set to false.}, and denote closures with the re-eval flag set to true by $\llbracket\env\rrbracket d$\footnote{Using the double-square bracket notation also reinforces the fact that re-evaluation is tied with fill-and-resume, which also uses double-square brackets.}.
+For efficiency reasons, we will only want to re-evaluate all closures in the result exactly once. To do this, we set a flag for the closure that indicates that it should be re-evaluated. This preprocessing step will recurse through $\dresult$ and set the flag to true for all closures. All closures that result from an evaluation judgment will have the flag set to false. Only closures with the re-eval flag set will be re-evaluated. Closures with the re-eval flag set to false will act as values and evaluate to themselves, which is the same as the original evaluation behavior described in \Cref{sec:generalized-closures-eval-boundary}. We denote closures with the re-eval flag set to false using the established notation for closures $[\env]d$\footnote{This allows previous discussions of closures to remain valid, since they take the interpretation that the re-eval flag is set to false.}, and denote closures with the re-eval flag set to true by $\llbracket\env\rrbracket d$\footnote{Using the double-square bracket notation also reinforces the fact that re-evaluation is tied with fill-and-resume, which also uses double-square brackets.}.
 
 Finally, we may consider the issue of multiple instances of the same hole closure\footnote{Hole closure refers to the connotation from \Cref{sec:instance-illustration}: instances of hole $\ufill$ that share the same (physical) environment.}. If we substitute the hole, then we lose the information about the holes instance, and thus cannot memoize the evaluations of the same hole instance by environment number. A solution to this is to introduce another \mintinline{ocaml}|DHExp.t| variant \mintinline{ocaml}|FillExp(HoleClosureId.t, DHExp.t)| that indicates the hole closure number as well as the expression to fill. This will be denoted using a hole with a subscript $\hhole{d}_i$. The preprocessing expression will fill a hole $\ufill$ with this expression rather than the expression $\dfill$ directly. During evaluation, this data structure will facilitate the memoization of hole closures.
 
-\subsection{Modifications to evaluation to allow for re-evaluation}
+\subsection{``Resume'': Modifications to allow for re-evaluation}
 \label{sec:re-eval}
 
 Re-evaluation during fill-and-resume is mostly the same as regular evaluation, but now we need to keep in mind the considerations from pre-processing the previous program result.
 
-First of all, closures will have been marked for re-evaluation by the pre-processing step. This means that the closure environment will first be recursively re-evaluated, following by the closure body. This ensures that the entire program result is fully evaluated\footnote{Note that there is now an ``inversion'' of evaluation order, in that we cannot expect the environment to be fully evaluated before it is encountered in a closure. In an ordinary evaluation, we would expect all the bindings in the environment to have been evaluated before they have been stored in the environment.}. This is similar to the EClosure rule, except that now we add the consideration of the re-eval flag to avoid re-evaluating closures more than once, and also recurse evaluation through variable bindings in the bound environment. We introduce a (re-)evaluation judgment for environments, which simply maps the evaluate operation over the bindings of an environment. Closures with the re-eval flag set to false will have the regular evaluation rule.
-
-\begin{singlespace}
-  \begin{mathpar}
-    \Infer{EEClosure}{
-    }{\env'\vdash[\env]d\Downarrow[\env]d}
-    \and
-    \Infer{EREClosure}{
-      \env\Downarrow\env'' \\
-      \env''\vdash d\Downarrow d'
-    }{\env'\vdash\llbracket\env\rrbracket d\Downarrow d'}
-    \and
-    \Infer{EREEnv}{
-      \env\Downarrow\env' \\
-      \varnothing\vdash d\Downarrow d'
-    }{\env,x\leftarrow d\Downarrow\env',x\leftarrow d'}
-    \and
-    \Infer{EREEnvNull}{
-    }{\varnothing\Downarrow\varnothing}
-  \end{mathpar}
-\end{singlespace}
+The updated evaluation rules for closures are shown in \Cref{fig:reeval-closures}. All closures in the evaluation result will have been marked for re-evaluation by the pre-processing step. This means that the closure environment will first be recursively re-evaluated, following by the closure body. This ensures that the entire program result is fully evaluated\footnote{Note that there is now an ``inversion'' of evaluation order, in that we cannot expect the environment to be fully evaluated before it is encountered in a closure. In an ordinary evaluation, we would expect all the bindings in the environment to have been evaluated before they have been stored in the environment.}. We introduce a (re-)evaluation judgment for environments $\env^-\Downarrow\env'^+$, which simply maps the evaluate operation over the bindings of an environment. Closures with the re-eval flag set to false will have the regular evaluation rule.
 
 \todo{metatheorem about how all closures from $\dresult$ will re-evaluated (exactly once), assuming that evaluation terminates}
 
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \input{reeval_closures}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Revised evaluation rules for closures}
+  \label{fig:reeval-closures}
+\end{figure}
+
 The other difference that we have to deal with are memoizing the evaluation of the filled hole expressions. Per the discussion of the pre-processing step, all filled expressions will exist in a wrapper that indicates the hole number. We may simply memoize the results by that hole number. This requires us to thread some state throughout our evaluation\footnote{Luckily, threading state through evaluation is useful for other purposes as well, such as keeping track of the current \mintinline{ocaml}|EvalEnvId.t|, and keeping track of evaluation state. These are grouped together under one data structure, \mintinline{ocaml}|EvalState.t|, for ease of implementation.}.
 
-\begin{singlespace}
-  \begin{mathpar}
-    \Infer{EFillMemoNew}{
-    }{\env,(\fenv,i\leftarrow d)\vdash\hhole{d'}_i\Downarrow d\dashv\fenv}
-    \and
-    \Infer{EFillMemoNew}{
-      (i\leftarrow d)\not\in\fenv \\
-      \env,\fenv\vdash d'\Downarrow d''\dashv\fenv'
-    }{\env,\fenv\vdash\hhole{d'}_i\Downarrow d''\dashv\fenv',i\leftarrow d''} \\
-    \and
-    \Infer{EFillOther}{
-      d\ne\hhole{d}_i \\
-      \env\vdash d\Downarrow d'
-    }{\env,\fenv\vdash d\Downarrow d'\dashv\fenv}
-  \end{mathpar}
-\end{singlespace}
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \input{fill_memoized_resume}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Fill-memoized re-evaluation}
+  \label{fig:fill-memoized-resume}
+\end{figure}
 
 In these judgments, we introduce a new \textit{fill memoization context} $\fenv:i\mapsto d$, a mapping of hole closure numbers to expressions\footnote{The symbol $\fenv$ was chosen arbitrarily. It is simply the Greek letter before $\env$.}. A new \textit{fill-memoized evaluation judgment} $\env^-,\fenv^-\vdash d^-\Downarrow d'^+\dashv\fenv'^+$ describes the evaluation with memoization of hole fills. When a hole closure number is encountered for the first time, the expression is evaluated normally and added to $\fenv$; otherwise, the evaluated result of the fill is simply looked up from $\fenv$. Note that memoization requires $\fenv$ to be threaded throughout the evaluation, i.e., it is treated both as an input and output of the evaluation judgment.
 
@@ -725,54 +588,18 @@ Step counting may be implemented simply by incrementing the count on each call t
 \section{Differences from the substitution model}
 \label{sec:far-sub}
 
-The FAR operation is much simpler when evaluating with substitution rather than with environments. With substitution, we eliminate the need for pre- and post-processing steps, and dealing with re-evaluating closures. However, this comes at the cost of not being able to memoize repeated instances of the same hole closure. The original description of FAR from \cite{conf/popl/HazelnutLive19} is reproduced below. The equals (=) operator is used to indicate the FAR operation here; it is meant to symbolize the mix of substitution and evaluation that is presented here. The hole closure notation from \cite{conf/popl/HazelnutLive19}, in which the hole closure is represented using a subscript, is also used here, since the substitution model doesn't have the concept of separate closures.
+The FAR operation is much simpler when evaluating with substitution rather than with environments. With substitution, we eliminate the need for pre- and post-processing steps, and dealing with re-evaluating closures. However, this comes at the cost of not being able to memoize repeated instances of the same hole closure. The original description of FAR from \cite{conf/popl/HazelnutLive19} is reproduced in \Cref{fig:far-substitution}. The equals (=) operator is used to indicate the FAR operation here; it is meant to symbolize the mix of substitution and evaluation that is presented here. The hole closure notation from \cite{conf/popl/HazelnutLive19}, in which the hole closure is represented using a subscript, is also used here, since the substitution model doesn't have the concept of separate closures.
 
-\todo{move this to a figure later}
-
-\begin{singlespace}
-  \judgbox{\far{u}{d}{d'}=d''}{$d'''$ is obtained by filling hole $u$ with $d$ in $d'$}
-
-  \begin{mathpar}
-    \Infer{FillSubConst}{}{\far{u}{d}{c}=c}
-    \and
-    \Infer{FillSubVar}{}{\far{u}{d}{x}=x}
-    \and
-    \Infer{FillSubLam}{
-    }{\far{u}{d}{\lambda x:\tau.d'}=\lambda x:\tau.\far{u}{d}{d'}}
-    \and
-    \Infer{FillSubAp}{}{\far{u}{d}{d_1\ d_2}=(\far{u}{d}{d_1})\ (\far{u}{d}{d_2})}
-    \and
-    \Infer{FillSubEHole$_1$}{}{\far{u}{d}{\hehole_\env^u}=[\far{u}{d}{\env}]d}
-    \and
-    \Infer{FillSubEHole$_2$}{
-      u\ne u'
-    }{\far{u}{d}{\hehole_\env^{u'}}=\hehole_\env^{u'}}
-    \and
-    \Infer{FillSubNEHole$_1$}{
-    }{\far{u}{d}{\hhole{d'}_\env^u}=[\far{u}{d}{\env}]d}
-    \and
-    \Infer{FillSubNEHole$_2$}{
-      u\ne u'
-    }{\far{u}{d}{\hhole{d'}_\env^{u'}}=\hhole{\far{u}{d}{d'}}_{\far{u}{d}{\env}}^{u'}}
-    \and
-    \Infer{FillSubCast}{
-    }{\far{u}{d}{d'\langle\tau\Rightarrow\tau'\rangle}=(\far{u}{d}{d'})\langle\tau\Rightarrow\tau'\rangle}
-    \and
-    \Infer{FillSubFailedCast}{
-    }{\far{u}{d}{d'\langle\tau\Rightarrow\tehole\not\Rightarrow\tau'\rangle}=(\far{u}{d}{d'})\langle\tau\Rightarrow\tehole\not\Rightarrow\tau'\rangle}
-  \end{mathpar}
-
-  \judgbox{\far{u}{d}{\env}=\env'}{$\env'$ is obtained by filling hole $u$ with $d$ in $\env$}
-
-  \begin{mathpar}
-    \Infer{FillSubEnvNull}{}{\far{u}{d}{\varnothing}=\varnothing}
-    \and
-    \Infer{FillSubEnv}{
-      \env'=\far{u}{d}{\env} \\
-      d''=\far{u}{d}{d'}
-    }{\far{u}{d}{\env,x\leftarrow d'}=\env',x\leftarrow d''}
-  \end{mathpar}
-\end{singlespace}
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \input{far_substitution}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{FAR using the substitution model, reproduced from \cite{conf/popl/HazelnutLive19}}
+  \label{fig:far-substitution}
+\end{figure}
 
 What remains the same between the environment model and the substitution model is the need for an algorithm to detect the fill parameters, for which the structural diff algorithm presented in \Cref{sec:far-detect-structural-diff} is still applicable.
 

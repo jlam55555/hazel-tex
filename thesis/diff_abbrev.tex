@@ -1,0 +1,50 @@
+\judgbox{\sdiff{d_1}{d_2}{u}{d}}{Some (non-empty) diff between $d_1$ and $d_2$.}
+\begin{mathpar}
+  \Infer{SDiffNFDiffSome}{
+    \nfdiff{d_1}{d_2}
+  }{\sdiff{d_1}{d_2}{\varnothing}{\varnothing}}
+  \and
+  \Infer{SDiffFDiffSome}{
+    \fdiff{d_1}{d_2}{u}{d}
+  }{\sdiff{d_1}{d_2}{u}{d}} \\
+  \and
+  \Infer{SDiffSomeNFDiff}{
+    \sdiff{d_1}{d_2}{\varnothing}{\varnothing}
+  }{\nfdiff{d_1}{d_2}}
+  \and
+  \Infer{SDiffSomeFDiff}{
+    \sdiff{d_1}{d_2}{u}{d}
+  }{\fdiff{d_1}{d_2}{u}{d}}
+\end{mathpar}
+
+\judgbox{\adiff{d_1}{d_2}{u}{d}}{Any (possibly-empty) diff between $d_1$ and $d_2$.}
+\begin{mathpar}
+  \Infer{ADiffNoDiffAny}{
+    \nodiff{d_1}{d_2}
+  }{\adiff{d_1}{d_2}{\cdot}{\varnothing}}
+  \and
+  \Infer{ADiffNFDiffAny}{
+    \nfdiff{d_1}{d_2}
+  }{\adiff{d_1}{d_2}{\varnothing}{\varnothing}}
+  \and
+  \Infer{ADiffFDiffAny}{
+    \fdiff{d_1}{d_2}{u}{d}
+  }{\adiff{d_1}{d_2}{u}{d}}
+  \and
+  \Infer{ADiffAnyNoDiff}{
+    \adiff{d_1}{d_2}{\cdot}{\varnothing}
+  }{\nodiff{d_1}{d_2}}
+  \and
+  \Infer{ADiffAnyNFDiff}{
+    \sdiff{d_1}{d_2}{\varnothing}{\varnothing}
+  }{\nfdiff{d_1}{d_2}}
+  \and
+  \Infer{ADiffAnyFDiff}{
+    \sdiff{d_1}{d_2}{u}{d}
+  }{\fdiff{d_1}{d_2}{u}{d}}
+\end{mathpar}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:

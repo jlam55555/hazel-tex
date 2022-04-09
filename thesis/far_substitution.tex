@@ -1,0 +1,47 @@
+\judgbox{\far{u}{d}{d'}=d''}{$d'''$ is obtained by filling hole $u$ with $d$ in $d'$}
+
+\begin{mathpar}
+  \Infer{FillSubConst}{}{\far{u}{d}{c}=c}
+  \and
+  \Infer{FillSubVar}{}{\far{u}{d}{x}=x}
+  \and
+  \Infer{FillSubLam}{
+  }{\far{u}{d}{\lambda x:\tau.d'}=\lambda x:\tau.\far{u}{d}{d'}}
+  \and
+  \Infer{FillSubAp}{}{\far{u}{d}{d_1\ d_2}=(\far{u}{d}{d_1})\ (\far{u}{d}{d_2})}
+  \and
+  \Infer{FillSubEHole$_1$}{}{\far{u}{d}{\hehole_\env^u}=[\far{u}{d}{\env}]d}
+  \and
+  \Infer{FillSubEHole$_2$}{
+    u\ne u'
+  }{\far{u}{d}{\hehole_\env^{u'}}=\hehole_\env^{u'}}
+  \and
+  \Infer{FillSubNEHole$_1$}{
+  }{\far{u}{d}{\hhole{d'}_\env^u}=[\far{u}{d}{\env}]d}
+  \and
+  \Infer{FillSubNEHole$_2$}{
+    u\ne u'
+  }{\far{u}{d}{\hhole{d'}_\env^{u'}}=\hhole{\far{u}{d}{d'}}_{\far{u}{d}{\env}}^{u'}}
+  \and
+  \Infer{FillSubCast}{
+  }{\far{u}{d}{d'\langle\tau\Rightarrow\tau'\rangle}=(\far{u}{d}{d'})\langle\tau\Rightarrow\tau'\rangle}
+  \and
+  \Infer{FillSubFailedCast}{
+  }{\far{u}{d}{d'\langle\tau\Rightarrow\tehole\not\Rightarrow\tau'\rangle}=(\far{u}{d}{d'})\langle\tau\Rightarrow\tehole\not\Rightarrow\tau'\rangle}
+\end{mathpar}
+
+\judgbox{\far{u}{d}{\env}=\env'}{$\env'$ is obtained by filling hole $u$ with $d$ in $\env$}
+
+\begin{mathpar}
+  \Infer{FillSubEnvNull}{}{\far{u}{d}{\varnothing}=\varnothing}
+  \and
+  \Infer{FillSubEnv}{
+    \env'=\far{u}{d}{\env} \\
+    d''=\far{u}{d}{d'}
+  }{\far{u}{d}{\env,x\leftarrow d'}=\env',x\leftarrow d''}
+\end{mathpar}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:

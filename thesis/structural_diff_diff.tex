@@ -1,0 +1,20 @@
+\begin{mathpar}
+  \Infer{DFNEqEHole}{
+    \formdiff{\hehole^u}{d_2}
+  }{\fdiff{\hehole^u}{d_2}{u}{d_2}}
+  \and
+  \Infer{DFNEqNEHole}{
+    \formdiff{\hhole{d}^u}{d_2}
+  }{\fdiff{\hhole{d}^u}{d_2}{u}{d_2}}
+  \and
+  \Infer{DFNEqNonHole}{
+    d_1\ne\hehole^u \\
+    d_1\ne\hhole{d}^u \\
+    \formdiff{d_1}{d_2}
+  }{\nfdiff{d_1}{d_2}}
+\end{mathpar}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:

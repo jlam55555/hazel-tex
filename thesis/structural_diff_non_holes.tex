@@ -1,0 +1,80 @@
+\begin{mathpar}
+  \Infer{DFEqConstNEq}{c_1\ne c_2}{\nfdiff{c_1}{c_2}}
+  \and
+  \Infer{DFEqConstEq}{}{\nodiff{c}{c}}
+  \and
+  \Infer{DFEqVarNEq}{x_1\ne x_2}{\nfdiff{x_1}{x_2}}
+  \and
+  \Infer{DFEqVarEq}{}{\nodiff{x}{x}}
+  \and
+
+  \Infer{DFEqLamNEq$_1$}{
+    x_1\ne x_2
+  }{\nfdiff{\lambda x_1:\tau_1.d_1}{\lambda x_2:\tau_2.d_2}}
+  \and
+  \Infer{DFEqLamNEq$_2$}{
+    \tau_1\ne\tau_2
+  }{\nfdiff{\lambda x:\tau_1.d_1}{\lambda x:\tau_2.d_2}}
+  \and
+  \Infer{DFEqLamEq}{
+    \adiff{d_1}{d_2}{u}{d}
+  }{\adiff{\lambda x:\tau.d_1}{\lambda x:\tau.d_2}{u}{d}}
+  \and
+  \Infer{DFEqAscNEq}{
+    \tau_1\ne\tau_2
+  }{\nfdiff{d_1:\tau_1}{d_2:\tau_2}}
+  \and
+  \Infer{DFEqAscEq}{
+    \adiff{d_1}{d_2}{u}{d}
+  }{\adiff{d_1:\tau}{d_2:\tau}{u}{d}}
+
+  \and
+  \Infer{DFEqApEq$_1$}{
+    \nodiff{d_1}{d_1'} \\
+    \nodiff{d_2}{d_2'} \\
+  }{\nodiff{d_1\ d_2}{d_1'\ d_2}}
+  \and
+  \Infer{DFEqApEq$_2$}{
+    \sdiff{d_1}{d_1'}{u}{d} \\
+    \sdiff{d_2}{d_2'}{u'}{d'} \\
+  }{\nodiff{d_1\ d_2}{d_1'\ d_2}}
+  \and
+  \Infer{DFEqApEq$_3$}{
+    \nodiff{d_1}{d_1'} \\
+    \sdiff{d_2}{d_2'}{u}{d} \\
+  }{\sdiff{d_1\ d_2}{d_1'\ d_2}{u}{d}}
+  \and
+  \Infer{DFEqApEq$_4$}{
+    \sdiff{d_1}{d_1'}{u}{d} \\
+    \nodiff{d_2}{d_2'} \\
+  }{\sdiff{d_1\ d_2}{d_1'\ d_2}{u}{d}}
+  \and
+
+  \Infer{DFEqEHoleNEq}{
+    u\ne u'
+  }{\fdiff{\hehole^u}{\hehole^{u'}}{u}{\hehole^{u'}}}
+  \and
+  \Infer{DFEqEHoleEq}{
+  }{\nodiff{\hehole^u}{\hehole^u}}
+  \and
+  \Infer{DFEqNEHoleNEq}{
+    u\ne u'
+  }{\fdiff{\hhole{d}^u}{\hhole{d'}^{u'}}{u}{\hhole{d'}^{u'}}}
+  \and
+  \Infer{DFEqNEHoleEq$_1$}{
+    \nodiff{d}{d'}
+  }{\nodiff{\hhole{d}^u}{\hhole{d'}^u}}
+  \and
+  \Infer{DFEqNEHoleEq$_2$}{
+    \fdiff{d}{d'}{u'}{d''}
+  }{\fdiff{\hhole{d}^u}{\hhole{d'}^u}{u'}{d''}}
+  \and
+  \Infer{DFEqNEHoleEqProp}{
+    \nfdiff{d}{d'}
+  }{\fdiff{\hhole{d}^u}{\hhole{d'}^u}{u}{\hhole{d'}^u}}
+\end{mathpar}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:

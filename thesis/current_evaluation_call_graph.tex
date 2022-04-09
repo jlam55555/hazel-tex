@@ -10,17 +10,22 @@
   \node[draw=red] (undo_hist) [below=of model] {\mintinline{ocaml}|UndoHistory.t|};
   \node[draw=red] (result) [below= of undo_hist] {\mintinline{ocaml}|Result.t|};
 
-  \draw[->,thick] (action) -- (syn_action) node [midway,left] {$\alpha$};
-  \draw[->,thick] (model) -- (syn_action) node [midway,above] {\mintinline{ocaml}|Program.t|};
-  \draw[->,thick] (syn_action) -- (elaborate) node [midway,left] {$e$};
-  \draw[->,thick] (elaborate) -- (detect_fill) node [midway,left] {$d_{uneval}$};
-  \draw[->,thick] (detect_fill) -- (evaluate) node [midway,right] {no fill diff};
-  \draw[->,thick] (detect_fill) -- (preprocess) node [midway,below right] {fill diff};
-  \draw[->,thick] (preprocess) -- (evaluate) node [midway,below left] {$d_{preprocess}$};
-  \draw[->,thick] (evaluate) -- (renumber) node [midway,left] {$d_{eval}$};
-  \draw[->,thick] (evaluate) -- (result) node [midway,above] {$d_{eval}$};
-  \draw[->,thick] (renumber) -- (result) node [midway,below right] {$d_{postprocess},\hci$};
-  \draw[->,thick] (undo_hist) -- (detect_fill) node [midway] {\mintinline{ocaml}|list(Program.t)|};
-  \draw[->,thick] (result) -- (undo_hist);
-  \draw[->,thick] (undo_hist) -- (model);
+  \draw[->,thick] (action) to[] node [midway,left] {$\alpha$} (syn_action);
+  \draw[->,thick] (model) to[bend right=5] node [midway,above,xshift=10pt] {\mintinline{ocaml}|Program.t|} (syn_action);
+  \draw[->,thick] (syn_action) to[] node [midway,left] {$e$} (elaborate);
+  \draw[->,thick] (elaborate) to[] node [midway,left] {$d_{uneval}$} (detect_fill);
+  \draw[->,thick] (detect_fill) to[] node [midway,right] {no fill diff} (evaluate);
+  \draw[->,thick] (detect_fill) to[bend right=10] node [midway,above left] {$u,d$} (preprocess);
+  \draw[->,thick] (preprocess) to[bend right=10] node [midway,below left] {$d_{preprocess}$} (evaluate);
+  \draw[->,thick] (evaluate) to[] node [midway,left] {$d_{eval}$} (renumber);
+  \draw[->,thick] (evaluate) to[bend right=15] node [midway,above left] {$d_{eval}$} (result);
+  \draw[->,thick] (renumber) to[bend right=10] node [midway,below right] {$d_{postprocess},\hci$} (result);
+  \draw[->,thick] (undo_hist) to[bend left=20] node [xshift=10pt,above left] {\mintinline{ocaml}|list(Program.t)|} (detect_fill);
+  \draw[->,thick] (result) to[] (undo_hist);
+  \draw[->,thick] (undo_hist) to[] (model);
 \end{tikzpicture}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:

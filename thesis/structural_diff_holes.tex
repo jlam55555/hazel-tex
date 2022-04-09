@@ -1,0 +1,29 @@
+\begin{mathpar}
+  \Infer{DFEqEHoleNEq}{
+    u\ne u'
+  }{\fdiff{\hehole^u}{\hehole^{u'}}{u}{\hehole^{u'}}}
+  \and
+  \Infer{DFEqEHoleEq}{
+  }{\nodiff{\hehole^u}{\hehole^u}}
+  \and
+  \Infer{DFEqNEHoleNEq}{
+    u\ne u'
+  }{\fdiff{\hhole{d}^u}{\hhole{d'}^{u'}}{u}{\hhole{d'}^{u'}}}
+  \and
+  \Infer{DFEqNEHoleEq$_1$}{
+    \nodiff{d}{d'}
+  }{\nodiff{\hhole{d}^u}{\hhole{d'}^u}}
+  \and
+  \Infer{DFEqNEHoleEq$_2$}{
+    \fdiff{d}{d'}{u'}{d''}
+  }{\fdiff{\hhole{d}^u}{\hhole{d'}^u}{u'}{d''}}
+  \and
+  \Infer{DFEqNEHoleEqProp}{
+    \nfdiff{d}{d'}
+  }{\fdiff{\hhole{d}^u}{\hhole{d'}^u}{u}{\hhole{d'}^u}}
+\end{mathpar}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:

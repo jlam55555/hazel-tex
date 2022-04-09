@@ -1,0 +1,21 @@
+\judgbox{\env,\fenv\vdash d\Downarrow d'\dashv\fenv}{$d$ evaluates to $d'$ given environment $\env$ and previous fills $\fenv$}
+
+\begin{mathpar}
+  \Infer{EFillMemoFound}{
+  }{\env,(\fenv,i\leftarrow d)\vdash\hhole{d'}_i\Downarrow d\dashv\fenv}
+  \and
+  \Infer{EFillMemoNew}{
+    (i\leftarrow d)\not\in\fenv \\
+    \env,\fenv\vdash d'\Downarrow d''\dashv\fenv'
+  }{\env,\fenv\vdash\hhole{d'}_i\Downarrow d''\dashv\fenv',i\leftarrow d''} \\
+  \and
+  \Infer{EFillOther}{
+    d\ne\hhole{d}_i \\
+    \env\vdash d\Downarrow d'
+  }{\env,\fenv\vdash d\Downarrow d'\dashv\fenv}
+\end{mathpar}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:

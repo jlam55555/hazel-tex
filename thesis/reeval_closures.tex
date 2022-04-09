@@ -1,0 +1,22 @@
+\begin{mathpar}
+  \Infer{EEClosure}{
+  }{\env'\vdash[\env]d\Downarrow[\env]d}
+  \and
+  \Infer{EREClosure}{
+    \env\Downarrow\env'' \\
+    \env''\vdash d\Downarrow d'
+  }{\env'\vdash\llbracket\env\rrbracket d\Downarrow d'}
+  \and
+  \Infer{EREEnv}{
+    \env\Downarrow\env' \\
+    \varnothing\vdash d\Downarrow d'
+  }{\env,x\leftarrow d\Downarrow\env',x\leftarrow d'}
+  \and
+  \Infer{EREEnvNull}{
+  }{\varnothing\Downarrow\varnothing}
+\end{mathpar}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:

@@ -1,0 +1,22 @@
+\judgbox{d_1\sim d_2}{$d_1$ has the same expression form as $d_2$}
+
+\begin{mathpar}
+    \Infer{FEqConst}{}{\formsame{c_1}{c_2}}
+    \and
+    \Infer{FEqVar}{}{\formsame{x_1}{x_2}}
+    \and
+    \Infer{FEqLam}{}{\formsame{\lambda x.d_1}{\lambda x.d_2}}
+    \and
+    \Infer{FEqAp}{}{\formsame{e_1\ e_2}{e_1'\ e_2'}}
+    \and
+    \Infer{FEqAsc}{}{\formsame{e:\tau}{e':\tau'}}
+    \and
+    \Infer{FEqEHole}{}{\formsame{\hehole^u}{\hehole^{u'}}}
+    \and
+    \Infer{FEqNEHole}{}{\formsame{\hhole{d}^u}{\hhole{d'}^{u'}}}
+  \end{mathpar}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:
