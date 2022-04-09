@@ -1,12 +1,47 @@
 \chapter{Reproduced rules from Hazelnut Live}
 \label{chap:reproduced-hazelnut-live-rules}
 
-\todo{brief description here}
+\section{Hazelnut Live dynamic semantics}
+\label{sec:hazelnut-live-dynamics}
 
-\todo{reproduce some of hazel dynamic semantics here}
+This section serves as supplemental material for \Cref{sec:hazel-dynamics}.
 
-\section{Rules for FAR using substitution}
+\subsection{Final judgment}
+\label{sec:hazelnut-live-final-judgment}
+
+The $d\textsf{ final}$ judgment, which describes the set of irreducible expressions in Hazelnut Live internal language, is reproduced in \Cref{fig:hazelnut-live-final}.
+
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \input{hazelnut_live_final}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Hazelnut Live \textsf{final} judgment}
+  \label{fig:hazelnut-live-final}
+\end{figure}
+
+\subsection{Substitution-based dynamic semantics}
+\label{sec:hazelnut-live-evaluation}
+
+The evaluation judgment from Hazelnut Live is reproduced in big-step notation in \Cref{fig:hazelnut-live-evaluation}.
+
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \input{hazelnut_live_evaluation}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Hazelnut Live evaluation rules}
+  \label{fig:hazelnut-live-evaluation}
+\end{figure}
+
+\section{Hazelnut Live substitution-based FAR}
 \label{sec:far-substitution}
+
+This section serves as supplemental material for \Cref{sec:far-sub}. The Hazelnut Live formulation of FAR is reproduced in \Cref{fig:far-substitution}.
 
 \begin{figure}
   \centering
@@ -15,7 +50,7 @@
       \input{far_substitution}
     \end{singlespace}
   \end{mdframed}
-  \caption{FAR using the substitution model, reproduced from \cite{conf/popl/HazelnutLive19}}
+  \caption{Hazelnut Live substitution-based FAR}
   \label{fig:far-substitution}
 \end{figure}
 
