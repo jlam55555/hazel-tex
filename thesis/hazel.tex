@@ -93,8 +93,6 @@ Hazelnut \cite{conf/popl/Hazelnut17} defines a bidirectional typing judgment for
 
 Hazelnut defines an action semantics for the structural editor, which describes the behavior of editing and maneuvering around a program. A program's edit state comprises an external expression with a superimposed cursor. There are four main actions carried out by the user: \texttt{move}, \texttt{construct}, and \texttt{delete}. These actions are described by bidirectionally-typed action judgments that transform a (well-typed) edit state to another (well-typed) edit state. There are a number of metatheorems that enforce desirable properties of action semantics in a structural editor, such as \textit{sensibility} (the result of an action on a well-typed expression is a well-typed expression), \textit{movement erase invariance} (movement actions should not change the external expression, but only the position of the cursor), \textit{reachability} (the cursor should be able to move to any valid location to any other valid location), \textit{constructability} (every valid edit state should be constructable from the initial edit state), \textit{action determinism} (every sequence of edit actions should have only one valid output state), etc. These metatheorems are proved using the Agda theorem proving assistant \cite{agda2017}.
 
-\todo{talk about missing forms from the Hazelnut formulation: let expressions, case expressions, binary sum types, lists, other hole types, fixpoint}
-
 \subsection{Hazelnut Live elaboration judgment}
 \label{sec:hazel-elaboration}
 
@@ -116,6 +114,8 @@ Hazelnut Live introduces a new $d\textsf{ final}$ judgment for the internal lang
 Hazelnut Live defines a small-step semantics for its internal language very similar to that of \gtclc. To avoid the rapid proliferation of rules due to the small-step semantics, a notational convenience called the \textit{evaluation context} $\mathcal{E}$, which recursively evaluates subexpressions. The rules are modified to accomodate indeterminate expressions.
 
 \todo{reproduce small-step semantics in an appendix}
+
+Hazelnut and Hazelnut Live only define rules for the core expression types, and does not define rules for all expression types. For example, fixpoint expressions, \mintinline{ocaml}|let| expressions, and \mintinline{ocaml}|case| expression types are present in Hazel but not discussed in Hazelnut or Hazelnut Live. We follow suit when discussing rules, but will discuss practical concerns that arise with these expression forms.
 
 \subsection{Hole instance numbering}
 \label{sec:hole-instance-numbering}

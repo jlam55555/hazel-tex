@@ -4,16 +4,12 @@
 \section{Hazel-specific implementation}
 \label{sec:eval_with_envs}
 
-In the case of Hazel (which does not prioritize speed of evaluation in its implementation, and is not a compiled language), evaluation with (reified) environments offers an additional (performance) benefit over the substitution model: the ability to easily identify (and thus memoize) operations over environments. This is useful for the optimizations described later in this paper.
-
-The implementation of evaluation in Hazel differs from a typical interpreter implementation of evaluation with environments in three regards: we need to account for hole environments; environments are uniquely identified by an identifier for memoization (in turn for optimization); and any closures in the evaluation result should be converted back into plain $\lambda$ abstractions.
+The implementation of evaluation in Hazel differs from a typical interpreter implementation of evaluation with environments in three regards. First, we need to account for hole environments. Secondly, environments are uniquely identified by an identifier for memoization (in turn for optimization). Lastly any closures in the evaluation result should be converted back into $\lambda$-abstractions, so that the result matches the result from evaluation with substitution.
 
 \subsection{Evaluation rules}
 \label{sec:evalenv-rules}
 
-% TODO: walk through simple example
-
-Omar et al. \cite{conf/popl/HazelnutLive19} describes evaluation with the substitution model using a little-step semantics with an evaluation context $\mathcal{E}$. The Hazel implementation follows a big-step model for evaluation, which is simpler, more performant, and does not require the evaluation context. Thus it is more convenient to follow a big-step semantics as shown in \Cref{fig:big-step-formal}.
+We present the big-step judgments for evaluation with environments in \Cref{fig:big-step-formal}. The evaluation model threads a run-time environment $\env$\footnote{The symbol $\env$ was chosen to represent the environment as it was used to represent hole environments in \cite{conf/popl/HazelnutLive19}. The relationship between these two environments will be discussed in \Cref{sec:holeenv_evalenv_connection}.} throughout the evaluation process. An environment is conceptually a mapping $\env:x\mapsto d$, although it will later be augmented to be more amenable to memoization.
 
 \begin{figure}
   \centering
@@ -25,8 +21,6 @@ Omar et al. \cite{conf/popl/HazelnutLive19} describes evaluation with the substi
   \caption{Big-step semantics for the environment model of evaluation}
   \label{fig:big-step-formal}
 \end{figure}
-
-The evaluation model threads a run-time environment $\env$\footnote{The symbol $\env$ was chosen to represent the environment as it was used to represent hole environments in \cite{conf/popl/HazelnutLive19}. The relationship between these two environments will be discussed in \Cref{sec:holeenv_evalenv_connection}.} throughout the evaluation process. An environment is conceptually a mapping $\env:x\mapsto d$, although it will later be augmented to be more amenable to memoization.
 
 Evaluation judgments are shown for a subset of the Hazel language, similar to the internal language described in \cite{conf/popl/HazelnutLive19}. The expressions considered include a single base type $b$, variables $x$, $\lambda$ abstractions, function application, and hole expressions. Casts and type ascriptions, which are part of the internal language follow the same rules as described in the Hazelnut paper, and thus are omitted here. Additionally, a rule is included for \mintinline{ocaml}|let| bindings, even if not strictly necessary. There are additional forms in the Hazel external and internal languages that are omitted for brevity and whose rules are trivial: these include binary sum injections and tuples, for which evaluation recurses through subexpressions. \mintinline{ocaml}|case| expressions are also omitted: it acts like a sequence of \mintinline{ocaml}|let| bindings. This select subset of the Hazel language will be reused throughout this paper for judgment rules; the goal is to provide a practical intuition of the evaluation semantics of Hazel that is close to the implementation, and not to provide a minimal theoretic foundation or the complete set of rules for all Hazel expressions. The latter is deferred to the source code in the reference implementation. Patterns and pattern holes will also be omitted from the rules, as they are not the focus of this work.
 
@@ -261,6 +255,7 @@ Note that while physical identity may be used to distinguish between different e
 
 \begin{theorem}[Use of $\text{id}_\env$ as an identifier]
   The mapping $i_\env:\sigma\mapsto\text{id}_\env$ that maps an environment (identified up to physical equality) to its assigned environment identifier is a bijection.
+  \label{thm:env-id}
 \end{theorem}
 
 \begin{proof}
