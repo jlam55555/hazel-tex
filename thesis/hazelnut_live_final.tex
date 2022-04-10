@@ -1,7 +1,76 @@
-\judgbox{d\textsf{ final}}{$d$ is irreducible}
+\newcommand{\bv}{\textsf{ boxedval}}
+\newcommand{\final}{\textsf{ final}}
+\newcommand{\val}{\textsf{ val}}
+\newcommand{\gnd}{\textsf{ ground}}
+\newcommand{\indet}{\textsf{ indet}}
+
+\judgbox{d\final}{$d$ is final}
 
 \begin{mathpar}
-  TODO
+  \Infer{FBoxedVal}{d\bv}{d\final}
+  \and
+  \Infer{FIndet}{d\bv}{d\final}
+\end{mathpar}
+
+\judgbox{d\val}{$d$ is a value}
+
+\begin{mathpar}
+  \Infer{VConst}{}{c\val}
+  \and
+  \Infer{VLam}{}{\lambda x:\tau.d\val}
+\end{mathpar}
+
+\judgbox{d\bv}{$d$ is a boxed value}
+
+\begin{mathpar}
+  \Infer{BVVal}{d\val}{d\bv}
+  \and
+  \Infer{BVArrCast}{
+    \tau_1\to\tau_2\ne\tau_3\to\tau_4 \\
+    d\bv
+  }{d\langle\tau_1\to\tau_2\Rightarrow\tau_3\to\tau_4\rangle\bv}
+  \and
+  \Infer{BVHoleCast}{
+    d\bv \\
+    \tau\gnd
+  }{d\langle\tau\Rightarrow\tehole\rangle\bv}
+\end{mathpar}
+
+\judgbox{d\indet}{$d$ is indeterminate}
+
+\begin{mathpar}
+  \Infer{IEHole}{}{\hehole_\env^u\indet}
+  \and
+  \Infer{INEHole}{d\final}{\hhole{d}_\env^u\indet}
+  \and
+  \Infer{IAp}{
+    d_1\ne d_1'\langle\tau_1\to\tau_2\Rightarrow\tau_3\to\tau_4\rangle \\
+    d_1\indet \\
+    d_2\final
+  }{d_1\ d_2\indet}
+  \and
+  \Infer{ICastGroundHole}{
+    d\indet \\
+    \tau\gnd
+  }{d\langle\tau\Rightarrow\tehole\rangle\indet}
+  \and
+  \Infer{ICastHoleGround}{
+    d\ne d'\langle\tau'\Rightarrow\tehole\rangle \\
+    d\indet \\
+    \tau\gnd
+  }{d\langle\tehole\Rightarrow\tau\rangle\indet}
+  \and
+  \Infer{ICastArr}{
+    \tau_1\to\tau_2\ne\tau_3\to\tau_4 \\
+    d\indet
+  }{d\langle\tau_1\to\tau_2\Rightarrow\tau_3\to\tau_4\rangle\indet}
+  \and
+  \Infer{IFailedCast}{
+    d\final \\
+    \tau_1\gnd \\
+    \tau_2\gnd \\
+    \tau_1\ne\tau_2
+  }{d\langle\tau_1\Rightarrow\tehole\not\Rightarrow\tau_2\rangle\indet}
 \end{mathpar}
 
 %%% Local Variables:
