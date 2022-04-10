@@ -1,0 +1,18 @@
+\begin{mathpar}
+  \Infer{EFix}{
+    \env\vdash d\Downarrow [\env']d'
+  }{
+    \env\vdash\fix f:\tau.d\Downarrow [\env,f\leftarrow\fix f:\tau.[\env']d']d'
+  } \\
+  \and
+  \Infer{EVar}{d\ne\fix f:\tau.d'}{\env,x\leftarrow d\vdash x\Downarrow d}
+  \and
+  \Infer{EUnwind}{
+    \env\vdash\fix f:\tau.d\Downarrow d'
+  }{\env,x\leftarrow\fix f:\tau.d\vdash x\Downarrow d'}
+\end{mathpar}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:

@@ -1,78 +1,59 @@
-\judgbox{\env\vdash d\pplc d'}{$d$ postprocesses ($\lambda$-conversion) to $d'$ outside the evaluation boundary}
+\judgbox{d\pplc d'}{$d$ is substitutes to $d'$ inside the evaluation boundary}
 
 \begin{mathpar}
-  \Infer{\pplclo-Value}{
-    d\textsf{ value} \\
-    d\ne\lambda x.d
-  }{d\pplc d}
+  \Infer{\pplcl{}Const}{
+  }{c\pplc c}
   \and
-  \Infer{\pplclo-Var}{}{\env,x\leftarrow d\vdash x\pplc d}
+  \Infer{\pplcl{}Ap}{
+    d_1\pplc d_1' \\
+    d_2\pplc d_2'
+  }{d_1\ d_2\pplc d_1'\ d_2'}
   \and
-  \Infer{\pplclo-Fix}{
-    \env\vdash d\pplc d'
-  }{\env\vdash\fix f.d\pplc\fix f.d'}
+  \Infer{\pplcl{}Closure}{
+    \env\pplc\env' \\
+    \env'\vdash d\pplc d'
+  }{[\env]d\pplc d'}
+\end{mathpar}
+
+\judgbox{\env\pplc\env'}{$\env$ substitutes to $\env'$ (outside the evaluation boundary)}
+
+\begin{mathpar}
+  \Infer{\pplcl{}EnvNull}{}{\varnothing\pplc\varnothing}
   \and
-  \Infer{\pplclo-Lam}{
+  \Infer{\pplcl{}Env}{
+    \env\pplc\env' \\
+    d\pplc d'
+  }{\env,x\leftarrow d\pplc\env',x\leftarrow d'}
+\end{mathpar}
+
+\judgbox{\env\vdash d\pplc d'}{$d$ substitutes to $d'$ outside the evaluation boundary}
+
+\begin{mathpar}
+  \Infer{\pplclo{}Const}{
+  }{c\pplc c}
+  \and
+  \Infer{\pplclo{}BoundVar}{}{\env,x\leftarrow d\vdash x\pplc d}
+  \and
+  \Infer{\pplclo{}UnboundVar}{
+    x\not\in\env
+  }{\env,\vdash x\pplc x}
+  \and
+  \Infer{\pplclo{}Lam}{
     \env\vdash d\pplc d'
   }{\env\vdash\lambda x.d\pplc\lambda x.d'}
   \and
-  \Infer{\pplclo-Ap}{
+  \Infer{\pplclo{}Ap}{
     \env\vdash d_1\pplc d_1' \\
     \env\vdash d_2\pplc d_2'
   }{\env\vdash d_1(d_2)\pplc d_1'(d_2')}
   \and
-  \Infer{\pplclo-Op}{
-    \env\vdash d_1\pplc d_1' \\
-    \env\vdash d_2\pplc d_2'
-  }{\env\vdash d_1+d_2\pplc d_1'+d_2'}
+  \Infer{\pplclo{}EHole}{
+  }{\env\vdash\hehole^u\pplc[\env]\hehole^u}
   \and
-  \Infer{\pplclo-EHole}{
-  }{\env\vdash\hehole_\varnothing^u\pplc\hehole_\env^u}
-  \and
-  \Infer{\pplclo-NEHole}{
+  \Infer{\pplclo{}NEHole}{
     \env\vdash d\pplc d'
-  }{\env\vdash\hhole{d}_\varnothing^u\pplc\hhole{d'}_\env^u}
+  }{\env\vdash\hhole{d}^u\pplc[\env]\hhole{d'}^u}
 \end{mathpar}
-
-\judgbox{d\pplc d'}{$d$ postprocesses ($\lambda$-conversion) to $d'$ within the evaluation boundary}
-
-\begin{mathpar}
-  \Infer{\pplcl-Value}{
-    d\textsf{ value} \\
-    d\ne\fix f.d \\
-    d\ne [\env]\lambda x.d
-  }{d\pplc d}\\
-  \and
-  \Infer{\pplcl-Fix}{
-    \env\vdash d\pplc d'\\
-    \env,f\leftarrow (\fix f.\lambda x.d')\vdash d'\pplc d''
-  }{\fix f.([\env]\lambda x.d)\pplc \lambda x.d''}
-  \and
-  \Infer{\pplcl-Closure}{
-    \env\vdash d\pplc d'
-  }{[\env]\lambda x.d\pplc\lambda x.d'}
-  \and
-  \Infer{\pplcl-Ap}{
-    d_1\pplc d_1' \\
-    d_2\pplc d_2'
-  }{d_1(d_2)\pplc d_1'(d_2')}
-  \and
-  \Infer{\pplcl-Op}{
-    d_1\pplc d_1' \\
-    d_2\pplc d_2'
-  }{d_1+d_2\pplc d_1'+d_2'}
-  \and
-  \Infer{\pplcl-EHole}{
-    \env'=\{(x\leftarrow d'):(x\leftarrow d)\in\env,d\pplc d'\}
-  }{\hehole_\env^u\pplc\hehole_{\env'}^u}
-  \and
-  \Infer{\pplcl-NEHole}{
-    d\pplc d' \\
-    \env'=\{(x\leftarrow d'):(x\leftarrow d)\in\env,d\pplc d'\}
-  }{\hhole{d}_\env^u\pplc\hhole{d'}_{\env'}^u}
-\end{mathpar}
-
-TODO: closure needs to go recursive
 
 %%% Local Variables:
 %%% mode: latex

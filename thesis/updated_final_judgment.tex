@@ -1,0 +1,16 @@
+\begin{mathpar}
+  \Infer{VFunClosure}{
+  }{[\env]\lambda x:\tau.d\textsf{ val}}
+  \and
+  \Infer{IClosure}{
+    d\ne\lambda x:\tau.d
+  }{[\env]d\textsf{ indet}}
+  \and
+  \Infer{FClosure}{
+  }{[\env]d\textsf{ final}}
+\end{mathpar}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:

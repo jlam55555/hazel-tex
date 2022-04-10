@@ -1,49 +1,27 @@
-\judgbox{\env\vdash d\Downarrow d'}{Internal expression $d$ evaluates to $d'$ given environment $\env$}
+\judgbox{d\textsf{ val}}{$d$ is a value}
 
 \begin{mathpar}
-  \Infer{EvalB-Final\label{evalb-final}}{\env\vdash d\textsf{ final}}{\env\vdash d\Downarrow d}
+  \Infer{VFunClosure}{}{[\env]\lambda x:\tau.d\textsf{ val}}
+\end{mathpar}
+
+\judgbox{\env\vdash d\Downarrow d'}{$d$ evaluates to $d'$ given environment $\env$}
+
+\begin{mathpar}
+  \Infer{ELam}{}{\env\vdash(\lambda x:\tau.d)\Downarrow [\env](\lambda x:\tau.d')} \\
   \and
-  \Infer{EvalB-Lam}{}{\env\vdash(\lambda x:\tau.d)\Downarrow [\env](\lambda x:\tau.d')} \\
+  \Infer{EVar}{}{\env,x\leftarrow d\vdash x\Downarrow d}
   \and
-  \Infer{EvalB-Var}{d\ne\fix f.d'}{\env,x\leftarrow d\vdash x\Downarrow d}
-  \and
-  \Infer{EvalB-Unwind}{
-    \env\vdash\fix f.d\Downarrow d'
-  }{\env,x\leftarrow\fix f.d\vdash x\Downarrow d'}\\
-  \and
-  \Infer{EvalB-Fix}{
-    \env\vdash d\Downarrow d' \\
-    \env,f\leftarrow\fix f.d'\vdash d\Downarrow d''
-  }{
-    \env\vdash\fix f.d\Downarrow d''
-  } \\
-  \and
-  \Infer{EvalB-Ap$_1$}{
-    \env\vdash d_1\Downarrow d_1' \\
-    d_1'\ne([\env']\lambda x.d) \\
-    \env\vdash d_2\Downarrow d_2'
-  }{
-    \env\vdash d_1(d_2)\Downarrow d_1'(d_2'))
-  }
-  \and
-  \Infer{EvalB-Ap$_2$}{
-    \env\vdash d_1\Downarrow ([\env']\lambda x.d_1') \\
+  \Infer{EAp}{
+    \env\vdash d_1\Downarrow[\env']\lambda x:\tau.d_1' \\
     \env\vdash d_2\Downarrow d_2' \\
-    \env,x\leftarrow d_2'\vdash d_1'\Downarrow d
-  }{
-    \env\vdash d_1(d_2)\Downarrow d
-  }
+    \env',x\leftarrow d_2'\vdash d_1'\Downarrow d
+  }{\env\vdash d_1\ d_2\Downarrow d}
   \and
-  \Infer{EvalB-Let}{
-    \env\vdash d_2\Downarrow d_2' \\
-    \env,x\leftarrow d_2'\vdash d_1\Downarrow d
-  }{\env\vdash\texttt{let }x=d_2\texttt{ in }d_1\Downarrow d} \\
-  \and
-  \Infer{EvalB-EHole}{}{\env\vdash\hehole_\varnothing^u\Downarrow\hehole_\env^u}
+  \Infer{EvalB-EHole}{}{\env\vdash\hehole_\cdot^u\Downarrow\hehole_\env^u}
   \and
   \Infer{EvalB-NEHole}{
     \env\vdash d\Downarrow d'
-  }{\env\vdash\hhole{d}_\varnothing^u\Downarrow\hhole{d'}_\env^u}
+  }{\env\vdash\hhole{d}_\cdot^u\Downarrow\hhole{d'}_\env^u}
 \end{mathpar}
 
 %%% Local Variables:
