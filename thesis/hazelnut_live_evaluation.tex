@@ -1,5 +1,48 @@
 \begin{mathpar}
-  TODO
+  \Infer{EFinal}{d\textsf{ final}}{d\Downarrow d}
+  \and
+  \Infer{EAp}{
+    d_1\Downarrow\lambda x:\tau.d_1' \\
+    d_2\Downarrow d_2' \\
+    [d_2'/x]d_1'\Downarrow d
+  }{d_1\ d_2\Downarrow d}
+  \and
+  \Infer{EApCast}{
+    d_1\Downarrow d_1'\langle\tau_1\to\tau_2\Rightarrow\tau_1'\to\tau_2'\rangle \\
+    \tau_1\to\tau_2\ne\tau_1'\to\tau_2' \\
+    d_2\Downarrow d_2' \\
+    d_1'(d_2'\langle\tau_1'\Rightarrow\tau_1\rangle))\langle\tau_2\Rightarrow\tau_2'\rangle\Downarrow d
+  }{d_1\ d_2\Downarrow d}
+  \and
+  \Infer{ECastId}{
+    d\Downarrow d'\langle\tau\Rightarrow\tau\rangle \\
+    d'\Downarrow d''
+  }{d\Downarrow d''}
+  \and
+  \Infer{ECastSucceed}{
+    d\Downarrow d'\langle\tau\Rightarrow\tehole\Rightarrow\tau\rangle \\
+    d'\Downarrow d''
+  }{d\Downarrow d''}
+  \and
+  \Infer{ECastFail}{
+    d\Downarrow d'\langle\tau_1\Rightarrow\tehole\Rightarrow\tau_2\rangle \\
+    \tau_1\ne\tau_2 \\
+    \tau_1\textsf{ ground} \\
+    \tau_2\textsf{ ground} \\
+    d'\Downarrow d''
+  }{d\Downarrow d'\langle\tau_1\Rightarrow\tehole\not\Rightarrow\tau_2\rangle}
+  \and
+  \Infer{EGround}{
+    d\Downarrow d'\langle\tau\Rightarrow\tehole\rangle \\
+    \arrmatch{\tau}{\tau'} \\
+    d'\Downarrow d''
+  }{d\Downarrow d''\langle\tau\Rightarrow\tau'\Rightarrow\tehole\rangle}
+  \and
+  \Infer{EExpand}{
+    d\Downarrow d'\langle\tehole\Rightarrow\tau\rangle \\
+    \arrmatch{\tau}{\tau'} \\
+    d'\Downarrow d''
+  }{d\Downarrow d''\langle\tehole\Rightarrow\tau'\Rightarrow\tau\rangle}
 \end{mathpar}
 
 %%% Local Variables:
