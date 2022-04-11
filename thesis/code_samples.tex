@@ -1,50 +1,159 @@
 \chapter{Selected code samples}
 \label{app:code-samples}
 
+% macro for including a reasonml source file
+\newcommand{\cb}[1]{
+  \begin{singlespace}
+    \inputminted[fontsize=\footnotesize,frame=single]{reasonml}{code/#1}
+  \end{singlespace}
+  \captionof{listing}{\texttt{#1}}
+}
+
 \section{Correspondence between theory and code}
 \label{sec:correspondence}
 
-\todo{implement this}
+\Cref{tab:correspondence-theory-code} is a list of symbols to the relevant ReasonML module(s). \Cref{tab:correspondence-algos-code} provides a list of algorithms or judgments to the relevant ReasonML module(s). If the source code for a listed module is present in this Appendix, then the section will be listed as well.
+
+\begin{table}
+  \centering
+  \makebox[\textwidth][c]{
+    \begin{tabular}{cll}
+      \hline
+      Symbol & Name & Module(s) \\
+      \hline\hline
+      $e$ & External expression & \texttt{UHExp} \\
+      $\tau$ & Type & \texttt{HTyp} \\
+      $\Gamma$ & Typing context & \texttt{Contexts} \\
+      $d$ & Internal expression & \texttt{DHExp} (\Cref{sec:code-internal-language}) \\
+      $\sigma$ & (Numbered) environment & \texttt{EvalEnv}, \texttt{EvalEnvId}, \texttt{VarBstMap} (\Cref{sec:code-evalenv}) \\
+      $\hci$ & Hole closure tracking & \texttt{HoleClosureInfo\_}, \texttt{HoleClosureInfo} (\Cref{sec:code-hole-closures}) \\
+      \adiff{d_1}{d_2}{u}{d} & Fill diff judgment & \texttt{DiffDHExp} (\Cref{sec:code-far}) \\
+      \hline\hline
+    \end{tabular}
+  }
+  \caption{Correspondence between symbols and code}
+  \label{tab:correspondence-theory-code}
+\end{table}
+
+\begin{table}
+  \centering
+  \makebox[\textwidth][c]{
+    \begin{tabular}{cll}
+      \hline
+      Algorithm & Name & Module(s) \\
+      \hline\hline
+      \env\vdash d\Downarrow d' & Evaluation & \texttt{Evaluator} (\Cref{sec:code-evaluator}) \\
+      d\Uparrow d' & Postprocessing & \texttt{EvalPostprocess} (\Cref{sec:code-postprocessing}) \\
+      \adiff{d_1}{d_2}{u}{d} & Structural diff & \texttt{DiffDHExp} (\Cref{sec:code-far}) \\
+      \far{u}{d}{d'} & FAR & \texttt{FillAndResume} (\Cref{sec:code-far}) \\
+      \hline\hline
+    \end{tabular}
+  }
+  \caption{Correspondence between algorithms and code}
+  \label{tab:correspondence-algos-code}
+\end{table}
 
 \section{Relevant code snippets}
 \label{sec:relevant-code}
 
-\todo{implement this}
+Relevant code snippets are shown below. Omitted sections are indicated with \mintinline{reasonml}|/* (...) */|. The source language is ReasonML. Each file represents a module. Files with the \texttt{.rei} file extension are interface files and only contain definitions (the module's public interface) and documentation in the form of comments. Files with the \texttt{.re} file extension contain the module's implementation. These code snippets are taken from the \texttt{fill-and-resume-backend} branch.
 
 \subsection{Internal language}
 \label{sec:code-internal-language}
 
-\todo{DHExp}
+\cb{DHExp.rei}
+
+\cb{DHExp.re}
 
 \subsection{Numbered environments}
 \label{sec:code-evalenv}
 
-\todo{VarBSTMap, EvalEnv, EvalEnvId, EvalEnvIdGen}
+\cb{VarBstMap.re}
+
+\cb{EvalEnv.rei}
+
+\cb{EvalEnv.re}
+
+\cb{EvalEnvId.rei}
+
+\cb{EvalEnvId.re}
 
 \subsection{Evaluation}
 \label{sec:code-evaluator}
 
-\todo{Evaluator}
+\cb{Evaluator.rei}
+
+\cb{Evaluator.re}
 
 \subsection{Postprocessing}
 \label{sec:code-postprocessing}
 
-\todo{EvalPostprocess}
+\cb{EvalPostprocess.rei}
+
+\cb{EvalPostprocess.re}
+
+\cb{Program.re}
+
+\cb{Result.rei}
+
+\cb{Result.re}
 
 \subsection{Unique hole closures}
 \label{sec:code-hole-closures}
 
-\todo{MetaVar, HoleClosureId, HoleClosure, HoleClosureInfo\_, HoleClosureInfo, HoleClosureParents}
+\cb{MetaVar.rei}
+
+\cb{MetaVar.re}
+
+\cb{HoleClosureId.rei}
+
+\cb{HoleClosureId.re}
+
+\cb{HoleClosure.rei}
+
+\cb{HoleClosure.re}
+
+\begin{singlespace}
+  \inputminted[fontsize=\footnotesize,frame=single]{reasonml}{code/HoleClosureInfo_.rei}
+\end{singlespace}
+\captionof{listing}{\texttt{HoleClosureInfo\_.rei}}
+
+\begin{singlespace}
+  \inputminted[fontsize=\footnotesize,frame=single]{reasonml}{code/HoleClosureInfo_.re}
+\end{singlespace}
+\captionof{listing}{\texttt{HoleClosureInfo\_.re}}
+
+\cb{HoleClosureInfo.rei}
+
+\cb{HoleClosureInfo.re}
+
+\cb{HoleClosureParents.rei}
+
+\cb{HoleClosureParents.re}
 
 \subsection{FAR}
 \label{sec:code-far}
 
-\todo{FillAndResume, DHExpDiff, Model.update\_program}
+\cb{FillAndResume.rei}
+
+\cb{FillAndResume.re}
+
+\cb{DiffDHExp.rei}
+
+\cb{DiffDHExp.re}
+
+\cb{Model.re}
 
 \subsection{Evaluation state}
 \label{sec:code-evalstate}
 
-\todo{EvalState}
+\cb{EvalState.rei}
+
+\cb{EvalState.re}
+
+\cb{EvalStats.rei}
+
+\cb{EvalStats.re}
 
 %%% Local Variables:
 %%% mode: latex
