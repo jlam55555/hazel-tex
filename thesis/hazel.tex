@@ -16,14 +16,14 @@ Editor services can only assign static and dynamic meaning to programs that are 
 \subsection{An intuitive introduction to typed expression holes}
 \label{sec:typed-holes}
 
-Hazelnut and Hazelnut Live address the gap problem by defining a static and dynamic semantics, respectively, for a small functional programming language extended with typed holes. It is built on top of a \textit{structure editor}, which ensures that a program is always well-formed (syntactically correct) by disallowing invalid edit actions. The Hazelnut action semantics for typed holes ensures that a well-formed program is always well-typed. The Hazelnut Live dynamic semantics defines an encapsulated behavior for type errors, such that evaluation continues ``around'' and captures information about type errors in order to provide dynamic feedback to the programmer.
+Hazelnut and Hazelnut Live address the gap problem by defining the static and dynamic semantics, respectively, for a small functional programming language extended with typed holes. It is built on top of a \textit{structure editor}, which ensures that a program is always well-formed (syntactically correct) by disallowing invalid edit actions. The Hazelnut action semantics for typed holes ensures that a well-formed program is always well-typed. The Hazelnut Live dynamic semantics defines an encapsulated behavior for type errors, such that evaluation continues ``around'' and captures information about type errors in order to provide dynamic feedback to the programmer.
 
 The Hazelnut Live paper provides the following intuitive understanding of holes.
 
 \begin{displayquote}
-  Empty holes stand for missing expressions or types, and non-empty holes operate as ``membranes''
+\textit{  Empty holes stand for missing expressions or types, and non-empty holes operate as ``membranes''
 around static type inconsistencies (i.e. they internalize the ``red underline'' that editors commonly display under a type inconsistency).
-\end{displayquote}
+}\end{displayquote}
 
 We have already acknowledged the existence of type holes in dynamically-typed languages and in the \gtclc{}, in which type holes are represented by the type $\gtlch$. This allows unannotated expressions to statically type-check, with the possibility of running into a dynamic type error at runtime.
 
