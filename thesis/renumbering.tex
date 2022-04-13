@@ -122,7 +122,9 @@ The hole numbering algorithm is shown in \Cref{fig:big-step-renumber-new-rules}.
 
 For hole expressions that have not been encountered before, the hole number and environment do not exist in $\hci$. A hole closure number $i=\hid(H,u)$ is generated to be unique out of hole closures for the hole $u$. We recursively postprocess the environment. Then the hole closure is inserted into $\hci$, along with the postprocessed environment.
 
-For hole expressions that have been encountered before, the hole number and environment do exist in $\hci$. We can use this to look up the hole closure number $i$, postprocessed environment $\env'$, and list of parents $\{\pth_i\}$ for this hole closure. We update the list of parents to include the current parent $\pth$, and return the hole numbered with $i$. Note that the environment does not need to be re-postprocessed.
+For hole expressions that have been encountered before, the hole number and environment do exist in $\hci$. We can use this to look up the hole closure number $i$, postprocessed environment $\env'$, and list of parents $\{\pth_i\}$ for this hole closure. We update the list of parents to include the current parent $\pth$, and return the hole numbered with $i$.
+
+This algorithm memoizes environments by storing them in $\hci$. Thus when a encountered that has already been postprocessed is encountered, it uses the looked-up environment rather than re-postprocessing the environment. This memoization is not necessary to the algorithm.
 
 \begin{figure}
   \centering
