@@ -1,0 +1,51 @@
+\judgbox{d\subseteq d'}{$d$ is a subexpression of $d'$}
+\begin{mathpar}
+  \Infer{SEId}{}{d\subseteq d}
+  \and
+  \Infer{SELam}{
+    d\subseteq d'
+  }{d\subseteq \lambda x:\tau.d'}
+  \and
+  \Infer{SEAp$_1$}{
+    d\subseteq d_1
+  }{d\subseteq d_1\ d_2}
+  \and
+  \Infer{SEAp$_2$}{
+    d\subseteq d_2
+  }{d\subseteq d_1\ d_2}
+  \and
+  \Infer{SENEHole}{
+    d\subseteq d'
+  }{d\subseteq\hhole{d'}^u}
+  \and
+  \Infer{SEClosure}{
+    d\subseteq d'
+  }{d\subseteq[\env]d'}
+\end{mathpar}
+
+\judgbox{d\in d'}{$d$ exists in $d'$}
+\begin{mathpar}
+  \Infer{SEDirect}{
+    d\subseteq d'
+  }{d\in d'}
+  \and
+  \Infer{SEEnv}{
+    d\in\env
+  }{d\in [\env]d'}
+\end{mathpar}
+
+\judgbox{d\in\env}{$d$ exists in $\env$}
+\begin{mathpar}
+  \Infer{SEEnv$_1$}{
+    d\in\env
+  }{d\in\env,x\leftarrow d'}
+  \and
+  \Infer{SEEnv$_2$}{
+    d\in d'
+  }{d\in\env,x\leftarrow d'}
+\end{mathpar}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:

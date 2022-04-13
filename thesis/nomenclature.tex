@@ -43,6 +43,20 @@
   \centering
   \begin{tabular}{\colwidths}
     \hline\hline
+    $d\textsf{ value}$ & Value \\
+    $d\textsf{ final}$ & Final \\
+    $d\textsf{ uneval}$ & Contains unevaluated subexpression \\
+    $\env\vdash d\Downarrow d'$ & Evaluation \\
+    \hline\hline
+  \end{tabular}
+  \caption{Hazel evaluation judgments}
+  \label{tab:symb_hazel_dhexp}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{\colwidths}
+    \hline\hline
     $\gtlch$ & Unknown type \\
     $\tau\sim\tau'$ & Type consistency \\
     $\arrmatch{\tau}{\tau_1\to\tau_2}$ & Matched arrow judgment \\
@@ -68,22 +82,11 @@
     $\hehole^{u:i}$ & Empty hole expression \\
     $\hhole{d}^{u:i}$ & Non-empty hole expression \\
     $[\env]d$ & Generalized closure \\
+    $d\subseteq d'$ & Subexpression (non-recursive) \\
+    $d\in d'$ & Subexpression (recursing through environments) \\
     \hline\hline
   \end{tabular}
   \caption{Hazel internal language}
-  \label{tab:symb_hazel_dhexp}
-\end{table}
-
-\begin{table}[H]
-  \centering
-  \begin{tabular}{\colwidths}
-    \hline\hline
-    $d\textsf{ value}$ & Value \\
-    $d\textsf{ final}$ & Final \\
-    $\env\vdash d\Downarrow d'$ & Evaluation \\
-    \hline\hline
-  \end{tabular}
-  \caption{Hazel evaluation judgments}
   \label{tab:symb_hazel_dhexp}
 \end{table}
 

@@ -27,7 +27,7 @@
       $d$ & Internal expression & \texttt{DHExp} (\Cref{sec:code-internal-language}) \\
       $\sigma$ & (Numbered) environment & \texttt{EvalEnv}, \texttt{EvalEnvId}, \texttt{VarBstMap} (\Cref{sec:code-evalenv}) \\
       $\hci$ & Hole closure tracking & \texttt{HoleClosureInfo\_}, \texttt{HoleClosureInfo} (\Cref{sec:code-hole-closures}) \\
-      \adiff{d_1}{d_2}{u}{d} & Fill diff judgment & \texttt{DiffDHExp} (\Cref{sec:code-far}) \\
+      $\adiff{d_1}{d_2}{u}{d}$ & Fill diff judgment & \texttt{DiffDHExp} (\Cref{sec:code-far}) \\
       \hline\hline
     \end{tabular}
   }
@@ -42,10 +42,10 @@
       \hline
       Algorithm & Name & Module(s) \\
       \hline\hline
-      \env\vdash d\Downarrow d' & Evaluation & \texttt{Evaluator} (\Cref{sec:code-evaluator}) \\
-      d\Uparrow d' & Postprocessing & \texttt{EvalPostprocess} (\Cref{sec:code-postprocessing}) \\
-      \adiff{d_1}{d_2}{u}{d} & Structural diff & \texttt{DiffDHExp} (\Cref{sec:code-far}) \\
-      \far{u}{d}{d'} & FAR & \texttt{FillAndResume} (\Cref{sec:code-far}) \\
+      $\env\vdash d\Downarrow d'$ & Evaluation & \texttt{Evaluator} (\Cref{sec:code-evaluator}) \\
+      $d\Uparrow d'$ & Postprocessing & \texttt{EvalPostprocess} (\Cref{sec:code-postprocessing}) \\
+      $\adiff{d_1}{d_2}{u}{d}$ & Structural diff & \texttt{DiffDHExp} (\Cref{sec:code-far}) \\
+      $\far{u}{d}{d'}$ & FAR & \texttt{FillAndResume} (\Cref{sec:code-far}) \\
       \hline\hline
     \end{tabular}
   }

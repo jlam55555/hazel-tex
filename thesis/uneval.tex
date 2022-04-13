@@ -1,0 +1,16 @@
+\judgbox{d\unev}{$d$ contains an unevaluated subexpression not in a closure}
+
+\begin{mathpar}
+  \Infer{UELam}{}{\lambda x:\tau.d\unev}
+  \and
+  \Infer{UEEHole}{}{\hehole^u\unev}
+  \and
+  \Infer{UENEHole}{}{\hhole{d}^u\unev}
+  \and
+  \Infer{UENotFinal}{d\unev}{d\textsf{ not final}}
+\end{mathpar}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:

@@ -160,7 +160,52 @@ The notation used to express a function closure may be extended to all generaliz
 
 This implementation of closures is an improvement in three ways. Firstly, it simplifies the variant types by factoring out the environment, separating the ``core'' expression from the environment coupled with it. Secondly, it allows for a more intuitive understanding of holes in the environment model of evaluation. This solves the question of what environment to initialize a hole with when it is created during the elaboration phase: a hole is simply initialized without a hole environment, much as a function closure is initially without an environment (a plain syntactical $\lambda$ abstraction). This removes the need for the awkward notation $\hhole{d}_\cdot^u$ introduced earlier to indicate a hole that has not yet been assigned an environment. Lastly, generalized closures play an important role in the fill-and-resume operation, in which (unevaluated) closures can contain arbitrary subexpressions and allow ``resuming'' evaluation in the stored environment.
 
-Note that while the generalized closures for the body expressions of $\lambda$ abstractions, unmatched \mintinline{ocaml}|let| expressions, and unmatched \mintinline{ocaml}|case| expressions represent expressions outside of the evaluation boundary, the expressions within non-empty holes (which also are bound to a hole closure) lie within the evaluation boundary. This shows the two goal that generalized closures achieve; to encapsulate a stopped expression (which is used during postprocessing to perform substitution), and to encapsulate an expression to be filled for the fill-and-resume operation.
+Note that while the generalized closures for the body expressions of $\lambda$ abstractions, unmatched \mintinline{ocaml}|let| expressions, and unmatched \mintinline{ocaml}|case| expressions represent expressions outside of the evaluation boundary, the expressions within non-empty holes (which also are bound to a hole closure) lie within the evaluation boundary. This shows the two goals that generalized closures achieve; to encapsulate a stopped expression (which is used during postprocessing to perform substitution), and to encapsulate an expression to be filled for the fill-and-resume operation.
+
+\subsection{Formalizing the evaluation boundary}
+\label{sec:eval-boundary-metatheorem}
+
+We may characterize the evaluation boundary with two theorems on the evaluated result. First, we need to define three auxiliary judgments.
+
+The $d^-\unev$ unevaluated judgment shown in \Cref{fig:uneval} indicates that an expression form directly contains an unevaluated expression, or may contain an unevaluated expression at some point in the future. In Hazelnut Live, function bodies are the only unevaluated expressions. We note also that hole expressions are also considered $\unev$; this is because if they are filled in fill-and-resume, they will contain an unevaluated expression. If we consider Hazel's more complete syntax, then additional axioms should be added for unmatched \mintinline{ocaml}|let| and \mintinline{ocaml}|case| statements. UENotFinal provides an intuitive characteristic of the $\unev$ judgment: unevaluated expressions are not final (evaluated). It is trivial to prove UENotFinal from the three axioms and from the $\textsf{final}$ judgment.
+
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \input{uneval}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Unevaluated judgment}
+  \label{fig:uneval}
+\end{figure}
+
+Two subexpression judgments are shown in \Cref{fig:subexpression}. $d^-\subseteq d'^-$ indicates that a $d$ is a subexpression of $d'$, not recursing into hole environments. $d\in d'$ also indicates a subexpression, but allows recursing into closure environments. This distinction is important because all environments lie inside the evaluation boundary.
+
+\begin{figure}
+  \centering
+  \begin{mdframed}
+    \begin{singlespace}
+      \input{subexpression}
+    \end{singlespace}
+  \end{mdframed}
+  \caption{Subexpression judgment}
+  \label{fig:subexpression}
+\end{figure}
+
+\begin{theorem}[Evaluation boundary]
+  If $\varnothing\vdash d\Downarrow d'$ and $d''\in d'$ and $d''\textsf{ uneval}$, then $d''\subseteq[\env]d'''\in d'$.
+  \label{thm:eval-boundary-1}
+\end{theorem}
+
+\Cref{thm:eval-boundary-1} states that all unevaluated subexpressions lie within a closure in the evaluated result. This theorem ensures that the postprocessing substitution and fill-and-resume will have the necessary information to succeed. The justification is straightforward by switching on the evaluation rules. The evaluation rules for $\lambda$-abstractions and hole expressions wrap the expression in a closure.
+
+\begin{theorem}[Singular evaluation boundary]
+  If $\varnothing\vdash d\Downarrow d'$ and $d''\in d'$ and $[\env]d''\in d'$ and $[\env]d''\subset[\env']d'''$, then $d'''=\hhole{d''''}^u$.
+  \label{thm:eval-boundary-2}
+\end{theorem}
+
+\Cref{thm:eval-boundary-2} states that there are no nested closures in an expression (not recursing into closure environments). This means that unevaluated expression are always separated from evaluated expressions by a single closure, justifying the term ``evaluation boundary'' rather than ``evaluation boundaries.'' The only case when closures may be nested are in the case of non-empty holes, in which the hole expression actually lies within the evaluation boundary\footnote{We similarly need to consider the scrutinee of unmatched \mintinline{ocaml}|let| and \mintinline{ocaml}|case| statements, which lies within the evaluation boundary.}. We justify this theorem in the same manner by using induction on the evaluation rules, keeping track of nested closures and recognizing that the outer closure(s) must be around non-empty holes.
 
 \subsection{Alternative strategies for evaluation past the \\ evaluation boundary}
 \label{sec:alt_strat_unevaluated}
@@ -216,9 +261,7 @@ Note that in the implementation with recursive data structures used to represent
 
 When outside the evaluation boundary (and inside a closure), we need to substitute bound variables\footnote{The wording is a little tricky here, since there are the \mintinline{ocaml}|BoundVar| and \mintinline{ocaml}|FreeVar| internal expression variants, which refer to variables which are in scope or not in scope. However, we may only substitute variables which are in-scope (\mintinline{ocaml}|BoundVar|) and bound; some instances may not yet be bound.} and assign an environment to holes.
 
-Bound variables are looked up in the environment; this lookup may fail if the variable does not exist in the environment, in which case the variable is left unchanged. For other primary expressions, the expression is left unchanged. When a hole is encountered, its environment is the closure environment\footnote{There is nothing to do at this point for hole closures. The hole closure numbering step will assign a closure identifier to the hole as described in the second postprocessing algorithm in \Cref{sec:two-stage-renumber}.}. A closure will never exist outside the evaluation boundary in the evaluation result.
-
-% TODO: formalize these as metatheorems
+Bound variables are looked up in the environment; this lookup may fail if the variable does not exist in the environment, in which case the variable is left unchanged. For other primary expressions, the expression is left unchanged. When a hole is encountered, its environment is the closure environment\footnote{There is nothing to do at this point for hole closures. The hole closure numbering step will assign a closure identifier to the hole as described in the second postprocessing algorithm in \Cref{sec:two-stage-renumber}.}. A closure will never exist outside the evaluation boundary in the evaluation result (by \Cref{thm:eval-boundary-2}).
 
 Note that the $\pplco$ algorithm only takes an internal expression $d$ as its input, whereas the $\pplct$ algorithm takes an internal expression $d$ and a (closure) environment $\env$ as inputs.
 
@@ -238,12 +281,30 @@ Note that the $\pplco$ algorithm only takes an internal expression $d$ as its in
   \label{fig:big-step-inside-formal}
 \end{figure}
 
-\section{Post-processing memoization}
+We may try to characterize the result of the substitution process slightly more formally. \Cref{thm:substitution-postprocessing} describes how the substitution postprocessing algorithm removes closures in the result. Notably, this states that a closure exists in the result if and only if the closure's expression is a hole. This is consistent with what we expect in Hazelnut Live, where closures did not exist outside of hole closures. We can justify this by performing induction on the postprocessing rules; it is clear that all closures are eliminated using the \pplcl{}Closure rule, and closures are only introduced using the \pplclo{}EHole and \pplclo{}NEHole rules.
+
+\Cref{thm:eval-correctness} states that the postprocessed result of evaluation with environments is the same as the result of evaluation with substitution, as presented in Hazelnut Live. We provide an intuitive justification for this. First, we check that the evaluation rules for the environment model are correct, and this is easy due the similarity to the evaluation rules for evaluation with substitution and evaluation with environments. The difference in the result lies only outside the evaluation boundary: holes and variables may not be correctly bound outside the environment boundary. We then perform induction using the postprocessing rules to ensure that variables and hole environments are properly looked up outside the evaluation boundary. \Cref{thm:eval-boundary-1} states that the postprocessing algorithm will have the necessary environments to perform the substitution pass. \Cref{thm:substitution-postprocessing} affirms that there will be no stray closures remaining in the result except hole closures, as non-hole closures did not exist in evaluation with substitution.
+
+\begin{theorem}[Substitution postprocessing closures]
+  If $\env\vdash d\Downarrow d'$ and $d'\pplc d''$, then:
+  \begin{enumerate}
+  \item If $[\env]d'''\in d''$, then $d'''=\hehole^u$ or $d'''=\hhole{d}^u$.
+  \item If $d'''=\hehole^u$ or $d'''=\hhole{d}^u$, then $d'''\subset[\env]d'''$.
+  \end{enumerate}
+  \label{thm:substitution-postprocessing}
+\end{theorem}
+
+\begin{theorem}[Evaluation with environments correctness]
+  Let $\Downarrow_s$ be the evaluation semantics described by Hazelnut Live \cite{conf/popl/HazelnutLive19}. Then if $\env\vdash d\Downarrow d'$ and $d'\pplc d''$, and if $d\Downarrow_s d'''$, then $d''=d'''$.
+  \label{thm:eval-correctness}
+\end{theorem}
+
+\subsection{Post-processing memoization}
 \label{sec:memoization}
 
 There is repeated postprocessing if the same closure environment is encountered multiple times in the evaluation result. If we can identify and look up environments, then we can memoize their postprocessing.
 
-\subsection{Modifications to the environment datatype}
+\subsubsection{Modifications to the environment datatype}
 \label{sec:memoization-evalenv}
 
 Memoization of environments requires a unique key for each environment. The existing environment type \mintinline{ocaml}|Environment.t| is a map $\env:x\mapsto d$. We introduce a new environment type \mintinline{ocaml}|EvalEnv.t|\footnote{This is the name in the current implementation (due to this environment type being specialized for evaluation), but perhaps a better name is \mintinline{ocaml}|MemoEnv.t|.} that is the product of an identifier and the variable map $\env:(\text{id}_\env,x\mapsto d)$, in which $\text{id}_\env$ indicates a unique environment identifier.
@@ -252,18 +313,16 @@ To ensure that there is a bijection between environment identifiers and environm
   In the same manner as \mintinline{ocaml}|MetaVarGen.t|, \mintinline{ocaml}|EvalEnvId.t| is implemented as type \mintinline{ocaml}|int| and \mintinline{ocaml}|EvalEnvIdGen.t| is implemented as a simple counter. To keep the implementation pure, the instance of \mintinline{ocaml}|EvalEnvIdGen.t| needs to be threaded through all calls of \mintinline{ocaml}|Evaluator.evaluate| to avoid a global mutable state, and is discussed in \Cref{sec:env-purity}.
 }.
 
-Note that while physical identity may be used to distinguish between different environments, it is difficult to use for efficient lookups due to the abstraction of pointers in a high-level language like OCaml or Javascript. We may think of numeric identifiers (in general) as high-level pointers. We may state this property of environment identifiers as a metatheorem, which allows us to use environment identifiers as a key for environments.
+Note that while physical identity may be used to distinguish between different environments, it is difficult to use for efficient lookups due to the abstraction of pointers in a high-level language like OCaml or Javascript. We may think of numeric identifiers (in general) as high-level pointers. We may state this property of environment identifiers as \Cref{thm:env-id}, which allows us to use environment identifiers as a key for environments.
 
 \begin{theorem}[Use of $\text{id}_\env$ as an identifier]
   The mapping $i_\env:\sigma\mapsto\text{id}_\env$ that maps an environment (identified up to physical equality) to its assigned environment identifier is a bijection.
   \label{thm:env-id}
 \end{theorem}
 
-\begin{proof}
-  The proof of injectivity and surjectivity are shown by construction. The relation is surjective because a new identifier is only assigned when a new environment is created. To prove injectivity, we intuit that $\env_i\ne\env_j$ implies that there is a series of modified environments $\{\env_i,\env_{i+1},\dots,\env_{j-1},\env_j\}$ (without loss of generality, assume $\env_i$ is an earlier environment than $\env_j$). By construction, each element of the set $\{i_\env(\env_i),i_\env(\env_{i+1}),\dots,i_\env(\env_j)\}$ is unique. Thus $i_\env(\env_1)\ne i_\env(\env_2)$.
-\end{proof}
+We justify this by the construction of environment identifiers. $\env_i\ne\env_j$ implies that there is a series of modified environments $\{\env_i,\env_{i+1},\dots,\env_{j-1},\env_j\}$ (without loss of generality, assume $\env_i$ is an earlier environment than $\env_j$). By construction, each element of the set $\{i_\env(\env_i),i_\env(\env_{i+1}),\dots,i_\env(\env_j)\}$ is unique. Thus $i_\env(\env_1)\ne i_\env(\env_2)$.
 
-\subsection{Modifications to the post-processing rules}
+\subsubsection{Modifications to the post-processing rules}
 \label{sec:memoization-postprocessing}
 
 During substitution postprocessing ($\pplc$), a mapping $\text{id}_\env\mapsto\env$ stores the set of substituted (postprocessed) environments. Upon encountering a closure in the evaluation result, it is looked up in this map. If it is found, the stored result is used. If it is not found, the environment is recursively substituted by applying $\pplco$ to each binding.

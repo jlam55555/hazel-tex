@@ -177,9 +177,7 @@ We note that the pre-processing acts on the un-post-processed previous evaluatio
 
 Another issue to tackle is the problem that closures were previously considered to be final values, and would not be re-evaluated. Technically, we may re-evaluate closures; since the evaluation function is idempotent, this will not yield the incorrect result, but it is needlessly inefficient. However, we will need to re-evaluate closures during FAR re-evaluation, since the fill expression will necessarily lie within some closure.
 
-\todo{write the previous statement as a metatheorem}
-
-For efficiency reasons, we will only want to re-evaluate all closures in the result exactly once. To do this, we set a flag for the closure that indicates that it should be re-evaluated. This preprocessing step will recurse through $\dresult$ and set the flag to true for all closures. All closures that result from an evaluation judgment will have the flag set to false. Only closures with the re-eval flag set will be re-evaluated. Closures with the re-eval flag set to false will act as values and evaluate to themselves, which is the same as the original evaluation behavior described in \Cref{sec:generalized-closures-eval-boundary}. We denote closures with the re-eval flag set to false using the established notation for closures $[\env]d$\footnote{This allows previous discussions of closures to remain valid, since they take the interpretation that the re-eval flag is set to false.}, and denote closures with the re-eval flag set to true by $\llbracket\env\rrbracket d$\footnote{Using the double-square bracket notation also reinforces the fact that re-evaluation is tied with fill-and-resume, which also uses double-square brackets.}.
+For efficiency reasons, we will only want to re-evaluate all closures in the result exactly once. To do this, we set a flag for the closure that indicates that it should be re-evaluated. This preprocessing step will recurse through $\dresult$ and set the flag to true for all closures, which is characterized by \Cref{thm:fill-reeval}. All closures that result from an evaluation judgment will have the flag set to false. Only closures with the re-eval flag set will be re-evaluated. Closures with the re-eval flag set to false will act as values and evaluate to themselves, which is the same as the original evaluation behavior described in \Cref{sec:generalized-closures-eval-boundary}. We denote closures with the re-eval flag set to false using the established notation for closures $[\env]d$\footnote{This allows previous discussions of closures to remain valid, since they take the interpretation that the re-eval flag is set to false.}, and denote closures with the re-eval flag set to true by $\llbracket\env\rrbracket d$\footnote{Using the double-square bracket notation also reinforces the fact that re-evaluation is tied with fill-and-resume, which also uses double-square brackets.}.
 
 Finally, we may consider the issue of multiple instances of the same hole closure\footnote{Hole closure refers to the connotation from \Cref{sec:instance-illustration}: instances of hole $\ufill$ that share the same (physical) environment.}. If we substitute the hole, then we lose the information about the holes instance, and thus cannot memoize the evaluations of the same hole instance by environment number. A solution to this is to introduce another \mintinline{ocaml}|DHExp.t| variant \mintinline{ocaml}|FillExp(HoleClosureId.t, DHExp.t)| that indicates the hole closure number as well as the expression to fill. This will be denoted using a hole with a subscript $\hhole{d}_i$. The preprocessing expression will fill a hole $\ufill$ with this expression rather than the expression $\dfill$ directly. During evaluation, this data structure will facilitate the memoization of hole closures.
 
@@ -190,7 +188,7 @@ Re-evaluation during fill-and-resume is mostly the same as regular evaluation, b
 
 The updated evaluation rules for closures are shown in \Cref{fig:reeval-closures}. All closures in the evaluation result will have been marked for re-evaluation by the pre-processing step. This means that the closure environment will first be recursively re-evaluated, following by the closure body. This ensures that the entire program result is fully evaluated\footnote{Note that there is now an ``inversion'' of evaluation order, in that we cannot expect the environment to be fully evaluated before it is encountered in a closure. In an ordinary evaluation, we would expect all the bindings in the environment to have been evaluated before they have been stored in the environment.}. We introduce a (re-)evaluation judgment for environments $\env^-\Downarrow\env'^+$, which simply maps the evaluate operation over the bindings of an environment. Closures with the re-eval flag set to false will have the regular evaluation rule.
 
-\todo{metatheorem about how all closures from $\dresult$ will re-evaluated (exactly once), assuming that evaluation terminates}
+Due to the recursive nature of re-evaluation of closure environments, we expect evaluation to reach each closure marked for re-evaluation exactly once. This is characterized in \Cref{thm:resume-reeval}.
 
 \begin{figure}
   \centering
@@ -225,8 +223,6 @@ This fill-memoized evaluation judgment subsumes the normal evaluation judgment. 
 
 The postprocessing algorithm remains unchanged from before. Note that an evaluated program result should never include either of the new forms $\hhole{d}_i$ or $\llbracket\env\rrbracket d$; these should all have been encountered and evaluated out. In other words, the evaluation result from re-evaluation during a FAR should be indistinguishable from the evaluation result from a regular evaluation, and thus the postprocessing process is unchanged.
 
-\todo{metatheorems to back up the above}
-
 \section{Entrypoint to the FAR algorithm}
 \label{sec:far-entrypoint}
 
@@ -251,6 +247,39 @@ An edit action triggers the bidirectional action semantics, which generates an u
 The updated abstract call graph is shown in \Cref{fig:current-evaluation-call-graph}. Fill and resume is fundamentally an operation on internal expressions, so we attempt to detect a hole fill operation after elaboration of the current edit state. The structural diff operation requires information about at least one previous edit state from the model's \mintinline{ocaml}|UndoHistory.t|. The result of the previous evaluation is preprocessed, before being evaluated (using the updated evaluation judgments) and postprocessed as usual.
 
 Since this is a very high-level view of the program, many details are abstracted out. For example, the evaluation function is memoized by the function \mintinline{ocaml}|Program.get_result|, which facilitates the normal evaluation process. We will need to modify this memoization to also memoize the FAR evaluation results.
+
+\section{Characterizing FAR}
+\label{sec:far-metatheorems}
+
+We provide a characterization of the FAR process here via a set of metatheorems and informal justifications, as in previous sections on evaluation and the postprocessing process.
+
+Hazelnut Live provides two metatheorems to describe the overall FAR process. We will restate them here for completeness. Proofs may be found in \cite{conf/popl/HazelnutLive19}. \Cref{thm:filling-statics} describes the static semantics of filling. If the filled expression matches the assigned type of the hole in the hole context, then the type of the overall evaluation result should not change. We assume that the premise is true by the action semantics, elaboration process, and structural diffing algorithm: any hole fill detected by structural diffing should be well-typed according to automatic empty-holes and casts inserted by the action semantics and elaboration process.
+
+\begin{theorem}[Filling (FAR static correctness)]
+  If $\Delta,u::\tau'[\Gamma'];\Gamma\vdash d:\tau$ and $\Delta;\Gamma'\vdash d':\tau'$ then $\Delta;\Gamma\vdash\far{d'}{u}{d:\tau}$.
+  \label{thm:filling-statics}
+\end{theorem}
+
+The dynamic correctness of fill-and-resume depends on the commutativity property stated in \Cref{thm:commutativity}. Here, the notation $\far{d}{u}{d'}$ is intended to mean the entire FAR process, not just the fill operation as we interpret it in the rest of this thesis. The proof is also provided in \cite{conf/popl/HazelnutLive19}, as is the definition of the closure of evaluation stepping $d_1\mapsto^*d_2$. An important point to note is that the proof of commutativity requires a functionally pure language (i.e., with no side effects) such as Hazel.
+
+\begin{theorem}[Commutativity (FAR dynamic correctness)]
+  If $\Delta,u::\tau'[\Gamma'];\varnothing\vdash d_1:\tau$ and $\Delta;\Gamma'\vdash d':\tau'$ and $d_1\mapsto^* d_2$ then $\far{d'}{u}{d_1}\mapsto^*\far{d'}{u}{d_2}$.
+  \label{thm:commutativity}
+\end{theorem}
+
+In addition to the metatheorems governing the overall static and dynamic correctness of FAR, we may also characterize the intermediate steps, since we break up FAR into sequential fill and resume steps. Similar to \Cref{thm:substitution-postprocessing}, we characterize both the fill and resume steps by their effects on closures. This time, the focus is on re-evaluatable closures. We expect that the fill step marks all closures in the result for re-evaluation \Cref{thm:fill-reeval}, and that the resume step reaches evaluation for all re-evaluation \Cref{thm:resume-reeval}.
+
+These metatheorems may not be necessary to prove commutativity, but they illustrate the behavior of the fill-and-resume steps: they demonstrate that re-evaluation reaches every expression within the evaluation boundary, including and especially any filled expressions. In other words, they check the proper coverage of the fill and resume steps when handling closures. These theorems are also both straightforwardly justified by the rules for the fill operation and evaluation.
+
+\begin{theorem}[Fill operation]
+  If $\varnothing\vdash d\Downarrow d'$, and $[d''/u]d'=d'''$, then $\not\exists[\env]d''''\in d'''$.
+  \label{thm:fill-reeval}
+\end{theorem}
+
+\begin{theorem}[Resume operation]
+  If $\varnothing\vdash d\Downarrow d'$ and $[d''/u]d'=d'''$ and $\varnothing\vdash d'''\Downarrow d''''$ then $\not\exists\llbracket\env\rrbracket d'''''\in d''''$.
+  \label{thm:resume-reeval}
+\end{theorem}
 
 \section{FAR examples}
 \label{sec:far-examples}

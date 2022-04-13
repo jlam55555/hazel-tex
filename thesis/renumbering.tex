@@ -162,6 +162,24 @@ This ``fix'' is not ideal because of the added complexity and confusion, but it 
   \label{fig:big-step-postprocessing-rules}
 \end{figure}
 
+\subsection{Characterizing hole numbering}
+\label{sec:hole-numbering-characterization}
+
+As before with evaluation and substitution postprocessing, we may attempt to characterize the result of hole numbering with a metatheorem. \Cref{thm:hole-numbering-postprocessing} summarizes the grouping of hole instances with the same environment (hole instantiations) into the same hole closure.
+
+\begin{theorem}[Hole numbering postprocessing]
+  Let $\varnothing\vdash d\Downarrow d'$ and $d'\ppn d''\dashv\hci$.
+  \begin{enumerate}
+  \item If $[\env]\hehole^{u:i}\in d''$ and $[\env]\hehole^{u:i'}\in d''$, then $i=i'$.
+  \item If $[\env]\hhole{d'''}^{u:i}\in d''$ and $[\env]\hhole{d''''}^{u:i'}\in d''$, then $i=i'$ and $d'''=d''''$.
+  \end{enumerate}
+  \label{thm:hole-numbering-postprocessing}
+\end{theorem}
+
+If we inductively follow the rules of the hole numbering algorithm, we expect that holes with the same physical environment will have the same hole closure number $i$. The case of non-empty holes has an additional clause about the nested expression inside the non-empty hole: we expect it to be the same if the environment is the same, since these are the same instantiation of the hole.
+
+We note that we do not establish a correctness theorem like \Cref{thm:eval-correctness}, since we introduce a new interpretation of hole closure numbers. This changes the result from that of Hazelnut Live.
+
 \section{Fast structural equality checking}
 \label{sec:fast-equals}
 
@@ -170,6 +188,8 @@ After the hole instance numbering is solved, there is an additional performance 
 This step is also very slow if repeated environments are re-traversed, so we memoize it by environments. We implement a manual structural checking algorithm, \mintinline{ocaml}|DHExp.fast_equals|. For any leaf node (node with no subexpressions), the value of the node is compared for equality. For branch nodes (nodes with subexpressions), the nodes are equal if subexpressions are equal and if the node's properties are equal. Importantly, the equality check for environments is simply to check if the environment identifiers are equal.
 
 This step assumes that checking the equality of environment identifiers is equivalent to checking the physical equality of environments. This statement is true by \Cref{thm:env-id} for two environments in the same program evaluation, but this may not be the case for comparing environments across separate evaluations. Thus we also need to structurally check environments. Luckily, this is easily memoized so we only compare environments once.
+
+We do not feel that it is necessary to write out the judgments for this equality checking, which are very similar to a simple recursive structural equality check. The operation of the algorithm and its correctness should be fairly intuitive by the description.
 
 %%% Local Variables:
 %%% mode: latex
