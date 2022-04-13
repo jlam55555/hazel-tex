@@ -18,6 +18,15 @@ One offender of performance is the use of the fixpoint form when evaluating recu
 
 The evaluation process becomes stateful. Every call to \mintinline{ocaml}|Evaluator.evaluate| takes an \mintinline{ocaml}|EvalState.t| as both input and output. This maintains state but is still technically pure, much like a state monad. This state includes the environment identifier generator, the fill memoization context, and evaluation statistics such as evaluation steps. This complicates the formalization and the implementation, as we now have additional inputs and outputs to each evaluation judgment. This is also likely less performant than if some global state were used instead. This global state would have to be reset at the beginning of each evaluation or resumed evaluation.
 
+\section{Summary of metatheorems}
+\label{sec:metatheorem-summary}
+
+\Crefrange{thm:eval-boundary-1}{thm:substitution-postprocessing} characterize the evaluation boundary and the results of substitution postprocessing. \Cref{thm:eval-correctness} states that the substitution-postprocessed result of evaluation with environments should match the result when evaluating using substitution. \Cref{thm:hole-numbering-postprocessing} describes the behavior of the hole closure numbering operation. \Crefrange{thm:filling-statics}{thm:commutativity} characterize the static and dynamic correctness of FAR. \Crefrange{thm:fill-reeval}{thm:resume-reeval} characterize closures in the outputs of the fill and resume steps of the FAR algorithm.
+
+Most of these theorems describe the expected behavior of the result, such as the conditions on closures in the result. Thus we may think of these metatheorems as ``checksum theorems'' to informally check the correctness of the work. The correctness of these metatheorems is informally justified using by considering relevant inference rules.
+
+Additionally, we may define ``adequacy theorems,'' which state that the result of the implemented algorithm matches the inference rules, and implement a series of checks in the code to test that this is indeed the case. However, Hazel does not have such a testing framework in place, and a more rigorous test framework is left for future work.
+
 \section{FAR for notebook-style editing}
 \label{sec:notebook-ui}
 

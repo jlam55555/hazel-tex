@@ -16,12 +16,13 @@ It would be desirable if we can avoid working around this, perhaps by reformulat
 
 The implementation of FAR completed for this thesis is a limited proof-of-concept. The FAR detection mechanism (the structural diffing algorithm) and preprocessing steps are complete. However, due to limited time constraints, the implementation has not achieved parity with the theoretical exploration of FAR explored in this paper.
 
-\begin{itemize}
-\item A list of past edit states should be made accessible to the FAR detection algorithm. The current structure of the Hazel toplevel and the undo history makes this a little trickier because there may be multiple unrelated histories caused by switching programs (``cards'') in the top panel of the Hazel UI.
-\item The result of FAR should be memoized alongside the results from regular evaluation. The current implementation of normal evaluation is memoized and is not aware of the FAR operation.
-\item The result of evaluating the program (\mintinline{ocaml}|Result.t|) is not currently stored in the model, but the program's edit state (\mintinline{ocaml}|Program.t|) is. This means that when the program result is needed in the Hazel UI, the program is re-evaluated. This is usually not a problem because of memoization, but FAR results are not memoized. It would be better to store the results of evaluation in the model and undo history to avoid this trouble.
-\item There is a slight issue with the current description of the \mintinline{ocaml}|FillExp| variant $\hhole{d}_i$. This requires us to have access to the hole closure identifier $i$, which comes from the postprocessed result. However, we perform the FAR operation on the un-postprocessed result. To remedy this, we may begin evaluation from the post-processed result, which may cause us to change some of our assumptions about the evaluation boundary. Another solution would be to have an alternative postprocessing operation that renumbers holes but leaves alone the evaluation boundary.
-\end{itemize}
+Firstly, a list of past edit states should be made accessible to the FAR detection algorithm. The current structure of the Hazel toplevel and the undo history makes this a little trickier because there may be multiple unrelated histories caused by switching programs (``cards'') in the top panel of the Hazel UI.
+
+Secondly, a result of FAR should be memoized alongside the results from regular evaluation. The current implementation of normal evaluation is memoized and is not aware of the FAR operation.
+
+Thirdly, the result of evaluating the program (\mintinline{ocaml}|Result.t|) is not currently stored in the model, but the program's edit state (\mintinline{ocaml}|Program.t|) is. This means that when the program result is needed in the Hazel UI, the program is re-evaluated. This is usually not a problem because of memoization, but FAR results are not memoized. It would be better to store the results of evaluation in the model and undo history to avoid this trouble.
+
+Fourthly, is a slight issue with the current description of the \mintinline{ocaml}|FillExp| variant $\hhole{d}_i$. This requires us to have access to the hole closure identifier $i$, which comes from the postprocessed result. However, we perform the FAR operation on the un-postprocessed result. To remedy this, we may begin evaluation from the post-processed result, which may cause us to change some of our assumptions about the evaluation boundary. Another solution would be to have an alternative postprocessing operation that renumbers holes but leaves alone the evaluation boundary.
 
 \subsection{Memoization for environments during re-evaluation}
 \label{sec:far-improv-memo-envs}
@@ -43,6 +44,8 @@ It will be useful to collect empirical data about user-editing behaviors, as dis
 The FAR procedure as described is a completely automatic process. However, the choice of which past edit state to choose may be tricky, as described in \Cref{sec:far-past-edit-states}. It may be desirable for the user to manually set a past edit state as an ``anchor'' from which to set FAR, and thus override an automatic choice of past edit state. This reifies the concept of sections or section breaks from computational notebooks. However, since a user-chosen edit state may not lead to a valid fill diff, edit states that lead to an invalid fill diff will still have to be evaluated from scratch.
 
 It may also be desirable to disable FAR completely, whether for debugging purposes or because it does not help performance much in the given circumstance. This should be a toggleable parameter in the sidebar.
+
+Any changes to the interactiveness of the FAR operation will have a great effect on intuitiveness, ease-of-use, editing speed, and ostensible performance. These will all play a great effect on the usability and viscosity of editing a Hazel program.
 
 \subsection{UI changes for notebook-style evaluation}
 \label{sec:far-improv-notebook-ui}

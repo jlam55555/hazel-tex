@@ -125,6 +125,11 @@ The evaluation rules for Hazelnut Live are reproduced in big-step form in \Cref{
 
 Hazelnut Live introduces \textit{hole instances} with some motivation, but with no details of its implementation. In \Cref{sec:renumbering}, we will motivate hole instances in greater detail, describe the current implementation, and reformulate the problem of hole instance tracking to accomodate environments and memoization.
 
+\subsection{High-level overview of fill-and-resume}
+\label{sec:hazelnut-live-far}
+
+The fill-and-resume optimization (FAR) is motivated and described at a high level in Hazelnut Live. Notably, a dynamic semantics is provided for the operation using substitution, but a full implementation is not provided. Notably, there is no description of how to detect a valid fill operation, or how to cache multiple edit states to make the FAR operation more practical. The FAR operation is rooted in contextual substitution from contextual modal type theory (CMTT) \cite{nanevski2008contextual}.
+
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "main"
