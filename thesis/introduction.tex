@@ -28,7 +28,7 @@ Secondly, we describe the postprocessing algorithm, which is mostly memoized by 
 
 Lastly, we develop the fill-and-resume process, as originally proposed (but not implemented) in \cite{conf/popl/HazelnutLive19}. We provide a possible implementation, including an algorithm to detect a valid fill operation and advice on memoizing the resumption operation.
 
-The performance of this work is measured primarily in terms of empirical performance gains (via evaluation-step counting and benchmarking), and discussed with respect to the theoretical performance. Hazelnut \cite{conf/popl/Hazelnut17} and Hazelnut Live \cite{conf/popl/HazelnutLive19} mechanize proofs of their work using the Agda interactive proof checker. We do not provide mechanized proofs of our work; instead, we provide a series of core metatheorems describing invariants describing Hazel evaluation, and argue the correctness of these metatheorems by informal reasoning on the provided inference rules. A mechanized proof using Agda is deferred for future work.
+The performance of this work is measured primarily in terms of empirical performance gains (via evaluation-step counting and benchmarking), and discussed with respect to the theoretical performance. Hazelnut \cite{conf/popl/Hazelnut17} and Hazelnut Live \cite{conf/popl/HazelnutLive19} mechanize proofs of their work using the Agda interactive proof checker. We do not provide mechanized proofs of our work; instead, we provide a series of metatheorems describing invariants of the Hazel evaluation process, and argue the correctness of these metatheorems by informal reasoning on the provided inference rules. A mechanized proof using Agda is deferred for future work.
 
 \section{Structural overview}
 \label{sec:structural_overview}
