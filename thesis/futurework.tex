@@ -4,7 +4,7 @@
 \section{Simplification of the postprocessing algorithms}
 \label{sec:postprocessing-simplification}
 
-The postprocessing algorithms presented in \Cref{sec:postprocessing-substitution,sec:hole-numbering-algorithm} are both memoized to avoid repeatedly postprocessing an environment multiple times. However, the latter algorithm (hole numbering) complicates memoization. This is due to the fact that holes need to be re-postprocessed each time it is encountered in a new parent in order to track the closure parents.
+The postprocessing algorithms presented in \cref{sec:postprocessing-substitution,sec:hole-numbering-algorithm} are both memoized to avoid repeatedly postprocessing an environment multiple times. However, the latter algorithm (hole numbering) complicates memoization. This is due to the fact that holes need to be re-postprocessed each time it is encountered in a new parent in order to track the closure parents.
 
 It would be desirable if we can avoid working around this, perhaps by reformulating the way hole parents are tracked. A possible solution is to implementing hole parent tracking as a separate postprocessing pass after hole closure numbering.
 
@@ -20,14 +20,14 @@ Firstly, a list of past edit states should be made accessible to the FAR detecti
 
 Secondly, a result of FAR should be memoized alongside the results from regular evaluation. The current implementation of normal evaluation is memoized and is not aware of the FAR operation.
 
-Thirdly, the result of evaluating the program (\mintinline{ocaml}|Result.t|) is not currently stored in the model, but the program's edit state (\mintinline{ocaml}|Program.t|) is. This means that when the program result is needed in the Hazel UI, the program is re-evaluated. This is usually not a problem because of memoization, but FAR results are not memoized. It would be better to store the results of evaluation in the model and undo history to avoid this trouble.
+Thirdly, the result of evaluating the program (\mintinline{text}|Result.t|) is not currently stored in the model, but the program's edit state (\mintinline{text}|Program.t|) is. This means that when the program result is needed in the Hazel UI, the program is re-evaluated. This is usually not a problem because of memoization, but FAR results are not memoized. It would be better to store the results of evaluation in the model and undo history to avoid this trouble.
 
-Fourthly, is a slight issue with the current description of the \mintinline{ocaml}|FillExp| variant $\hhole{d}_i$. This requires us to have access to the hole closure identifier $i$, which comes from the postprocessed result. However, we perform the FAR operation on the un-postprocessed result. To remedy this, we may begin evaluation from the post-processed result, which may cause us to change some of our assumptions about the evaluation boundary. Another solution would be to have an alternative postprocessing operation that renumbers holes but leaves alone the evaluation boundary.
+Fourthly, is a slight issue with the current description of the \mintinline{text}|FillExp| variant $\hhole{d}_i$. This requires us to have access to the hole closure identifier $i$, which comes from the postprocessed result. However, we perform the FAR operation on the un-postprocessed result. To remedy this, we may begin evaluation from the post-processed result, which may cause us to change some of our assumptions about the evaluation boundary. Another solution would be to have an alternative postprocessing operation that renumbers holes but leaves alone the evaluation boundary.
 
 \subsection{Memoization for environments during re-evaluation}
 \label{sec:far-improv-memo-envs}
 
-We introduced fill expressions $\hhole{d}_i$ in \Cref{sec:far-preprocessing} in order to memoize the evaluation of filled expressions during re-evaluation.
+We introduced fill expressions $\hhole{d}_i$ in \cref{sec:far-preprocessing} in order to memoize the evaluation of filled expressions during re-evaluation.
 
 It will also be beneficial to memoize the re-evaluation of closure environments. To illustrate why this is the case, consider the case of \Cref{fig:far-hole-closure-memoization}. In this example, the environment is evaluated twice, even though it is the same physical environment. Each environment will be re-evaluated each time it is encountered, leading to the same exponential blowup problem encountered when dealing with postprocessing in \Cref{fig:hole_renumbering_problem}. The implementation of this memoization is the same as before; we will need a new environment state variable mapping environment identifiers to evaluated environments.
 
@@ -36,12 +36,12 @@ It will also be beneficial to memoize the re-evaluation of closure environments.
 
 There are a number of possible design decisions when searching for a valid hole fill. Firstly, one must decide the maximum number of edit states to search: should it be a fixed number of edit states, or should it be given a fixed time budget? Is it best to cache edit states that recently led to a fill operation (\`a la LRU cache)? Is the most recent edit state that leads to a valid fill usually the best candidate, or even a good candidate? Would it be best to allow for user-configurable settings, or perhaps even for the user to manually select the previous edit from which to fill?
 
-It will be useful to collect empirical data about user-editing behaviors, as discussed in \Cref{sec:collect-edit-statistics}, in order to better tune these parameters. Alternatively, we may allow for some user configuration of FAR, as discussed in \Cref{sec:far-improv-user-config}.
+It will be useful to collect empirical data about user-editing behaviors, as discussed in \cref{sec:collect-edit-statistics}, in order to better tune these parameters. Alternatively, we may allow for some user configuration of FAR, as discussed in \cref{sec:far-improv-user-config}.
 
 \subsection{User-configurable FAR}
 \label{sec:far-improv-user-config}
 
-The FAR procedure as described is a completely automatic process. However, the choice of which past edit state to choose may be tricky, as described in \Cref{sec:far-past-edit-states}. It may be desirable for the user to manually set a past edit state as an ``anchor'' from which to set FAR, and thus override an automatic choice of past edit state. This reifies the concept of sections or section breaks from computational notebooks. However, since a user-chosen edit state may not lead to a valid fill diff, edit states that lead to an invalid fill diff will still have to be evaluated from scratch.
+The FAR procedure as described is a completely automatic process. However, the choice of which past edit state to choose may be tricky, as described in \cref{sec:far-past-edit-states}. It may be desirable for the user to manually set a past edit state as an ``anchor'' from which to set FAR, and thus override an automatic choice of past edit state. This reifies the concept of sections or section breaks from computational notebooks. However, since a user-chosen edit state may not lead to a valid fill diff, edit states that lead to an invalid fill diff will still have to be evaluated from scratch.
 
 It may also be desirable to disable FAR completely, whether for debugging purposes or because it does not help performance much in the given circumstance. This should be a toggleable parameter in the sidebar.
 
@@ -50,11 +50,11 @@ Any changes to the interactiveness of the FAR operation will have a great effect
 \subsection{UI changes for notebook-style evaluation}
 \label{sec:far-improv-notebook-ui}
 
-We have motivated the use of Hazel with FAR for notebook-style evaluation in \Cref{sec:notebook-ui}. It may be useful to the programmer to have additional visual aids to help enforce the benefits of resumed evaluation.
+We have motivated the use of Hazel with FAR for notebook-style evaluation in \cref{sec:notebook-ui}. It may be useful to the programmer to have additional visual aids to help enforce the benefits of resumed evaluation.
 
 It may be useful to format the code editor using a series of sections. These sections will be syntactic sugar for sequences of let statements, and edits to the code in a section will only cause the current and subsequent sections to re-evaluate. This also presents a method to choose the edit state from which to fill that is intuitive to the user.
 
-Another useful feature to evaluate FAR is to show evaluation statistics in the UI. The two evaluation statistics described in \Cref{sec:step-counting} may be useful information to the user. These may inform the user what types of operations are more expensive when FAR is taken into account, and may actually promote a style of editing that maximizes the usage of FAR.
+Another useful feature to evaluate FAR is to show evaluation statistics in the UI. The two evaluation statistics described in \cref{sec:step-counting} may be useful information to the user. These may inform the user what types of operations are more expensive when FAR is taken into account, and may actually promote a style of editing that maximizes the usage of FAR.
 
 \section{Collection of editing statistics}
 \label{sec:collect-edit-statistics}
@@ -66,14 +66,14 @@ Thus it will be useful to collect empirical statistics about user editing patter
 \section{Generalization of memoized methods}
 \label{sec:generalized-memoization}
 
-Memoization plays an important part of this work. Memoization of environment plays a role in the substitution postprocessing (\Cref{sec:postprocessing-substitution}), hole numbering postprocessing (\Cref{sec:hole-numbering-algorithm}), structural equality checking (\Cref{sec:fast-equals}), evaluation of filled expressions (\Cref{sec:re-eval}), and re-evaluation of environments (\Cref{sec:far-improv-memo-envs}). Despite this, each time memoization is used, the implementation and formalization are ad hoc. This is due to the scattered discovery of performance problems and realization that memoization would be useful.
+Memoization plays an important part of this work. Memoization of environment plays a role in the substitution postprocessing (\cref{sec:postprocessing-substitution}), hole numbering postprocessing (\cref{sec:hole-numbering-algorithm}), structural equality checking (\cref{sec:fast-equals}), evaluation of filled expressions (\cref{sec:re-eval}), and re-evaluation of environments (\cref{sec:far-improv-memo-envs}). Despite this, each time memoization is used, the implementation and formalization are ad hoc. This is due to the scattered discovery of performance problems and realization that memoization would be useful.
 
-A future implementation of memoized algorithms will be well-served by a generalized characterization of memoization by environments. This should include a generalized notation, so that new memoized algorithms can be easily introduced. This should also include a precise characterization of what algorithms may be memoized; for example, the difficulty presented in \Cref{sec:postprocessing-simplification} is due to the difficulty of memoizing the hole parent tracking process as part of the hole numbering process.
+A future implementation of memoized algorithms will be well-served by a generalized characterization of memoization by environments. This should include a generalized notation, so that new memoized algorithms can be easily introduced. This should also include a precise characterization of what algorithms may be memoized; for example, the difficulty presented in \cref{sec:postprocessing-simplification} is due to the difficulty of memoizing the hole parent tracking process as part of the hole numbering process.
 
 \section{Mechanization of metatheorems and rules}
 \label{sec:formalization}
 
-The metatheory of Hazelnut and Hazelnut Live were proved using the Agda proof assistant \cite{agda2017,agda-dynamics}. A similar proof of the metatheory presented in this work is left to future work. Due to time constraints, we are satisfied with using the intuition presented as justifications for the metatheorems in this thesis.
+The metatheory of Hazelnut and Hazelnut Live were proved using the Agda proof assistant \cite{agda2017_git,agda2019_git}. A similar proof of the metatheory presented in this work is left to future work. Due to time constraints, we are satisfied with using the intuition presented as justifications for the metatheorems in this thesis.
 
 %%% Local Variables:
 %%% mode: latex

@@ -32,7 +32,7 @@
 % https://www.overleaf.com/learn/latex/Theorems_and_proofs
 \usepackage{amsthm}
 \usepackage{thmtools}
-\newtheorem{theorem}{Theorem}[section]
+\newtheorem{theorem}{Metatheorem}[section]
 \newtheorem{lemma}[theorem]{Lemma}
 
 % https://tex.stackexchange.com/a/72691
@@ -41,6 +41,9 @@
 
 % must be loaded after hyperref
 \usepackage{cleveref}
+
+% per Prof. Fontaine
+\Crefname{theorem}{Metatheorem}{Metatheorems}
 
 % tikz diagrams
 \usepackage{tikz}
@@ -55,7 +58,8 @@
 
 % https://tex.stackexchange.com/a/132647
 \usepackage{etoolbox}
-\patchcmd{\thebibliography}{\section*{\refname}}{}{}{}
+\patchcmd{\thebibliography}{\chapter*{References}}{}{}{}
+\renewcommand\bibname{References}
 
 % long tables; not actually used
 \usepackage{longtable}
@@ -141,7 +145,7 @@
 
 \clearpage{}
 \begingroup
-\pt{List of theorems}
+\pt{List of metatheorems}
 \let\clearpage\relax
 \let\cleardoublepage\relax
 \listoftheorems{}
@@ -167,7 +171,7 @@
 
 % bibliography
 \clearpage{}
-\addcontentsline{toc}{chapter}{Bibliography}
+\addcontentsline{toc}{chapter}{References}
 \bibliographystyle{unsrt}
 \bibliography{refs}
 

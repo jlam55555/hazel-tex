@@ -1,20 +1,20 @@
 \chapter{Evaluation of performance}
 \label{sec:evaluation}
 
-To evaluate performance, benchmarks were carried out using the \mintinline{ocaml}|TimeUtil.measure_time| utility. Benchmarks were carried out on Google Chrome 99 on Debian 11 on an Intel i3-2100 CPU. The times shown are a mean of three trials. Evaluation step counts are tracked in \mintinline{ocaml}|EvalState.t| and count the number of calls to \mintinline{ocaml}|Evaluator.evaluate| as described in \Cref{sec:step-counting}.
+To evaluate performance, benchmarks were carried out using the \mintinline{text}|TimeUtil.measure_time| utility. Benchmarks were carried out on Google Chrome 99 on Debian 11 on an Intel i3-2100 CPU. The times shown are a mean of three trials. Evaluation step counts are tracked in \mintinline{text}|EvalState.t| and count the number of calls to \mintinline{text}|Evaluator.evaluate| as described in \cref{sec:step-counting}.
 
 There are a number of factors that may affect the consistency of the elapsed time benchmarks. Such factors include the quality of JSOO-generated Javascript, specifics of the Chrome V8 Javascript engine, and millisecond precision of the timing function.
 
 Evaluation of performance of the environment model of evaluation and of the memoized hole tracking are performed on the \texttt{dev} branch and the \texttt{eval-environment} branches of the Hazel repository. The latter branch implements our changes.
 
-The demonstration of FAR is performed on the \texttt{fill-and-resume-backend} branch. This branch is based on the \texttt{eval-environment} branch, and implements a one-step FAR operation. This branch does not achieve parity with the theoretical model of FAR presented in this work; unfinished work and future improvements to the current implementation of FAR are described in \Cref{sec:far-improvements}.
+The demonstration of FAR is performed on the \texttt{fill-and-resume-backend} branch. This branch is based on the \texttt{eval-environment} branch, and implements a one-step FAR operation. This branch does not achieve parity with the theoretical model of FAR presented in this work; unfinished work and future improvements to the current implementation of FAR are described in \cref{sec:far-improvements}.
 
 \section{Evaluation of performance using the environment model}
 \label{sec:evaluation-evalenv}
 
 To evaluate the performance of evaluation using the environment model, we benchmark the performance of a computationally-expensive function, the tree-recursive Fibonacci function. This function is chosen because it is computationally expensive and does not have a deep recursion depth\footnote{This is because Hazel does not implement tail-call optimization (TCO), and thus would overflow the stack with too much tail-recursion.}. It is also a complete program, i.e., it does not have holes and the hole renumbering and postprocessing steps are not of concern here.
 
-For this experiment, the builtin variables and functions are removed. Restoring the builtins would be very similar to the second program variation described in \Cref{sec:eval-fib-variations}.
+For this experiment, the builtin variables and functions are removed. Restoring the builtins would be very similar to the second program variation described in \cref{sec:eval-fib-variations}.
 
 \subsection{A computationally expensive fibonacci program}
 \label{sec:eval-fib}
@@ -115,11 +115,11 @@ These variations show the expected behavior of the two evaluation methods. The r
 \section{Postprocessing performance}
 \label{sec:evaluation-renumbering}
 
-Consider the set of programs described by \Cref{fig:hole_renumbering_problem}, which motivate the memoization of hole tracking (\Cref{sec:current-problems}) and the fast structural equality checking algorithm (\Cref{sec:fast-equals}).
+Consider the set of programs described by \Cref{fig:hole_renumbering_problem}, which motivate the memoization of hole tracking (\cref{sec:current-problems}) and the fast structural equality checking algorithm (\cref{sec:fast-equals}).
 
-We illustrate the performance issues by evaluating the performance issue. The results are shown in tabular form in \Cref{tab:perf-hole-blowup}, and visually in \Cref{fig:perf-renum-dev}. Due to the exponential blowup in elapsed time, we stop recording performance 15 \mintinline{ocaml}|let| statements.
+We illustrate the performance issues by evaluating the performance issue. The results are shown in tabular form in \Cref{tab:perf-hole-blowup}, and visually in \Cref{fig:perf-renum-dev}. Due to the exponential blowup in elapsed time, we stop recording performance 15 \mintinline{text}|let| statements.
 
-The exponential performance blowup occurs in three places: in evaluation (due to eager substitution of holes), in hole numbering during postprocessing, and in the structural equality check in \mintinline{ocaml}|Model.update_program|. All three slowdowns occur due to the lack of memoization of hole closures when traversing a dense graph using a tree traversal algorithm.
+The exponential performance blowup occurs in three places: in evaluation (due to eager substitution of holes), in hole numbering during postprocessing, and in the structural equality check in \mintinline{text}|Model.update_program|. All three slowdowns occur due to the lack of memoization of hole closures when traversing a dense graph using a tree traversal algorithm.
 
 We compare the performance to evaluation on the \texttt{eval-environment} branch which implements memoization of environments in hole numbering and structural equality. This is shown in \Cref{tab:perf-hole-blowup}, and visually in \Cref{fig:perf-renum-eev}. The evaluation time is greatly improved; total evaluation time remains negligible and never exceeds 7ms. This is the kind of evaluation time a user may expect for an ostensibly simple program.
 
@@ -195,7 +195,7 @@ We observe that for the operations before the introduction of the heavy computat
 \subsection{Decreased performance with FAR}
 \label{sec:eval-far-decreased}
 
-Another sample program is shown in \Cref{fig:far-program-history-simple}. This explores the result of a simpler and perhaps more average program, without an expensive computation. We observe that in this case, the fill operations are typically more expensive than regular operations. This is largely due to the lack of memoization of the re-evaluation of environments in closures, which is described as future work in \Cref{sec:far-improv-memo-envs}. However, the number of evaluation steps are reasonably on the same order of magnitude as normal evaluation.
+Another sample program is shown in \Cref{fig:far-program-history-simple}. This explores the result of a simpler and perhaps more average program, without an expensive computation. We observe that in this case, the fill operations are typically more expensive than regular operations. This is largely due to the lack of memoization of the re-evaluation of environments in closures, which is described as future work in \cref{sec:far-improv-memo-envs}. However, the number of evaluation steps are reasonably on the same order of magnitude as normal evaluation.
 
 We note that we only provide evaluation step counts rather than benchmark times for this discussion of FAR. We do not find that benchmarking evaluation is necessary, as it is more or less unchanged from regular evaluation (except for treatment of closures). It may be useful to benchmark the structural diffing algorithm, but this may be more important once a multi-step FAR is implemented. The current structural diffing with a one-step FAR is a linear pass over the external expression tree, which should have performance characteristics similar to other linear passes over the external expression such as type-checking or elaboration. These algorithms are not a performance concern, when compared to algorithms that traverse internal expressions with environments.
 

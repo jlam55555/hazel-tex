@@ -1,17 +1,17 @@
 \begin{tikzpicture}
-  \node[draw=red] (action) {\mintinline{ocaml}|ModelAction.EditAction.t|};
-  \node[draw=black] (syn_action) [below=of action] {\mintinline{ocaml}|Action_Exp.syn_perform|};
-  \node[draw=red] (model) [right=60pt of syn_action] {\mintinline{ocaml}|Model.t|};
-  \node[draw=black] (elaborate) [below=of syn_action] {\mintinline{ocaml}|Elaborator_Exp.elab|};
-  \node[draw=black] (detect_fill) [below=of elaborate] {\mintinline{ocaml}|DHExpDiff.diff_dhexp|};
-  \node[draw=black] (preprocess) [below left=of detect_fill] {\mintinline{ocaml}|FillAndResume.preprocess|};
-  \node[draw=black] (evaluate) [below=60pt of detect_fill] {\mintinline{ocaml}|Evaluator.evaluate|};
-  \node[draw=black] (renumber) [below=of evaluate] {\mintinline{ocaml}|EvalPostprocess.postprocess|};
-  \node[draw=red] (undo_hist) [below=of model] {\mintinline{ocaml}|UndoHistory.t|};
-  \node[draw=red] (result) [below= of undo_hist] {\mintinline{ocaml}|Result.t|};
+  \node[draw=red] (action) {\mintinline{text}|ModelAction.EditAction.t|};
+  \node[draw=black] (syn_action) [below=of action] {\mintinline{text}|Action_Exp.syn_perform|};
+  \node[draw=red] (model) [right=60pt of syn_action] {\mintinline{text}|Model.t|};
+  \node[draw=black] (elaborate) [below=of syn_action] {\mintinline{text}|Elaborator_Exp.elab|};
+  \node[draw=black] (detect_fill) [below=of elaborate] {\mintinline{text}|DHExpDiff.diff_dhexp|};
+  \node[draw=black] (preprocess) [below left=of detect_fill] {\mintinline{text}|FillAndResume.preprocess|};
+  \node[draw=black] (evaluate) [below=60pt of detect_fill] {\mintinline{text}|Evaluator.evaluate|};
+  \node[draw=black] (renumber) [below=of evaluate] {\mintinline{text}|EvalPostprocess.postprocess|};
+  \node[draw=red] (undo_hist) [below=of model] {\mintinline{text}|UndoHistory.t|};
+  \node[draw=red] (result) [below= of undo_hist] {\mintinline{text}|Result.t|};
 
   \draw[->,thick] (action) to[] node [midway,left] {$\alpha$} (syn_action);
-  \draw[->,thick] (model) to[bend right=5] node [midway,above,xshift=10pt] {\mintinline{ocaml}|Program.t|} (syn_action);
+  \draw[->,thick] (model) to[bend right=5] node [midway,above,xshift=10pt] {\mintinline{text}|Program.t|} (syn_action);
   \draw[->,thick] (syn_action) to[] node [midway,left] {$e$} (elaborate);
   \draw[->,thick] (elaborate) to[] node [midway,left] {$d_{uneval}$} (detect_fill);
   \draw[->,thick] (detect_fill) to[] node [midway,right] {no fill diff} (evaluate);
@@ -20,7 +20,7 @@
   \draw[->,thick] (evaluate) to[] node [midway,left] {$d_{eval}$} (renumber);
   \draw[->,thick] (evaluate) to[bend right=15] node [midway,above left] {$d_{eval}$} (result);
   \draw[->,thick] (renumber) to[bend right=10] node [midway,below right] {$d_{postprocess},\hci$} (result);
-  \draw[->,thick] (undo_hist) to[bend left=20] node [xshift=10pt,above left] {\mintinline{ocaml}|list(Program.t)|} (detect_fill);
+  \draw[->,thick] (undo_hist) to[bend left=20] node [xshift=10pt,above left] {\mintinline{text}|list(Program.t)|} (detect_fill);
   \draw[->,thick] (result) to[] (undo_hist);
   \draw[->,thick] (undo_hist) to[] (model);
 \end{tikzpicture}

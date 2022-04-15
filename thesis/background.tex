@@ -10,7 +10,7 @@ This chapter is intended to provide a primer to the theory of functional program
 
 To be able to rigorously work with programming languages, as with any mathematical activity, we need to precisely define the behavior of programming languages that serve as our interface to computation. The definition (or specification) of a programming language is typically given as the combination of its \textit{syntax} and \textit{semantics}, which will be discussed below.
 
-Note that the specification of a programming language is orthogonal to its \textit{implementation(s)}; a programming language may have several implementations, which may have differing support for language features and different performance characteristics. Common classifications of programming language implementations are discussed in \Cref{sec:comp-vs-interp}.
+Note that the specification of a programming language is orthogonal to its \textit{implementation(s)}; a programming language may have several implementations, which may have differing support for language features and different performance characteristics. Common classifications of programming language implementations are discussed in \cref{sec:comp-vs-interp}.
 
 \subsection{Syntax}
 \label{sec:syntax}
@@ -43,7 +43,7 @@ In this simple grammar, we have two productions: types and expressions. A type m
 
 Parts of this grammar will be revisited when discussing the $\lambda$-calculus described in \Cref{sec:lambda-calculus}, and when discussing Hazel's grammar described in \Cref{sec:hazel}. In particular, this Hazelnut grammar is a superset of the grammar of the GTLC described in \Cref{sec:gradual}, and a subset of the grammar in the implementation of Hazel, which includes additional forms such as \texttt{let}, \texttt{case}, and pair expressions. Some of these forms will be important cases for our study of evaluation.
 
-Due to Hazelnut being a structural edit calculus (as described in \Cref{sec:structure-editors}), there is no need to worry about syntax errors. The syntax describes the external language of Hazel, which will be translated into the internal language via the elaboration algorithm prior to evaluation.
+Due to Hazelnut being a structural edit calculus (as described in \cref{sec:structure-editors}), there is no need to worry about syntax errors. The syntax describes the external language of Hazel, which will be translated into the internal language via the elaboration algorithm prior to evaluation.
 
 \subsection{Notation for semantics}
 \label{sec:semantics-notation}
@@ -66,12 +66,12 @@ Each new judgment form will be introduced annotated with the modes of each term.
 
 A derivation (proof) of a judgment is shown by chaining together inference rules, such that the final consequent is the statement to be proved. We may visualize a derivation as a tree rooted at the judgment to be proved, and whose children are (recursively) the antecedent judgments; the leaf nodes of this tree must be axioms.
 
-To ensure that the system of inference rules covers the entire semantics of a language, to ensure that rules to not conflict, and to ensure that rules give the language the desired behavior, we may establish \textit{metatheorems}. Metatheorems are intuitive, high-level invariants or properties that describe the behavior of the overall system. We prove the correctness of an implementation by proving that the metatheorems are upheld by the inference rules. In the foundational papers for Hazel's core semantics \cite{conf/popl/Hazelnut17,conf/popl/HazelnutLive19}, metatheorems are amply used to justify and verify the correctness of the rules. Agda \cite{bove2009brief}, an interactive proof checker and dependently-typed programming language, is used for these proofs \cite{agda2017,agda-dynamics}.
+To ensure that the system of inference rules covers the entire semantics of a language, to ensure that rules to not conflict, and to ensure that rules give the language the desired behavior, we may establish \textit{metatheorems}. Metatheorems are intuitive, high-level invariants or properties that describe the behavior of the overall system. We prove the correctness of an implementation by proving that the metatheorems are upheld by the inference rules. In the foundational papers for Hazel's core semantics \cite{conf/popl/Hazelnut17,conf/popl/HazelnutLive19}, metatheorems are amply used to justify and verify the correctness of the rules. Agda \cite{bove2009brief}, an interactive proof checker and dependently-typed programming language, is used for these proofs \cite{agda2017_git,agda2019_git}.
 
 \subsection{Static semantics}
 \label{sec:static-semantics}
 
-The \textit{static semantics} of a programming language describes properties of a program that can be checked prior to program evaluation. Static semantics typically refers primarily to \textit{type checking}. In Hazelnut Live, we have the process of \textit{elaboration} that transforms the \textit{external language} (a program expressed in the syntax of Hazel) to the \textit{internal language} (an intermediate representation more amenable to evaluation), which occurs before evaluation and incorporates the type checking rules. Elaboration and the internal language will be discussed further in \Cref{sec:comp-vs-interp}. The type checking and elaboration algorithms form the static semantics of Hazel.
+The \textit{static semantics} of a programming language describes properties of a program that can be checked prior to program evaluation. Static semantics typically refers primarily to \textit{type checking}. In Hazelnut Live, we have the process of \textit{elaboration} that transforms the \textit{external language} (a program expressed in the syntax of Hazel) to the \textit{internal language} (an intermediate representation more amenable to evaluation), which occurs before evaluation and incorporates the type checking rules. Elaboration and the internal language will be discussed further in \cref{sec:comp-vs-interp}. The type checking and elaboration algorithms form the static semantics of Hazel.
 
 It is formative to provide an overview of type checking. While the static semantics is not very important to the core work in this thesis, a fundamental understanding is key to understanding the motivation and bidirectionally-typed action calculus behind Hazel, as well as understanding the formulation of gradual typing described in \Cref{sec:gradual}.
 
@@ -141,7 +141,7 @@ Now, we may synthesize the type of $(\lambda x.x)\ 2$; the derivation uses all o
 
 Algorithmically, bidirectional typing begins by synthesizing the type of the top-level expression; if it successfully synthesizes, then the expression is well-typed. A more complete discussion of bidirectional typing is left to Dunfield \cite{Dunfield_2022}, who provides an overview of bidirectional typing, or to the formulation of Hazel's bidirectional typing \cite{conf/popl/Hazelnut17}. Hazelnut is at its core a bidirectionally-typed ``edit calculus'' \cite{conf/popl/Hazelnut17}, citing the balance of usability and simplicity of implementation.
 
-The elaboration algorithm is bidirectionally-typed and fairly specific to Hazel and described in \Cref{sec:hazel-dynamics}. It is based off of the cast calculus from the GTLC.
+The elaboration algorithm is bidirectionally-typed and fairly specific to Hazel and described in \cref{sec:hazel-dynamics}. It is based off of the cast calculus from the GTLC.
 
 More advanced type inference algorithms such as type unification are used in the highly advanced type systems of languages such as Haskell \cite{gundry2013type}, and are out of scope for this work.
 
@@ -247,12 +247,12 @@ The term \textit{elaboration} \cite{harper2000type} may be used to describe the 
 
 The distinction between compiled and interpreted languages may not be very clear: some implementations feature just-in-time (JIT) compilation that allow ``on-the-fly'' compilation (e.g., common implementations of the JVM and CLR \cite{sestoft2002runtime}), and some implementations may perform the lexing and parsing separately to generate a non-native bytecode representation to be later evaluated by a runtime. A general characterization of compiled vs. interpreted languages is the amount of runtime overhead required by the implementation.
 
-Hazel is a purely interpreted language implementation, as optimizations for speed are not among its main concerns. However, performance is clearly one of the main concerns of this thesis project, but the gains will be algorithmic and use the nature of Hazel's structural editing and hole calculus to benefit performance, rather than changing the fundamental implementation. There is, however, a separate endeavor to write a compiled interpretation of Hazel \cite{hazelc}, which is outside the scope of this project.
+Hazel is a purely interpreted language implementation, as optimizations for speed are not among its main concerns. However, performance is clearly one of the main concerns of this thesis project, but the gains will be algorithmic and use the nature of Hazel's structural editing and hole calculus to benefit performance, rather than changing the fundamental implementation. However, an environment-based evaluation model as described in \cref{sec:sub-vs-eval} may be helpful in implementing a compiled Hazel implementation.
 
 \subsection{The substitution and environment models of evaluation}
 \label{sec:sub-vs-eval}
 
-Evaluation in Hazel was originally performed using a \textit{substitution model of evaluation}, which is a theoretically simpler model. In this model, variables that are bound by some construct are substituted into the construct's body. For example, the variable(s) bound using a \mintinline{ocaml}|let|-expression pattern are substituted in the \mintinline{ocaml}|let|-expression's body, and the variable(s) bound during a function application are substituted into the function's body, and then the body is evaluated.
+Evaluation in Hazel was originally performed using a \textit{substitution model of evaluation}, which is a theoretically simpler model. In this model, variables that are bound by some construct are substituted into the construct's body. For example, the variable(s) bound using a \mintinline{text}|let|-expression pattern are substituted in the \mintinline{text}|let|-expression's body, and the variable(s) bound during a function application are substituted into the function's body, and then the body is evaluated.
 
 In this formulation, variables are ``given meaning'' via substitution; once evaluation reaches an expression, all variables in scope (in the typing context) will have been replaced by their value by some containing binding expression. In other words, variables are eagerly substituted with their value when bound. The substitution model is useful for teaching purposes because it is simple and close to its mathematical definition: a variable can be thought of as an equivalent stand-in for its value.
 
@@ -274,7 +274,7 @@ A major use case for structural editing is for the purpose of programming educat
 
 Structure editors are not limited to programming education. mbeddr is a structure editor for embedded programming \cite{voelter2012mbeddr}, and Lamdu is a structure editor for a Haskell-like functional programming language \cite{lotem_chuchem}.
 
-One of the major drawbacks of structural editing is the decrease in usability by restricting the set of edit actions. The degree to which an editor ``resists local changes'' is a property known as \textit{viscosity} \cite{green1989cognitive}. Structural and visual editing is expectedly more viscous than unstructured plaintext editing. Reducing the viscosity of structural editing is not a goal of Hazel, but a related project at the University of Michigan, Tylr \cite{tylr}, tackles the problem of editing viscosity and may make its way into future versions of Hazel.
+One of the major drawbacks of structural editing is the decrease in usability by restricting the set of edit actions. The degree to which an editor ``resists local changes'' is a property known as \textit{viscosity} \cite{green1989cognitive}. Structural and visual editing is expectedly more viscous than unstructured plaintext editing. Reducing the viscosity of structural editing is not a goal of Hazel, but a related project at the University of Michigan, Tylr \cite{tylr_git}, tackles the problem of editing viscosity and may make its way into future versions of Hazel.
 
 Omar et al. \cite{conf/popl/Hazelnut17} describes several other structure editors and their relation to Hazel, and in particular other structure editors which also attempt to maintain well-typedness or operate on formal definitions of an underlying language.
 

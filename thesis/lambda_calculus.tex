@@ -47,7 +47,7 @@ The dynamic semantics are similarly simple, shown in \Cref{fig:dynamic-semantics
   \label{fig:dynamic-semantics-ulc}
 \end{figure}
 
-\ulc{} is an example of a Turing-complete language. One of the key characteristics to such a language is the ability to implement recursive algorithms. To implement recursion, a function must be able to refer to itself. Since there is no construct to bind an expression to a variable other than $\lambda$-abstractions (i.e., there is no construct such as OCaml's \mintinline{ocaml}|let rec| expressions or other standalone variable declarations), one must pass a self-reference of a function to itself. For example, let us consider the example of a factorial function in \ulc{}\footnote{For sake of illustration, the language is extended with a conditional statement, integers, and simple integer operators.}.
+\ulc{} is an example of a Turing-complete language. One of the key characteristics to such a language is the ability to implement recursive algorithms. To implement recursion, a function must be able to refer to itself. Since there is no construct to bind an expression to a variable other than $\lambda$-abstractions (i.e., there is no construct such as OCaml's \mintinline{text}|let rec| expressions or other standalone variable declarations), one must pass a self-reference of a function to itself. For example, let us consider the example of a factorial function in \ulc{}\footnote{For sake of illustration, the language is extended with a conditional statement, integers, and simple integer operators.}.
 
 \[\text{fact'}\equiv\lambda f.\lambda x.\text{if }x=0\text{ then }1\text{ else }x*f(x-1)\]
 
