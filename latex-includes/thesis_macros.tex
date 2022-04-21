@@ -147,6 +147,70 @@
 
 \newcommand{\unev}{\textsf{ uneval}} % uneval judgment
 
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+\usepackage{setspace}
+\usepackage{mdframed}
+\usepackage{subcaption}
+\usepackage{placeins}
+\usepackage[utf8]{inputenc}
+\usepackage{latexsym}
+\usepackage{csquotes}
+
+% https://www.overleaf.com/learn/latex/Theorems_and_proofs
+\usepackage{amsthm}
+\usepackage{thmtools}
+
+% https://tex.stackexchange.com/a/72691
+\usepackage[hang, flushmargin]{footmisc}
+\usepackage{hyperref}
+
+% must be loaded after hyperref
+\usepackage{cleveref}
+
+% per Prof. Fontaine
+\Crefname{theorem}{Metatheorem}{Metatheorems}
+
+% tikz diagrams
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+
+% code listings
+\usepackage{minted}
+
+% https://tex.stackexchange.com/a/35547
+\usepackage{etoolbox}
+\AtBeginEnvironment{minted}{\singlespacing}
+
+% https://tex.stackexchange.com/q/627249
+\usepackage{fancyvrb}
+\makeatletter
+% new fancyvrb options "above space" and "below vspace"
+\define@key{FV}{above vspace}[\topsep]{\def\FancyVerbAboveVspace{#1}}
+\define@key{FV}{below vspace}[\topsep]{\def\FancyVerbBelowVspace{#1}}
+% redefine existing option "vspace"
+\define@key{FV}{vspace}[\topsep]{%
+  \def\FancyVerbAboveVspace{#1}\def\FancyVerbBelowVspace{#1}}
+% init
+\fvset{vspace}
+% patch fancyvrb internals
+\xpatchcmd\FV@ListVSpace
+  {\@topsepadd=\FancyVerbVspace}
+  {\@topsepadd=\FancyVerbAboveVspace}
+  {}{\PatchFailed}
+\xpatchcmd\FV@EndList
+  {\@endparenv}
+  {\@topsepadd\dimexpr\@topsepadd-\FancyVerbAboveVspace
+                                 +\FancyVerbBelowVspace\relax
+   \@endparenv}
+  {}{\PatchFailed}
+\minted@def@optfv{vspace}
+\minted@def@optfv{above vspace}
+\minted@def@optfv{below vspace}
+\makeatother
+
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "../thesis/main"
