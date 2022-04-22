@@ -103,7 +103,7 @@
       \Infer{EAp}{\
         e_1\Downarrow \lambda x.e_1' \\
         e_2\Downarrow e_2' \\
-        [e_2'/x]e_1'=e
+        [e_2'/x]e_1'\Downarrow e
       }{e_1\ e_2\Downarrow e}
     \end{mathpar}
     \caption{Evaluation rule for function application using a big-step semantics}
@@ -255,8 +255,8 @@
 
   \begin{figure}
     \centering
-    \tiny
-    \renewcommand{\judgboxfontsize}{\tiny}
+    \footnotesize
+    \renewcommand{\judgboxfontsize}{\footnotesize}
     \input{thesis/pplc_bigstep_reduced}
     \caption{Big-step semantics for substitution postprocessing}
     \label{fig:pplc-rules}
@@ -282,7 +282,13 @@
     \caption{Examples of generalized closures}
     \label{tab:generaized-closures-examples}
   \end{table}
-  
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{The evaluation boundary}
+
+  \todo{graphical depiction of the evaluation boundary}
 \end{frame}
 
 \section{Identifying hole instances by physical environment}
@@ -340,18 +346,19 @@
   \end{figure}
 \end{frame}
 
-\begin{frame}
-  \frametitle{The hole numbering algorithm}
+% this slide is too complicated
+% \begin{frame}
+%   \frametitle{The hole numbering algorithm}
 
-  \begin{figure}
-    \centering
-    \tiny
-    \renewcommand{\judgboxfontsize}{\tiny}
-    \input{thesis/ppn_bigstep_reduced}
-    \caption{Hole closure numbering postprocessing semantics}
-    \label{fig:big-step-renumber-new-rules}
-  \end{figure}
-\end{frame}
+%   \begin{figure}
+%     \centering
+%     \tiny
+%     \renewcommand{\judgboxfontsize}{\tiny}
+%     \input{thesis/ppn_bigstep_reduced}
+%     \caption{Hole closure numbering postprocessing semantics}
+%     \label{fig:big-step-renumber-new-rules}
+%   \end{figure}
+% \end{frame}
 
 \begin{frame}
   \frametitle{A unified postprocessing algorithm}
@@ -515,6 +522,7 @@
 
   \begin{figure}
     \centering
+    \tiny
     \inputhpminted{holes_consecutive}
     \caption{A Hazel program that generates $2^N$ total hole instances}
     \label{fig:hole-renumbering-problem-2}
