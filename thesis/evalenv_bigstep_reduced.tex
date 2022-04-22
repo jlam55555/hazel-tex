@@ -1,0 +1,24 @@
+\judgbox{\env\vdash d\Downarrow d'}{$d$ evaluates to $d'$ given environment $\env$}
+
+\begin{mathpar}
+  \Infer{ELam}{}{\env\vdash(\lambda x:\tau.d)\Downarrow [\env](\lambda x:\tau.d')} \\
+  \and
+  \Infer{EVar}{}{\env,x\leftarrow d\vdash x\Downarrow d}
+  \and
+  \Infer{EAp}{
+    \env\vdash d_1\Downarrow[\env']\lambda x:\tau.d_1' \\
+    \env\vdash d_2\Downarrow d_2' \\
+    \env',x\leftarrow d_2'\vdash d_1'\Downarrow d
+  }{\env\vdash d_1\ d_2\Downarrow d}
+  \and
+  \Infer{EvalB-EHole}{}{\env\vdash\hehole^u\Downarrow[\env]\hehole^u}
+  \and
+  \Infer{EvalB-NEHole}{
+    \env\vdash d\Downarrow d'
+  }{\env\vdash\hhole{d}^u\Downarrow[\env]\hhole{d'}^u}
+\end{mathpar}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:

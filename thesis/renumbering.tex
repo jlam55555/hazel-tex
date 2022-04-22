@@ -54,43 +54,14 @@ Clearly this is undesirable from an efficiency perspective. It is also undesirab
 
 \begin{figure}
   \centering
-  \begin{tikzpicture}
-    \node[] (hole4) {$[\env^4]\hehole^4$};
-    \node[below=of hole4] (hole3) {$[\env^3]\hehole^3$};
-    \node[below=of hole3] (hole2) {$[\env^2]\hehole^2$};
-    \node[below=of hole2] (hole1) {$[\varnothing]\hehole^1$};
-
-    \draw[->] (hole4) -- node [midway,left] {$c$} (hole3);
-    \draw[->] (hole4) to[bend left=60] node [midway,right] {$b$} (hole2);
-    \draw[->] (hole4) to[bend left=80] node [midway,right] {$a$} (hole1);
-    \draw[->] (hole3) -- node [midway,left] {$b$} (hole2);
-    \draw[->] (hole3) to[bend right=60] node [midway,left] {$a$} (hole1);
-    \draw[->] (hole2) -- node [midway,left] {$a$} (hole1);
-  \end{tikzpicture}
+  \input{hole_renumbering_result_structure}
   \caption{Structure of the result of the program in \Cref{fig:hole_renumbering_problem}}
   \label{fig:hole-renumbering-solution-structure}
 \end{figure}
 
 \begin{figure}
   \centering
-  \begin{tikzpicture}
-    \node[] (hole41) {$[\env^4]\hehole^{4:1}$};
-    \node[below=of hole41] (hole31) {$[\env^3]\hehole^{3:1}$};
-    \node[below=of hole31] (hole21) {$[\env^2]\hehole^{2:2}$};
-    \node[below=of hole21] (hole11) {$[\varnothing]\hehole^{1:4}$};
-    \node[left=of hole21] (hole12) {$[\varnothing]\hehole^{1:3}$};
-    \node[left=of hole12] (hole13) {$[\varnothing]\hehole^{1:2}$};
-    \node[above=of hole13] (hole22) {$[\env^2]\hehole^{2:1}$};
-    \node[left=of hole22] (hole14) {$[\varnothing]\hehole^{1:1}$};
-
-    \draw[->] (hole41) to[] node[left] {$c$} (hole31);
-    \draw[->] (hole41) to[] node[below right] {$b$} (hole22);
-    \draw[->] (hole41) to[] node[above left] {$a$} (hole14);
-    \draw[->] (hole31) to[] node[left] {$b$} (hole21);
-    \draw[->] (hole31) to[] node[above left] {$a$} (hole12);
-    \draw[->] (hole22) to[] node[above left] {$a$} (hole13);
-    \draw[->] (hole21) to[] node[above left] {$a$} (hole11);
-  \end{tikzpicture}
+  \input{hole_renumbering_result_numbered}
   \caption{Numbered hole instances in the result of \Cref{fig:hole_renumbering_problem}}
   \label{fig:hole-renumbered-result}
 \end{figure}

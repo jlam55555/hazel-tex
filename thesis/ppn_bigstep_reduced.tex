@@ -1,0 +1,37 @@
+% this is for the presentation
+\newcommand{\lsize}{\tiny}
+
+\judgbox{\hci,\pth\vdash d\ppn d'\dashv\hci'}{$d$ gets renumbered to $d'$}
+
+\begin{mathpar}
+  \Infer{\lsize\ppnl{}EHoleNew}{
+    (u,e)\not\in\hci \\
+    i=\hid(H,u) \\
+    \hci,(u,i)\vdash\env\ppn\env'\dashv\hci' \\
+    \hci''=\hci,(u,e)\leftarrow(i,\{\pth\},\env')
+  }{\hci,\pth\vdash[\env^e]\hehole^u\ppn[\env'^e]\hehole^{u:i}\dashv\hci''}
+  \and
+  \Infer{\lsize\ppnl{}EHoleFound}{
+    \hci=\hci',(u,e)\leftarrow(i,\{\pth_i\},\env'^e) \\
+    \hci''=\hci,(u,e)\leftarrow(i,\{\pth_i\}\cup\{\pth\},\env'^e)
+  }{\hci,\pth\vdash[\env^e]\hehole^u\ppn[\env'^e]\hehole^{u:i}\dashv\hci''}
+  \and
+  \Infer{\lsize\ppnl{}NEHoleNew}{
+    (u,e)\not\in\hci \\
+    i=\hid(H,u) \\
+    \hci,(u,e),\vdash\env\ppn\env'\dashv\hci' \\
+    \hci''=\hci,(u,e)\leftarrow(i,\{\pth\},\env') \\
+    \hci'',\pth\vdash d\ppn d'\dashv\hci'''
+  }{\hci,\pth\vdash[\env^e]\hhole{d}^u\ppn[\env'^e]\hhole{d'}^{u:i}\dashv\hci'''}
+  \and
+  \Infer{\lsize\ppnl{}NEHoleFound}{
+    \hci=\hci',(u,e)\leftarrow(i,\{\pth_i\},\env'^e) \\
+    \hci''=\hci,(u,e)\leftarrow(i,\{\pth_i\}\cup\{\pth\},\env'^e) \\
+    \hci'',\pth\vdash d\ppn d'\dashv\hci'''
+  }{\hci,\pth\vdash[\env^e]\hhole{d}^u\ppn[\env'^e]\hhole{d'}^{u:i}\dashv\hci'''}
+\end{mathpar}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:

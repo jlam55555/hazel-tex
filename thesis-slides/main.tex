@@ -10,6 +10,8 @@
 
 \newtheorem{mtheorem}{Metatheorem}[section]
 
+\usepackage{adjustbox}
+
 \title[Hazel evaluation improvements]{Practical performance enhancements to the evaluation model of the Hazel programming environment}
 
 \author[Lam]
@@ -181,64 +183,185 @@
 \begin{frame}
   \frametitle{Hazelnut: A bidirectionally-typed static semantics}
 
+  \begin{description}
+  \item[(Typed) expression holes] Internalize ``red squiggly underlines''
+  \item[Action semantics] Structural editing behavior, ensures always well-typed
+  \end{description}
+
+  \begin{figure}
+    \centering
+    \includegraphics[width=10em]{thesis/img/hazelnut_actions}
+    \caption{Sample Hazelnut action sequence \cite{conf/popl/Hazelnut17}}
+    \label{fig:hazelnut-action-sequence}
+  \end{figure}
 \end{frame}
 
 \begin{frame}
   \frametitle{Hazelnut Live: A bidirectionally-typed dynamic semantics}
 
+  \begin{description}
+  \item[Internal language] Cast calculus from Siek et al. \cite{Siek06gradualtyping,siek2015refined} for dynamic typing
+  \item[Hole evaluation] Evaluation continues \textit{around} holes, captures environment
+  \end{description}
+  
+  \begin{figure}
+    \centering
+    \includegraphics[height=10em]{thesis/img/hazelnut_live_context_inspector}
+    \caption{Illustration of Hazelnut Live context inspector \cite{conf/popl/HazelnutLive19}}
+    \label{fig:hazelnut-live-context-inspector}
+  \end{figure}
 \end{frame}
 
 \section{Evaluation using the environment model}
 
 \begin{frame}
   \frametitle{Evaluation using environments vs. substitution}
+
+  \todo{comparison table, illustration of how each one works}
 \end{frame}
 
 \begin{frame}
   \frametitle{Updated evaluation rules}
 
+  % \todo{include slide of evaluation rules with substitution}
+
+  \begin{figure}
+    \footnotesize
+    \centering
+    \input{thesis/evalenv_bigstep_reduced}
+    \caption{Big-step semantics for evaluation with environments}
+    \label{fig:eval-env-rules}
+  \end{figure}
 \end{frame}
 
 \begin{frame}
   \frametitle{Handling recursion}
 
+  \begin{description}
+  \item[Fixpoint form] Useful for a pure implementation of recursive functions, from Plotkin's System PCF
+  \end{description}
+  
+  \begin{figure}
+    \footnotesize
+    \centering
+    \input{thesis/fixpoint_rules}
+    \caption{Big-step semantics for evaluation of fixpoints}
+    \label{fig:fixpoint-rules}
+  \end{figure}
 \end{frame}
 
 \begin{frame}
   \frametitle{Matching the result from evaluation using substitution}
 
-\end{frame}
-
-\begin{frame}
-  \frametitle{Memoizing by environments for substitution and equality checking}
-
+  \begin{figure}
+    \centering
+    \tiny
+    \renewcommand{\judgboxfontsize}{\tiny}
+    \input{thesis/pplc_bigstep_reduced}
+    \caption{Big-step semantics for substitution postprocessing}
+    \label{fig:pplc-rules}
+  \end{figure}
 \end{frame}
 
 \begin{frame}
   \frametitle{Generalized closures}
 
+  \begin{table}
+    \centering
+    \begin{tabular}{l|l}
+      \hline
+      Interpretation & Sample expression \\
+      \hline\hline
+      Function closure & $[\env]\lambda x.d$ \\
+      Hole closure & $[\env]\hhole{d}^u$ \\
+      Closure around unmatched \texttt{let} & $[\env](\texttt{let }x=d_1\texttt{ in }d_2)$ \\
+      Closure around unmatched \texttt{case} & $[\env](\texttt{case }x\texttt{ of }\text{rules})$ \\
+      Closure around filled hole & $\llbracket\env\rrbracket d_{fill}$ \\
+      \hline\hline
+    \end{tabular}
+    \caption{Examples of generalized closures}
+    \label{tab:generaized-closures-examples}
+  \end{table}
+  
 \end{frame}
 
 \section{Identifying hole instances by physical environment}
 
 \begin{frame}
-  \frametitle{Motivating example}
+  \frametitle{Motivation for hole instances}
+
+  \begin{figure}
+    \inputhpminted{instance_illustration}
+    \caption{Illustration of hole instances}
+    \label{fig:instance-illustration}
+  \end{figure}
+
+  \begin{figure}
+    \centering
+    \begin{equation*}
+      [a\leftarrow[\varnothing]\hehole^1,x\leftarrow 3]\hehole^2
+      + [a\leftarrow[\varnothing]\hehole^1,x\leftarrow 4]\hehole^2
+    \end{equation*}
+    \caption{Result of \Cref{fig:instance-illustration}}
+    \label{fig:hole-instance-result}
+  \end{figure}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Hole instances vs. hole closures/instantiations}
-\end{frame}
+\begin{frame}[allowframebreaks]
+  \frametitle{Motivation for hole closures/instantiations}
 
-\begin{frame}
-  \frametitle{Hole instance parent vs. hole closure parents}
+  \begin{figure}
+    \centering
+    \inputhpminted{holes_consecutive}
+    \caption{A Hazel program that generates $2^N$ total hole instances}
+    \label{fig:hole-renumbering-problem}
+  \end{figure}
+
+  \begin{figure}
+    \centering
+    \begin{subfigure}[b]{0.3\textwidth}
+      \centering
+      \maxsizebox{\textwidth}{10em}{
+        \input{thesis/hole_renumbering_result_structure}
+      }
+      \caption{Structure of the result}
+      \label{fig:hole-renumbering-solution-structure}
+    \end{subfigure}
+    \qquad
+    \begin{subfigure}[b]{0.6\textwidth}
+      \centering
+      \maxsizebox{\textwidth}{10em}{
+        \input{thesis/hole_renumbering_result_numbered}
+      }
+      \caption{Numbered hole instances in the result}
+      \label{fig:hole-renumbered-result}
+    \end{subfigure}
+    \caption{Hole numbering in \Cref{fig:hole-renumbering-problem}}
+  \end{figure}
 \end{frame}
 
 \begin{frame}
   \frametitle{The hole numbering algorithm}
+
+  \begin{figure}
+    \centering
+    \tiny
+    \renewcommand{\judgboxfontsize}{\tiny}
+    \input{thesis/ppn_bigstep_reduced}
+    \caption{Hole closure numbering postprocessing semantics}
+    \label{fig:big-step-renumber-new-rules}
+  \end{figure}
 \end{frame}
 
 \begin{frame}
   \frametitle{A unified postprocessing algorithm}
+
+  \begin{figure}
+    \centering
+    \input{thesis/pp_bigstep}
+    \caption{Overall postprocessing judgment}
+    \label{fig:big-step-postprocessing-rules}
+  \end{figure}
 \end{frame}
 
 \section{The fill-and-resume (FAR) optimization}
@@ -316,8 +439,11 @@
   \frametitle{Conclusions}
 
   \begin{description}
-  \item[Evaluation with environments] Expected performance gains, implementation remains pure
-  \item[Generalized closures] Simplify many parts of the implementation
+  \item[Evaluation with environments] Expected performance gains, implementation remains functionally pure
+  \item[Generalized closures] Simplify many parts of the implementation, also useful for FAR
+  \item[Memoization of environments] Applicable for postprocessing, equality checking, resume operation
+  \item[FAR PoC] Including $n$-step detection, re-evaluation of closures
+  \item[Plausible metatheory] For future work in Agda
   \end{description}
 \end{frame}
 

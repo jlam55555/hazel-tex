@@ -1,0 +1,53 @@
+% this is for the presentation
+\newcommand{\lsize}{\tiny}
+
+\judgbox{d\pplc d'}{$d$ is substitutes to $d'$ inside the evaluation boundary}
+
+\begin{mathpar}
+  \Infer{\lsize\pplcl{}Const}{
+  }{c\pplc c}
+  \and
+  \Infer{\lsize\pplcl{}Ap}{
+    d_1\pplc d_1' \\
+    d_2\pplc d_2'
+  }{d_1\ d_2\pplc d_1'\ d_2'}
+  \and
+  \Infer{\lsize\pplcl{}Closure}{
+    \env\pplc\env' \\
+    \env'\vdash d\pplc d'
+  }{[\env]d\pplc d'}
+\end{mathpar}
+
+\judgbox{\env\vdash d\pplc d'}{$d$ substitutes to $d'$ outside the evaluation boundary}
+
+\begin{mathpar}
+  \Infer{\lsize\pplclo{}Const}{
+  }{c\pplc c}
+  \and
+  \Infer{\lsize\pplclo{}BoundVar}{}{\env,x\leftarrow d\vdash x\pplc d}
+  \and
+  \Infer{\lsize\pplclo{}UnboundVar}{
+    x\not\in\env
+  }{\env,\vdash x\pplc x}
+  \and
+  \Infer{\lsize\pplclo{}Lam}{
+    \env\vdash d\pplc d'
+  }{\env\vdash\lambda x.d\pplc\lambda x.d'}
+  \and
+  \Infer{\lsize\pplclo{}Ap}{
+    \env\vdash d_1\pplc d_1' \\
+    \env\vdash d_2\pplc d_2'
+  }{\env\vdash d_1(d_2)\pplc d_1'(d_2')}
+  \and
+  \Infer{\lsize\pplclo{}EHole}{
+  }{\env\vdash\hehole^u\pplc[\env]\hehole^u}
+  \and
+  \Infer{\lsize\pplclo{}NEHole}{
+    \env\vdash d\pplc d'
+  }{\env\vdash\hhole{d}^u\pplc[\env]\hhole{d'}^u}
+\end{mathpar}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:

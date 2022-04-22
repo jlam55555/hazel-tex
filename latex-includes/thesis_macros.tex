@@ -81,6 +81,12 @@
 \inputminted[escapeinside=//,frame=single,custom]{../latex-includes/hazel_lexer.py:HazelLexer}{lstings/#1.hz}
 }
 
+% for presentation
+\newcommand{\inputhpminted}[1]{
+\inputminted[escapeinside=//,frame=single,custom]{../latex-includes/hazel_lexer.py:HazelLexer}{thesis/lstings/#1.hz}
+}
+
+
 % same as above but with no frame
 \newcommand{\inputhnfminted}[1]{\inputminted[escapeinside=//,vspace=-1em,custom]{../latex-includes/hazel_lexer.py:HazelLexer}{lstings/#1.hz}}
 

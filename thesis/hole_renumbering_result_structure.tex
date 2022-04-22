@@ -1,0 +1,18 @@
+\begin{tikzpicture}
+  \node[] (hole4) {$[\env^4]\hehole^4$};
+  \node[below=of hole4] (hole3) {$[\env^3]\hehole^3$};
+  \node[below=of hole3] (hole2) {$[\env^2]\hehole^2$};
+  \node[below=of hole2] (hole1) {$[\varnothing]\hehole^1$};
+
+  \draw[->] (hole4) -- node [midway,left] {$c$} (hole3);
+  \draw[->] (hole4) to[bend left=60] node [midway,right] {$b$} (hole2);
+  \draw[->] (hole4) to[bend left=80] node [midway,right] {$a$} (hole1);
+  \draw[->] (hole3) -- node [midway,left] {$b$} (hole2);
+  \draw[->] (hole3) to[bend right=60] node [midway,left] {$a$} (hole1);
+  \draw[->] (hole2) -- node [midway,left] {$a$} (hole1);
+\end{tikzpicture}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:
