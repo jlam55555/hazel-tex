@@ -539,32 +539,50 @@
   \end{figure}
 \end{frame}
 
-\section{Theoretical results/innovations}
+\section{Discussion, future work, and conclusions}
 
 \begin{frame}
-  \frametitle{Generalized closures}
+  \frametitle{Innovations of this work}
+
+  \begin{description}
+  \item[Generalized closures] Useful for evaluation and memoization
+  \item[Unique hole closures] Grouping hole instances by environment
+  \item[FAR as a generalization of evaluation] Each edit is a $n$-step FAR
+  \end{description}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Unique hole closures}
-\end{frame}
+\begin{frame}[allowframebreaks]
+  \frametitle{Proposed updates to the evaluation model}
 
-\begin{frame}
-  \frametitle{FAR as a generalization of evaluation}
-\end{frame}
+  \begin{figure}
+    \centering
+    \maxsizebox{\textwidth}{15em}{
+      \input{thesis/previous_evaluation_call_graph}
+    }
+    \caption{Previous evaluation model}
+    \label{fig:prev-evaluation-call-graph}
+  \end{figure}
 
-\section{Future work/conclusions}
+  \begin{figure}
+    \centering
+    \maxsizebox{\textwidth}{15em}{
+      \input{thesis/current_evaluation_call_graph}
+    }
+    \caption{Proposed evaluation model}
+    \label{fig:current-evaluation-call-graph}
+  \end{figure}
+\end{frame}
 
 \begin{frame}
   \frametitle{Future work}
 
   \begin{description}
+  \item[Fully automatic FAR] Integrate FAR into the Hazel MVC model
   \item[$n$-step FAR] Integrate edit history into FAR
   \item[Generalized memoization] Unify notation and metatheory of memoization
   \item[Formal evaluation of metatheory] Check coverage and correctness of metatheorems using Agda
   \end{description}
 \end{frame}
-
 
 \begin{frame}
   \frametitle{Conclusions}
@@ -581,7 +599,7 @@
 \begin{frame}[allowframebreaks]
   \frametitle{References}
 
-  \footnotesize
+  \tiny
   \bibliographystyle{unsrt}
   \bibliography{thesis/refs}
 \end{frame}
