@@ -1,0 +1,27 @@
+\begin{tikzpicture}
+  \node[] (null) {$\vdots$};
+  \node[below=0.2em of null] (a) {$2+3*\hehole^1$};
+  \node[below=0.2em of a] (b) {$2+\hehole^2*\hehole^1$};
+  \node[below=0.2em of b] (c) {$2+\hehole^1$};
+  \node[below=0.2em of c] (d) {$2+5$};
+  \node[below=0.2em of d] (e) {$2+(5)$};
+  \node[below=0.2em of e] (f) {$2+\hehole^1*(5)$};
+  \node[below=0.2em of f] (g) {$2+3*(5)$};
+  \node[below=0.2em of g] (h) {$2+3*(5+\hehole^1)$};
+
+  % 1-step
+  \node[color=red,left=5em of d] {1-step};
+  \draw[color=red,->] (c.west) to[bend right] (d.west);
+  \draw[color=red,->] (f.west) to[bend right] (g.west);
+
+  % n-step
+  \node[color=blue,right=5em of d] {$n$-step};
+  \draw[color=blue!50,->] (a.east) to[bend left] (g.east);
+  \draw[color=blue!40,->] (a.east) to[bend left] (h.east);
+  \draw[color=blue!100,->] (c.east) to[bend left] (d.east);
+  \draw[color=blue!90,->] (c.east) to[bend left] (e.east);
+  \draw[color=blue!80,->] (c.east) to[bend left=15] (f.east);
+  \draw[color=blue!70,->] (c.east) to[bend left=40] (g.east);
+  \draw[color=blue!60,->] (c.east) to[bend left=40] (h.east);
+  \draw[color=blue!100,->] (f.east) to[bend left] (g.east);
+\end{tikzpicture}

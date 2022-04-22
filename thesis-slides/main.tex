@@ -366,32 +366,90 @@
 
 \section{The fill-and-resume (FAR) optimization}
 
-\begin{frame}
+\begin{frame}[allowframebreaks]
   \frametitle{Motivating example}
+
+  What happens if we want to fill the hole $\hehole^1$ with the expression $x+2$?
+
+  \begin{figure}
+    \centering
+    \tiny
+    \inputhpminted{far_motivation}
+    \caption{A sample program with an expensive calculation}
+    \label{fig:far-motivation}
+  \end{figure}
+
+  \begin{figure}
+    \centering
+    \begin{equation*}
+      [f\leftarrow [\varnothing]\lambda x.\{\dots\},x\leftarrow 832040]\hehole^1
+    \end{equation*}
+    \caption{Result of expensive calculation}
+  \end{figure}
+
+  \begin{figure}
+    \centering
+    \begin{gather*}
+      [f\leftarrow [\varnothing]\lambda x.\{\dots\},x\leftarrow 832040](x+2) \\
+      832040+2 \\
+      832042
+    \end{gather*}
+    \caption{Fill and resume}
+  \end{figure}
 \end{frame}
 
 \begin{frame}
   \frametitle{The FAR process}
+
+  Check if a fill is appropriate. If not, evaluate as usual. If so, then:
+
+  \begin{enumerate}
+  \item Detect fill parameters ($u$, $d$)
+  \item ``Fill'': substitute $d$ for every instance of $u$
+  \item ``Resume'': resume evaluation
+  \end{enumerate}
 \end{frame}
 
 \begin{frame}
   \frametitle{1-step vs. $n$-step FAR}
+
+  \begin{figure}
+    \centering
+    \maxsizebox{\textwidth}{15em}{
+      \input{thesis/one-step-vs-n-step-far}
+    }
+    \caption{1-step vs. $n$-step FAR detection}
+    \label{fig:one-vs-n-step-far}
+  \end{figure}
 \end{frame}
 
 \begin{frame}
   \frametitle{Detecting a valid fill operation}
+
+  \todo{this slide}
 \end{frame}
 
 \begin{frame}
-  \frametitle{The fill operation}
-\end{frame}
+  \frametitle{The fill and resume operations}
 
-\begin{frame}
-  \frametitle{The resume operation}
-\end{frame}
+  \centering
+  \begin{minipage}[t]{.45\textwidth}
+    \textbf{The fill operation}
 
-\begin{frame}
-  \frametitle{The postprocessing operation}
+    \begin{itemize}
+    \item Mark closures for re-evaluation
+    \item Fill all instances of hole $u$ with $d$
+    \end{itemize}
+  \end{minipage}
+  \qquad
+  \begin{minipage}[t]{.45\textwidth}
+    \textbf{The resume operation}
+
+    \begin{itemize}
+    \item Evaluate as normal, except:
+    \item Evaluate closure environments (recursively)
+    \end{itemize}
+  \end{minipage}
 \end{frame}
 
 \section{Empirical results}
@@ -502,7 +560,7 @@
     \caption{A program edit history with an expensive computation}
     \label{fig:far-program-history-fib}
   \end{table}
-  
+
   \begin{table}
     \centering
     \tiny
@@ -581,6 +639,7 @@
   \item[$n$-step FAR] Integrate edit history into FAR
   \item[Generalized memoization] Unify notation and metatheory of memoization
   \item[Formal evaluation of metatheory] Check coverage and correctness of metatheorems using Agda
+  \item[User editing studies] Gather data on ``true'' performance impact
   \end{description}
 \end{frame}
 
