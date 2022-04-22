@@ -44,26 +44,137 @@
 
 \frame{\titlepage}
 
+\begin{frame}[allowframebreaks]
+  \frametitle{Overview}
+
+  Project context
+  \begin{description}
+  \item[Implementation-based] Mostly practically-driven
+  \item[Functional programming] Context for PL theory
+  \item[Hazel live programming environment] An experimental editor with typed holes aimed at solving the ``gap problem,'' developed at UM
+  \end{description}
+
+  \vspace{12em} Project scope
+  \begin{description}
+  \item[Evaluation with environments] Lazy variable lookup for performance
+  \item[Hole instances to hole closures] Redefining hole instances for performance
+  \item[Implementing fill-and-resume (FAR)] Efficiently resume evaluation
+  \end{description}
+
+  \vspace{4em}Project evaluation
+  \begin{description}
+  \item[Empirical evaluation] Measure performance gain of motivating cases
+  \item[Informal metatheory] State metatheorems and provide proof sketches
+  \end{description}
+\end{frame}
+
 \section{Primer on PL theory}
 
 \begin{frame}
   \frametitle{A programming language is a specification}
 
-  \todo{semantics}
+  \begin{description}
+  \item[Syntax] is the grammar of a valid program
+  \item[Semantics] describes the behavior of a syntactically valid program
+  \end{description}
 
-  \todo{syntax}
+  \begin{figure}
+    \centering
+    \input{thesis/hazelnut_syntax}
+    \caption{Hazelnut grammar}
+    \label{fig:hazelnut-grammar}
+  \end{figure}
 
+\end{frame}
+
+\begin{frame}
+  \frametitle{Static and dynamic semantics}
+
+  \begin{description}
+  \item[Statics] Edit actions, type-checking, elaboration (``compile-time'')
+  \item[Dynamics] Evaluation (``run-time'')
+  \end{description}
+
+  \begin{figure}
+    \centering
+    \begin{mathpar}
+      \Infer{EAp}{\
+        e_1\Downarrow \lambda x.e_1' \\
+        e_2\Downarrow e_2' \\
+        [e_2'/x]e_1'=e
+      }{e_1\ e_2\Downarrow e}
+    \end{mathpar}
+    \caption{Evaluation rule for function application using a big-step semantics}
+    \label{fig:inference-rules}
+  \end{figure}
 \end{frame}
 
 \begin{frame}
   \frametitle{A brief primer on the $\lambda$-calculus}
 
+  \begin{description}
+  \item[Untyped $\lambda$-calculus] Simple universal model of computation by Church
+  \item[Simply-typed $\lambda$-calculus] Extension of the ULC with static type-checking
+  \item[Gradually-typed $\lambda$-calculus] Optionally-typed, with ``pay-as-you-go'' benefits of static typing
+  \end{description}
+
+  \begin{figure}
+    \centering
+    \begin{subfigure}[b]{.2\textwidth}
+        \begin{align*}
+          e &::= x\\
+            &\mid \lambda x.e\\
+            &\mid e\ e
+        \end{align*}
+      \caption{Grammar}
+    \end{subfigure}\qquad
+    \begin{subfigure}[b]{.7\textwidth}
+      \input{thesis/ulc_semantics}
+      \caption{Dynamic semantics}
+    \end{subfigure}
+    \caption{The untyped $\lambda$-calculus}
+    \label{fig:ulc}
+  \end{figure}
 \end{frame}
 
 \section{The Hazel live programming environment}
 
 \begin{frame}
-  \frametitle{The Hazel programming environment}
+  \frametitle{The Hazel programming language and environment}
+
+  \begin{description}
+  \item[Live programming] Rapid static and dynamic feedback (``gap problem'')
+  \item[Structured editor] Elimination of syntax errors
+  \item[Bidirectionally typed] Simple type inference
+  \item[Gradually typed] Hole type and cast-calculus based on Siek et al. \cite{Siek06gradualtyping,siek2015refined}
+  \item[Purely functional] Avoids side-effects and promotes commutativity
+  \end{description}
+
+  \begin{figure}
+    \centering
+    \begin{subfigure}[b]{0.5\textwidth}
+      \centering
+      \includegraphics[height=5em]{thesis/img/hazelgrove.png}
+      \caption{The Hazelgrove organization}
+    \end{subfigure}%
+    \begin{subfigure}[b]{0.5\textwidth}
+      \centering
+      \includegraphics[height=5em]{thesis/img/reasonml.png}
+      \caption{Implemented in ReasonML and JSOO}
+    \end{subfigure}
+    \caption{Hazel implementation}
+  \end{figure}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The Hazel programming interface}
+
+  \begin{figure}
+    \centering
+    \includegraphics[width=.9\linewidth]{thesis/img/hazel_ui_annot.png}
+    \caption{The Hazel interface}
+    \label{fig:hazel-ui}
+  \end{figure}
 
 \end{frame}
 
@@ -191,25 +302,28 @@
 \section{Future work/conclusions}
 
 \begin{frame}
-  \frametitle{Completion of $n$-step FAR}
+  \frametitle{Future work}
+
+  \begin{description}
+  \item[$n$-step FAR] Integrate edit history into FAR
+  \item[Generalized memoization] Unify notation and metatheory of memoization
+  \item[Formal evaluation of metatheory] Check coverage and correctness of metatheorems using Agda
+  \end{description}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Generalized memoization}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Formal evaluation of metatheory}
-\end{frame}
 
 \begin{frame}
   \frametitle{Conclusions}
+
+  
 \end{frame}
 
-\begin{frame}
+\begin{frame}[allowframebreaks]
   \frametitle{References}
 
-  \todo{include metatheory}
+  \footnotesize
+  \bibliographystyle{unsrt}
+  \bibliography{thesis/refs}
 \end{frame}
 
 \end{document}

@@ -72,19 +72,8 @@ The grammar of Hazelnut's external language is reproduced in \Cref{fig:hazelnut-
 \begin{figure}
   \centering
   \begin{singlespace}
-    \begin{align*}
-      \tau &::= \tau\to\tau
-             \mid b
-             \mid \tehole \\
-      e &::= c
-          \mid x
-          \mid\lambda x:\tau.e
-          \mid e\ e
-          \mid e:\tau
-          \mid \hehole
-          \mid \hhole{e}
-    \end{align*}
-  \end{singlespace}  
+    \input{hazelnut_syntax}
+  \end{singlespace}
   \caption{Hazelnut syntax}
   \label{fig:hazelnut-syntax}
 \end{figure}

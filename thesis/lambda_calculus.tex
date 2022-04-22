@@ -14,11 +14,7 @@ The grammar of \ulc{} is very simple, only comprising three forms (excluding par
   \centering
   \begin{mdframed}
     \begin{singlespace}
-      \begin{align*}
-        e &::= x\tag{variable}\\
-          &\mid \lambda x.e\tag{$\lambda$-abstraction}\\
-          &\mid e\ e\tag{function application}
-      \end{align*}
+      \input{ulc_grammar}
     \end{singlespace}
   \end{mdframed}
   \caption{Grammar of \ulc}
@@ -33,14 +29,7 @@ The dynamic semantics are similarly simple, shown in \Cref{fig:dynamic-semantics
   \centering
   \begin{mdframed}
     \begin{singlespace}
-      \begin{mathpar}
-        \Infer{\ulc{}-ELam}{}{\lambda x.e\Downarrow\lambda x.e}
-        \and
-        \Infer{\ulc{}-EAp}{
-          e_1\Downarrow\lambda x.e_1' \\
-          [e_2/x]e_1'\Downarrow e
-        }{e_1\ e_2\Downarrow e}
-      \end{mathpar}
+      \input{ulc_semantics}
     \end{singlespace}
   \end{mdframed}
   \caption{Dynamic semantics for \ulc}

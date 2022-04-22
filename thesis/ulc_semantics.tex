@@ -1,0 +1,8 @@
+\begin{mathpar}
+  \Infer{\ulc{}-ELam}{}{\lambda x.e\Downarrow\lambda x.e}
+  \and
+  \Infer{\ulc{}-EAp}{
+    e_1\Downarrow\lambda x.e_1' \\
+    [e_2/x]e_1'\Downarrow e
+  }{e_1\ e_2\Downarrow e}
+\end{mathpar}
