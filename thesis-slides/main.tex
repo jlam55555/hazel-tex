@@ -396,8 +396,60 @@
 
 \section{Empirical results}
 
-\begin{frame}
+\begin{frame}[allowframebreaks]
   \frametitle{Evaluation with environments}
+
+  \begin{figure}
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+      \centering
+      \tiny
+      \inputhpminted{perf_fib}
+      \caption{Source}
+      \label{fig:perf-fib}
+    \end{subfigure}
+    \qquad
+    \begin{subfigure}[b]{0.45\textwidth}
+      \includegraphics[width=\textwidth]{thesis/img/perf_fib.pdf}
+      \caption{Performance}
+      \label{fig:perf-fib-graph}
+    \end{subfigure}
+    \caption{A computationally expensive Hazel program with no holes}
+  \end{figure}
+
+  \begin{figure}
+    \begin{subfigure}[b]{0.45\textwidth}
+      \centering
+      \tiny
+      \inputhpminted{perf_fib_more_bindings}
+      \caption{Source}
+      \label{fig:perf-fib-more-bindings}
+    \end{subfigure}
+    \qquad
+    \begin{subfigure}[b]{0.45\textwidth}
+      \includegraphics[width=\textwidth]{thesis/img/perf_fib_more_vars.pdf}
+      \caption{Performance}
+      \label{fig:perf-fib-more-vars-graph}
+    \end{subfigure}
+    \caption{Adding global bindings to the $\text{fib}(n)$ program}
+  \end{figure}
+
+  \begin{figure}
+    \begin{subfigure}[b]{0.45\textwidth}
+      \centering
+      \tiny
+      \inputhpminted{perf_fib_more_branches}
+      \caption{Source}
+      \label{fig:perf-fib-more-branches}
+    \end{subfigure}
+    \qquad
+    \begin{subfigure}[b]{0.45\textwidth}
+      \includegraphics[width=\textwidth]{thesis/img/perf_fib_more_branches.pdf}
+      \caption{Performance}
+      \label{fig:perf-fib-more-branches-graph}
+    \end{subfigure}
+    \caption{Adding variable substitutions to unused branches}
+  \end{figure}
 \end{frame}
 
 \begin{frame}[allowframebreaks]
