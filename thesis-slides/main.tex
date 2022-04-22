@@ -400,12 +400,91 @@
   \frametitle{Evaluation with environments}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[allowframebreaks]
   \frametitle{Hole numbering motivating example}
+
+  \begin{figure}
+    \centering
+    \inputhpminted{holes_consecutive}
+    \caption{A Hazel program that generates $2^N$ total hole instances}
+    \label{fig:hole-renumbering-problem-2}
+  \end{figure}
+
+  \begin{figure}
+    \centering
+    \begin{subfigure}{0.45\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{thesis/img/perf_renum_dev.pdf}
+      \caption{\texttt{dev} branch}
+      \label{fig:perf-renum-dev}
+    \end{subfigure}
+    \qquad
+    \begin{subfigure}{0.45\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{thesis/img/perf_renum_eev.pdf}
+      \caption{\texttt{eval-environment} branch}
+      \label{fig:perf-renum-eev}
+    \end{subfigure}
+    \caption{Performance of evaluating program in \Cref{fig:hole-renumbering-problem}}
+    \label{fig:perf-renum}
+  \end{figure}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[allowframebreaks]
   \frametitle{FAR motivating example}
+
+  \begin{table}
+    \centering
+    \tiny
+    \begin{tabular}{p{10em}cccc}
+      \hline
+      Program & Steps & Steps & Step $\Delta$ & Cumulative \\
+              & & (w/ FAR) & & Step $\Delta$ \\
+      \hline\hline
+      \inputhnfpminted{far_fib_hist_1} & 7 & - & 0 & 0 \\ \hline
+      \inputhnfpminted{far_fib_hist_2} & 12 & 21 & 9 & 9 \\ \hline
+      \inputhnfpminted{far_fib_hist_3} & 17 & - & 0 & 9 \\ \hline
+      \inputhnfpminted{far_fib_hist_4} & 58 & 69 & 11 & 20 \\ \hline
+      \hline
+    \end{tabular}
+    \caption{A program edit history with an expensive computation}
+    \label{fig:far-program-history-fib}
+  \end{table}
+  
+  \begin{table}
+    \centering
+    \tiny
+    \begin{tabular}{p{10em}cccc}
+      \hline
+      Program & Steps & Steps & Step $\Delta$ & Cumulative \\
+              & & (w/ FAR) & & Step $\Delta$ \\
+      \hline\hline
+      \inputhnfpminted{far_fib_hist_5} & 4762964 & - & 0 & 20 \\ \hline
+      \inputhnfpminted{far_fib_hist_6} & 4762966 & 12 & -4762954 & -4762934 \\ \hline
+      \inputhnfpminted{far_fib_hist_7} & 4762966 & 21 & -4762954 & -9525879 \\ \hline
+      \inputhnfpminted{far_fib_hist_8} & 4792967 & 13 & -4792954 & -14288813 \\ \hline
+      \hline
+    \end{tabular}
+    \caption{A program edit history with an expensive computation, cont'd.}
+    \label{fig:far-program-history-fib-2}
+  \end{table}
+
+  \begin{figure}
+    \centering
+    \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=\textwidth]{thesis/img/perf_no_far.pdf}
+      \caption{Normal evaluation}
+      \label{fig:perf-no-far}
+    \end{subfigure}
+    \qquad
+    \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=\textwidth]{thesis/img/perf_far.pdf}
+      \caption{With one-step FAR}
+      \label{fig:perf-far-far}
+    \end{subfigure}
+    \caption{Number of evaluation steps per edit in \Cref{fig:far-program-history-fib}}
+    \label{fig:perf-far}
+  \end{figure}
 \end{frame}
 
 \section{Theoretical results/innovations}
