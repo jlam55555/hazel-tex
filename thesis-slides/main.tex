@@ -324,7 +324,7 @@
     \begin{subfigure}[b]{0.45\textwidth}
       \tiny
       \begin{equation*}
-        \Downarrow (2+[x\leftarrow 5]\hehole^1)+[a\leftarrow\dots]\hhole{[\varnothing]\lambda x.2+\hehole^1}^2
+        \Downarrow (2+[x\leftarrow 5]\hehole^1)+[a\leftarrow\dots]\hhole{[\varnothing](\lambda x.2+\hehole^1)}^2
       \end{equation*}
       \caption{Program result}
     \end{subfigure} \\
@@ -699,7 +699,7 @@
   \end{figure}
 \end{frame}
 
-\section{Discussion, future work, and conclusions}
+\section{Discussion and conclusions}
 
 \begin{frame}
   \frametitle{Innovations of this work}
@@ -708,6 +708,22 @@
   \item[Generalized closures] Useful for evaluation and memoization
   \item[Unique hole closures] Grouping hole instances by environment
   \item[FAR as a generalization of evaluation] Each edit is a $n$-step FAR
+  \end{description}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Metatheory}
+
+  Invariants of the evaluation steps; informally justified
+
+  \begin{description}
+  \item[Evaluation boundary]
+  \item[Singular evaluation boundary]
+  \item[Substitution postprocessing closures]
+  \item[Evaluation with environments correctness]
+  \item[Hole numbering postprocessing]
+  \item[Fill operation]
+  \item[Resume operation]
   \end{description}
 \end{frame}
 
