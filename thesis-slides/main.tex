@@ -217,7 +217,30 @@
 \begin{frame}
   \frametitle{Evaluation using environments vs. substitution}
 
-  \todo{comparison table, illustration of how each one works}
+  \begin{figure}
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+      \begin{align*}
+        & \texttt{let }x=3\texttt{ in}\\
+        & \texttt{if True then }0\texttt{ else }x
+      \end{align*}
+      \caption{Expression with variable binding}
+    \end{subfigure} \\
+    \begin{subfigure}[b]{0.35\textwidth}
+      \begin{equation*}
+        \texttt{if True then }0\texttt{ else }3
+      \end{equation*}
+      \caption{Substitution (eager)}
+    \end{subfigure}
+    \qquad
+    \begin{subfigure}[b]{0.55\textwidth}
+      \begin{equation*}
+        \{x\leftarrow 3\}\vdash(\texttt{if True then }0\texttt{ else }x)
+      \end{equation*}
+      \caption{Environments (lazy)}
+    \end{subfigure}
+    \caption{Comparison of variable binding methods}
+  \end{figure}
 \end{frame}
 
 \begin{frame}
@@ -287,8 +310,64 @@
 
 \begin{frame}
   \frametitle{The evaluation boundary}
+  % Closures denote either where evaluation stops, and/or where evaluation may be resumed
+  % Evaluation boundary denotes where evaluation stops
 
-  \todo{graphical depiction of the evaluation boundary}
+  \begin{figure}
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+      \tiny
+      \inputhpminted{eval_boundary}
+      \caption{Program}
+    \end{subfigure}
+    \qquad
+    \begin{subfigure}[b]{0.45\textwidth}
+      \tiny
+      \begin{equation*}
+        \Downarrow (2+[x\leftarrow 5]\hehole^1)+[a\leftarrow\dots]\hhole{[\varnothing]\lambda x.2+\hehole^1}^2
+      \end{equation*}
+      \caption{Program result}
+    \end{subfigure} \\
+    
+    \begin{subfigure}[b]{\textwidth}
+      \centering
+      \maxsizebox{\textwidth}{10em}{
+        \begin{tikzpicture}
+          \node[] (a) {$\cdot+\cdot$};
+          \node[below left=1em and 4em of a] (b) {$\cdot+\cdot$};
+          \node[below left=1em of b] (c) {$2$};
+          \node[below right=1em of b] (d) {$[x\leftarrow 5]\cdot$};
+          \node[below=1em of d] (e) {$\hehole^1$};
+          \node[below right=1em and 4em of a] (f1) {$[a\leftarrow\dots]\cdot$};
+          \node[below=1em of f1] (f) {$\hhole{\cdot}^2$};
+          \node[below=1em of f] (g1) {$[\varnothing]\cdot$};
+          \node[below=1em of g1] (g) {$\lambda x.\cdot$};
+          \node[below=1em of g] (h) {$\cdot+\cdot$};
+          \node[below left=1em of h] (i) {$2$};
+          \node[below right=1em of h] (j) {$\hehole^1$};
+
+          \draw[] (a) -- (b);
+          \draw[] (b) -- (c);
+          \draw[] (b) -- (d);
+          \draw[] (d) -- (e);
+          \draw[] (a) -- (f1);
+          \draw[] (f1) -- (f);
+          \draw[] (f) -- (g1);
+          \draw[] (g1) -- (g);
+          \draw[] (g) -- (h);
+          \draw[] (h) -- (i);
+          \draw[] (h) -- (j);
+
+          % hardcoded coordinates -- eww
+          \path[draw=blue,dotted,thick] (-5,-3.6) -- (5,-3.6);
+          \path[draw=red,dotted,thick] (-1.5,-2.3) -- (-0.5,-2.3);
+          \path[draw=red,dotted,thick] (2.5,-1.5) -- (3.5,-1.5);
+        \end{tikzpicture}
+      }
+      \caption{Program result AST}
+    \end{subfigure}
+    \caption{Illustration of evaluation boundary}
+  \end{figure}
 \end{frame}
 
 \section{Identifying hole instances by physical environment}
@@ -433,7 +512,22 @@
 \begin{frame}
   \frametitle{Detecting a valid fill operation}
 
-  \todo{this slide}
+  \begin{description}
+  \item[Structural diff algorithm] Intuitive, fast $n$-step FAR detection; \\
+    find the smallest hole that subsumes the diff root
+  \end{description}
+
+  \begin{gather*}
+    \lambda x.\hehole^3\ \ \ \longrightarrow\ \ \ \lambda x.4 \\
+    u=3 \\
+    d=4
+  \end{gather*}
+
+  \begin{gather*}
+    2+\hhole{\lambda x.3}^1\ \ \ \longrightarrow\ \ \ 2+5*\hehole^1 \\
+    u=1 \\
+    d=5*\hehole^1
+  \end{gather*}
 \end{frame}
 
 \begin{frame}
@@ -444,8 +538,8 @@
     \textbf{The fill operation}
 
     \begin{itemize}
-    \item Mark closures for re-evaluation
-    \item Fill all instances of hole $u$ with $d$
+    \item Mark closures un-final \\ $[\llbracket\env\rrbracket d/[\env]d]d_{result}$
+    \item Fill hole instances \\ $[d_{fill}/\hehole^{u_{fill}}]d_{result}$
     \end{itemize}
   \end{minipage}
   \qquad
@@ -454,7 +548,7 @@
 
     \begin{itemize}
     \item Evaluate as normal, except:
-    \item Evaluate closure environments (recursively)
+    \item Re-evaluate closures \\ $\llbracket\env\rrbracket d\Downarrow [\env']d'$
     \end{itemize}
   \end{minipage}
 \end{frame}
