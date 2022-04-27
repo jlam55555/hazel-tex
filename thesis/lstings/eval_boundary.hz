@@ -1,2 +1,2 @@
-let a = /\lbd/ x . { 2 + /\heh2/ } in
+let a = /\lbd/ x . { 2 + /\heh1/ } in
 a 5 + /$\hhole{a}^2$/

@@ -1,5 +1,8 @@
 \documentclass{beamer}
 
+% https://tex.stackexchange.com/a/435104
+\setbeamertemplate{frametitle continuation}{}
+
 \usetheme{AnnArbor}
 
 \def\OPTIONConf{1}
@@ -51,9 +54,15 @@
 
   Project context
   \begin{description}
-  \item[Implementation-based] Mostly practically-driven
-  \item[Functional programming] Context for PL theory
   \item[Hazel live programming environment] An experimental editor with typed holes aimed at solving the ``gap problem,'' developed at UM
+  \item[Functional programming] Context for PL theory
+  \item[Implementation-based] Mostly practically-driven
+  \end{description}
+
+  \vspace{4em}
+  Project goal
+  \begin{description}
+  \item[Improve aspects of Hazel evaluation] Mostly performance-related
   \end{description}
 
   \vspace{12em} Project scope
@@ -116,8 +125,9 @@
 
   \begin{description}
   \item[Untyped $\lambda$-calculus] Simple universal model of computation by Church
-  \item[Simply-typed $\lambda$-calculus] Extension of the ULC with static type-checking
-  \item[Gradually-typed $\lambda$-calculus] Optionally-typed, with ``pay-as-you-go'' benefits of static typing
+    % not relevant
+    % \item[Simply-typed $\lambda$-calculus] Extension of the ULC with static type-checking
+    % \item[Gradually-typed $\lambda$-calculus] Optionally-typed, with ``pay-as-you-go'' benefits of static typing
   \end{description}
 
   \begin{figure}
@@ -147,7 +157,6 @@
   \begin{description}
   \item[Live programming] Rapid static and dynamic feedback (``gap problem'')
   \item[Structured editor] Elimination of syntax errors
-  \item[Bidirectionally typed] Simple type inference
   \item[Gradually typed] Hole type and cast-calculus based on Siek et al. \cite{Siek06gradualtyping,siek2015refined}
   \item[Purely functional] Avoids side-effects and promotes commutativity
   \end{description}
@@ -190,8 +199,18 @@
 
   \begin{figure}
     \centering
-    \includegraphics[width=10em]{thesis/img/hazelnut_actions}
-    \caption{Sample Hazelnut action sequence \cite{conf/popl/Hazelnut17}}
+    \begin{subfigure}[b]{0.45\textwidth}
+      \includegraphics[width=\textwidth]{thesis/img/haskell_squiggle}
+      \caption{Haskell static type error}
+    \end{subfigure}
+    \qquad
+    \begin{subfigure}[b]{0.45\textwidth}
+      \includegraphics[width=\textwidth]{thesis/img/hazel_squiggle}
+      \caption{Hazel non-empty hole}
+    \end{subfigure}
+    \caption{``Red squiggly underline''}
+    % \includegraphics[width=10em]{thesis/img/hazelnut_actions}
+    % \caption{Sample Hazelnut action sequence \cite{conf/popl/Hazelnut17}}
     \label{fig:hazelnut-action-sequence}
   \end{figure}
 \end{frame}
@@ -257,21 +276,22 @@
   \end{figure}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Handling recursion}
+% extra
+% \begin{frame}
+%   \frametitle{Handling recursion}
 
-  \begin{description}
-  \item[Fixpoint form] Useful for a pure implementation of recursive functions, from Plotkin's System PCF
-  \end{description}
+%   \begin{description}
+%   \item[Fixpoint form] Useful for a pure implementation of recursive functions, from Plotkin's System PCF
+%   \end{description}
   
-  \begin{figure}
-    \footnotesize
-    \centering
-    \input{thesis/fixpoint_rules}
-    \caption{Big-step semantics for evaluation of fixpoints}
-    \label{fig:fixpoint-rules}
-  \end{figure}
-\end{frame}
+%   \begin{figure}
+%     \footnotesize
+%     \centering
+%     \input{thesis/fixpoint_rules}
+%     \caption{Big-step semantics for evaluation of fixpoints}
+%     \label{fig:fixpoint-rules}
+%   \end{figure}
+% \end{frame}
 
 \begin{frame}
   \frametitle{Matching the result from evaluation using substitution}
@@ -289,6 +309,8 @@
 \begin{frame}
   \frametitle{Generalized closures}
 
+  Notation in \textcolor{blue}{blue} is non-standard
+  
   \begin{table}
     \centering
     \begin{tabular}{l|l}
@@ -296,10 +318,10 @@
       Interpretation & Sample expression \\
       \hline\hline
       Function closure & $[\env]\lambda x.d$ \\
-      Hole closure & $[\env]\hhole{d}^u$ \\
-      Closure around unmatched \texttt{let} & $[\env](\texttt{let }x=d_1\texttt{ in }d_2)$ \\
-      Closure around unmatched \texttt{case} & $[\env](\texttt{case }x\texttt{ of }\text{rules})$ \\
-      Closure around filled hole & $\llbracket\env\rrbracket d_{fill}$ \\
+      Hole closure & $\textcolor{blue}{[\env]}\hhole{d}^u$ \\
+      Closure around unmatched \texttt{let} & $\textcolor{blue}{[\env]}(\texttt{let }x=d_1\texttt{ in }d_2)$ \\
+      Closure around unmatched \texttt{case} & $\textcolor{blue}{[\env]}(\texttt{case }x\texttt{ of }\text{rules})$ \\
+      Closure around filled hole & $\textcolor{blue}{\llbracket\env\rrbracket} d_{fill}$ \\
       \hline\hline
     \end{tabular}
     \caption{Examples of generalized closures}
@@ -487,13 +509,15 @@
 \begin{frame}
   \frametitle{The FAR process}
 
-  Check if a fill is appropriate. If not, evaluate as usual. If so, then:
+  Check if a fill is appropriate. If so, then:
 
   \begin{enumerate}
   \item Detect fill parameters ($u$, $d$)
   \item ``Fill'': substitute $d$ for every instance of $u$
   \item ``Resume'': resume evaluation
   \end{enumerate}
+
+  If not, evaluate as usual.
 \end{frame}
 
 \begin{frame}
@@ -717,6 +741,7 @@
   Invariants of the evaluation steps; informally justified
 
   \begin{description}
+  \item[Preservation]
   \item[Evaluation boundary]
   \item[Singular evaluation boundary]
   \item[Substitution postprocessing closures]
@@ -755,7 +780,6 @@
   \begin{description}
   \item[Fully automatic FAR] Integrate FAR into the Hazel MVC model
   \item[$n$-step FAR] Integrate edit history into FAR
-  \item[Generalized memoization] Unify notation and metatheory of memoization
   \item[Formal evaluation of metatheory] Check coverage and correctness of metatheorems using Agda
   \item[User editing studies] Gather data on ``true'' performance impact
   \end{description}

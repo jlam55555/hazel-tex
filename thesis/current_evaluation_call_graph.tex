@@ -3,8 +3,8 @@
   \node[draw=black] (syn_action) [below=of action] {\mintinline{text}|Action_Exp.syn_perform|};
   \node[draw=red] (model) [right=60pt of syn_action] {\mintinline{text}|Model.t|};
   \node[draw=black] (elaborate) [below=of syn_action] {\mintinline{text}|Elaborator_Exp.elab|};
-  \node[draw=black] (detect_fill) [below=of elaborate] {\mintinline{text}|DHExpDiff.diff_dhexp|};
-  \node[draw=black] (preprocess) [below left=of detect_fill] {\mintinline{text}|FillAndResume.preprocess|};
+  \node[draw=blue] (detect_fill) [below=of elaborate] {\mintinline{text}|DHExpDiff.diff_dhexp|};
+  \node[draw=blue] (preprocess) [below left=of detect_fill] {\mintinline{text}|FillAndResume.preprocess|};
   \node[draw=black] (evaluate) [below=60pt of detect_fill] {\mintinline{text}|Evaluator.evaluate|};
   \node[draw=black] (renumber) [below=of evaluate] {\mintinline{text}|EvalPostprocess.postprocess|};
   \node[draw=red] (undo_hist) [below=of model] {\mintinline{text}|UndoHistory.t|};
@@ -15,12 +15,12 @@
   \draw[->,thick] (syn_action) to[] node [midway,left] {$e$} (elaborate);
   \draw[->,thick] (elaborate) to[] node [midway,left] {$d_{uneval}$} (detect_fill);
   \draw[->,thick] (detect_fill) to[] node [midway,right] {no fill diff} (evaluate);
-  \draw[->,thick] (detect_fill) to[bend right=10] node [midway,above left] {$u,d$} (preprocess);
-  \draw[->,thick] (preprocess) to[bend right=10] node [midway,below left] {$d_{preprocess}$} (evaluate);
+  \draw[->,thick,blue] (detect_fill) to[bend right=10] node [midway,above left] {$u,d$} (preprocess);
+  \draw[->,thick,blue] (preprocess) to[bend right=10] node [midway,below left] {$d_{preprocess}$} (evaluate);
   \draw[->,thick] (evaluate) to[] node [midway,left] {$d_{eval}$} (renumber);
   \draw[->,thick] (evaluate) to[bend right=15] node [midway,above left] {$d_{eval}$} (result);
   \draw[->,thick] (renumber) to[bend right=10] node [midway,below right] {$d_{postprocess},\hci$} (result);
-  \draw[->,thick] (undo_hist) to[bend left=20] node [xshift=10pt,above left] {\mintinline{text}|list(Program.t)|} (detect_fill);
+  \draw[->,thick,blue] (undo_hist) to[bend left=20] node [xshift=10pt,above left] {\mintinline{text}|list(Program.t)|} (detect_fill);
   \draw[->,thick] (result) to[] (undo_hist);
   \draw[->,thick] (undo_hist) to[] (model);
 \end{tikzpicture}
