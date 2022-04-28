@@ -157,7 +157,7 @@
   \begin{description}
   \item[Live programming] Rapid static and dynamic feedback (``gap problem'')
   \item[Structured editor] Elimination of syntax errors
-  \item[Gradually typed] Hole type and cast-calculus based on Siek et al. \cite{Siek06gradualtyping,siek2015refined}
+  \item[Gradually typed] Hole type and cast-calculus based on GTLC
   \item[Purely functional] Avoids side-effects and promotes commutativity
   \end{description}
 
@@ -193,7 +193,7 @@
   \frametitle{Hazelnut: A bidirectionally-typed static semantics}
 
   \begin{description}
-  \item[(Typed) expression holes] Internalize ``red squiggly underlines''
+  \item[(Typed) expression holes] Internalize ``red squiggly underlines'' \cite{conf/popl/Hazelnut17}
   \item[Action semantics] Structural editing behavior, ensures always well-typed
   \end{description}
 
@@ -219,7 +219,7 @@
   \frametitle{Hazelnut Live: A bidirectionally-typed dynamic semantics}
 
   \begin{description}
-  \item[Internal language] Cast calculus from Siek et al. \cite{Siek06gradualtyping,siek2015refined} for dynamic typing
+  \item[Internal language] Cast calculus from GTLC for dynamic typing
   \item[Hole evaluation] Evaluation continues \textit{around} holes, captures environment
   \end{description}
   
@@ -577,6 +577,28 @@
   \end{minipage}
 \end{frame}
 
+\begin{frame}[allowframebreaks]
+  \frametitle{Proposed updates to the evaluation model}
+
+  \begin{figure}
+    \centering
+    \maxsizebox{\textwidth}{15em}{
+      \input{thesis/previous_evaluation_call_graph}
+    }
+    \caption{Previous evaluation model}
+    \label{fig:prev-evaluation-call-graph}
+  \end{figure}
+
+  \begin{figure}
+    \centering
+    \maxsizebox{\textwidth}{15em}{
+      \input{thesis/current_evaluation_call_graph}
+    }
+    \caption{Proposed evaluation model}
+    \label{fig:current-evaluation-call-graph}
+  \end{figure}
+\end{frame}
+
 \section{Empirical results}
 
 \begin{frame}[allowframebreaks]
@@ -750,28 +772,6 @@
   \item[Fill operation]
   \item[Resume operation]
   \end{description}
-\end{frame}
-
-\begin{frame}[allowframebreaks]
-  \frametitle{Proposed updates to the evaluation model}
-
-  \begin{figure}
-    \centering
-    \maxsizebox{\textwidth}{15em}{
-      \input{thesis/previous_evaluation_call_graph}
-    }
-    \caption{Previous evaluation model}
-    \label{fig:prev-evaluation-call-graph}
-  \end{figure}
-
-  \begin{figure}
-    \centering
-    \maxsizebox{\textwidth}{15em}{
-      \input{thesis/current_evaluation_call_graph}
-    }
-    \caption{Proposed evaluation model}
-    \label{fig:current-evaluation-call-graph}
-  \end{figure}
 \end{frame}
 
 \begin{frame}
