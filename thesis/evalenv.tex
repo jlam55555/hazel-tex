@@ -4,12 +4,12 @@
 \section{Hazel-specific implementation}
 \label{sec:eval_with_envs}
 
-The implementation of evaluation in Hazel differs from a typical interpreter implementation of evaluation with environments in three regards. First, we need to account for hole environments. Secondly, environments are uniquely identified by an identifier for memoization (in turn for optimization). Lastly, any closures in the evaluation result should be converted back into $\lambda$-abstractions, so that the result matches the result from evaluation with substitution.
+The implementation of evaluation in Hazel differs from a typical interpreter implementation of evaluation with environments in three regards. First, we need to account for hole environments. Secondly, environments are uniquely identified by an identifier for memoization (in turn for optimization). Lastly, any closures in the evaluation result should be converted back into $\lambda$-abstractions for viewing in the context inspector, so that the result matches the result from evaluation with substitution.
 
 \subsection{Evaluation rules}
 \label{sec:evalenv-rules}
 
-The evaluation model threads a run-time environment $\env$\footnote{The symbol $\env$ was chosen to represent the environment as it was used to represent hole environments in \cite{conf/popl/HazelnutLive19}. The relationship between these two environments will be discussed in \cref{sec:holeenv_evalenv_connection}.} throughout the evaluation process for variable lookups. This replaces the variable substitution pass when evaluating with the substitution model. An environment is conceptually a mapping $\env:x\mapsto d$, although it will later be augmented to be more amenable to memoization.
+The evaluation model threads a run-time environment $\env$\footnote{The symbol $\env$ was chosen to represent runtime environments, since it was used to represent hole environments in \cite{conf/popl/HazelnutLive19}. The relationship between these two environment types will be discussed in \cref{sec:holeenv_evalenv_connection}.} throughout the evaluation process for variable lookups. This replaces the variable substitution pass when evaluating with the substitution model. An environment is conceptually a mapping $\env:x\mapsto d$, although it will later be augmented to be more amenable to memoization.
 
 The evaluation rules for evaluation using substitution are described in \cref{sec:hazel-dynamics} and shown in \Cref{chap:reproduced-hazelnut-live-rules}. We present the updates to the rules necessary for evaluation with environments in \Cref{fig:big-step-formal}. Many of the rules are unchanged and are not repeated, especially the evaluation of casts (EFinal, EApCast, ECastId, ECastSucceed, ECastFail, EGround, EExpand). We also note a change to the set of value judgments: function closures $[\env]\lambda x:\tau.d$ are now considered values, and functions $\lambda x:\tau.d$ are not.
 
@@ -31,11 +31,11 @@ There are many additional forms added to Hazel on top of the base Hazelnut gramm
 \subsection{Evaluation of holes}
 \label{sec:holeenv_evalenv_connection}
 
-In the substitution model, there is no evaluation rule for empty holes; they are final. For non-empty holes, evaluation simply recurses into the subexpression. Notably, the hole environment is not evaluated or updated when the hole is reached; rather, it is filled in by substitution when a variable in scope is bound.
+In the substitution model, there is no evaluation rule for empty holes; they are final. For non-empty holes, evaluation simply recurses into the subexpression. Notably, the hole environment is not evaluated or updated when the hole is reached; rather, it is filled in by an eager substitution pass when a variable binding is evaluated.
 
-In the environment model, we do not have eager substitution passes. Thus, we update the environment when evaluation reaches a hole, simply by setting the hole environment to the current evaluation (lexical) environment. To facilitate this, we originally give holes no environment (denoted $\hehole_\cdot^u$ and $\hhole{d}_\cdot^u$), rather than the identity environment $\text{id}(\Gamma)$. The latter is used for substitution, but is not needed anymore.
+In the environment model, we do not have eager substitution passes. Thus, we update the environment when evaluation reaches a hole by setting the hole environment to the current evaluation (lexical) environment. To facilitate this, we originally give holes no environment (denoted $\hehole_\cdot^u$ and $\hhole{d}_\cdot^u$), rather than the identity environment $\text{id}(\Gamma)$. The latter is necessary for substitution, but is not needed anymore.
 
-Note that, in the updated interpretation, free variables simply are missing from a hole environment. In the substitution case, free variables exist in the environment as the identity substitution $x\leftarrow x$.
+Note that in the updated interpretation, free variables are excluded from a hole environment. In the substitution case, free variables exist in the environment as the identity substitution $x\leftarrow x$.
 
 We are currently using the subscript notation for hole environments from Hazelnut Live. When discussing the evaluation boundary in \cref{sec:generalized-closures-eval-boundary}, we will see that it will be more convenient separate the environment from a hole using the notation for generalized closures.
 
@@ -48,7 +48,7 @@ We wish to introduce self-reference when evaluating with environments. Perhaps t
 
 We explore two pure solutions. The first is to eliminate the fixpoint by using recursive data structures in OCaml, which simplifies evaluation but creates slight differences in the postprocessed result. The latter is to adapt the fixpoint to the environment model of evaluation. Either method is viable; however, the latter is chosen because it is closer to the original implementation and we do not have the postprocessing issue.
 
-The updated evaluation rules for fixpoint evaluation are shown in \Cref{fig:fixpoint-rules}. The evaluation of a fixpoint performs a side-effect on the body expression, which is expected to evaluate to a function closure. Namely, we add a self-reference to the closure environment (EFix). When a variable that stores a fixpoint is looked up, then the fixpoint is unwound (EUnwind). If a variable is not a fixpoint, the regular EVar rule applies.
+The updated evaluation rules for fixpoint evaluation are shown in \Cref{fig:fixpoint-rules}. The evaluation of a fixpoint performs a side-effect on the body expression, which is expected to evaluate to a function closure. Namely, we add a self-reference to the closure environment (EFix). When a variable that stores a fixpoint is looked up, then the fixpoint is unwound (EUnwind). If a variable is not a fixpoint, the regular EVar rule applies. Note that it is possible to always evaluate the variable binding, and thus eliminate the EUnwind rule, but this would be inefficient.
 
 This understanding is consistent with the understanding of fixpoints when using substitution. Fixpoints are unwound when they are encountered, but when evaluating with environments this may occur during a variable lookup.
 
@@ -95,30 +95,49 @@ There is a nuance that may cause the postprocessed\footnote{Postprocessing will 
   \label{fig:rec-closures-issue}
 \end{listing}
 
-However, when evaluating with a recursive data structure, both \mintinline{text}|x| and \mintinline{text}|f| refer to the same value $d=([f\leftarrow d]\lambda x.\hehole^1)$. It is impossible to discern the two and decide where to begin the ``start of the recursion'', i.e., to determine that \mintinline{text}|f| should be a fixpoint expression and \mintinline{text}|x| should be a $\lambda$-abstraction, at least without significant additional extra effort. Thus to remove the recursion, we may arbitrarily decide that the outermost recursive form should be a $\lambda$-abstraction and set the recursive binding in its environment to be a fixpoint expression, which will successfully remove the recursion but mistakenly change some expressions that would be fixpoint forms to $\lambda$-expressions. This distinction may not be critical, but it will at least confuse the user. This justifies our use of the fixpoint form for evaluating recursive functions.
+However, when evaluating with a recursive data structure, both \mintinline{text}|x| and \mintinline{text}|f| refer to the same value $d=([f\leftarrow d]\lambda x.\hehole^1)$. It is impossible to discern the two and decide where to begin the ``start of the recursion,'' i.e., to determine that \mintinline{text}|f| should be a fixpoint expression and \mintinline{text}|x| should be a $\lambda$-abstraction, at least without significant additional extra effort. Thus to remove the recursion, we may arbitrarily decide that the outermost recursive form should be a $\lambda$-abstraction and set the recursive binding in its environment to be a fixpoint expression, which will successfully remove the recursion but mistakenly change some expressions that would be fixpoint forms to $\lambda$-expressions. This distinction may not be critical, but it will at least confuse the user. This justifies our use of the fixpoint form for evaluating recursive functions.
+
+\subsection{Type safety}
+\label{sec:evalenv-metatheory}
+
+\textit{Type safety} of a dynamic semantics ensures that it coheres with the static semantics. In other words, it is a useful check for the correctness of a dynamic semantics. Following the style in \Cref{conf/popl/HazelnutLive19}, we establish type safety via two safety properties: (type) \textit{preservation} and \textit{progress}. Proofs are provided for Hazelnut Live using the substitution model. Here we loosely motivate that the switch to using environments for binders maintains these properties.
+
+(Type) preservation (\Cref{thm:preservation}) states that the type of an expression is preserved by evaluation. The proof of this should not differ much. Closures exist now as a wrapper but do not change the type of the underlying expression. Variables are looked up in an environment rather than substituted during binding time, but that does not change the type of the expression. Thus we expect the type of the evaluated result to be the same.
+
+Progress (\Cref{thm:progress}) states that each expression evaluates to a final expression, i.e. that no expression forms remain unevaluated. This uses the \textsf{final} judgment described in \Cref{sec:hazelnut-live-final-judgment}, as well as our modifications described in \Cref{fig:update-final-judgment}. The main changes lie in the evaluation of closures, including function and hole closures. We will discuss the evaluation boundary and how any expression that is unevaluated will be contained inside a closure (\Cref{thm:eval-boundary-1}).
+
+\begin{theorem}[Preservation]
+  If $\Delta;\varnothing\vdash d:\tau$ and $d\Downarrow d'$, then $\Delta;\varnothing\vdash d':\tau$.
+  \label{thm:preservation}
+\end{theorem}
+
+\begin{theorem}[Progress]
+  If $\Delta;\varnothing\vdash d:\tau$ then $\exists d'$ such that $d\Downarrow d'$ and $d\textsf{ final}$.
+  \label{thm:progress}
+\end{theorem}
 
 \section{The evaluation boundary and general closures}
 \label{sec:generalized-closures-eval-boundary}
 
-Evaluation with the environment model lazily substitutes variables. Evaluation steps that require the environment (e.g., evaluation of holes and variables) are only performed when evaluation reaches the expression of interest. Evaluation with the substitution model eagerly substitutes using a separate substitution pass. In the evaluation result or in the Hazel context inspector, the user may examine expressions in the internal language. The user expects to see fully substituted values, and closures should not appear directly to the user. For example, bound variables in a function body (other than the function argument) should show the captured expression.
+Evaluation with the environment model lazily substitutes variables. Evaluation steps that require the environment (e.g., evaluation of holes and variables) are only performed when evaluation reaches the expression of interest. Evaluation with the substitution model eagerly substitutes using a separate substitution pass. In the evaluation result or in the Hazel context inspector, the user may examine expressions in the internal language. The user expects to see fully substituted values, and closures should not appear directly to the user. For example, free variables in a function body should show the captured expression.
 
-In other words, any unevaluated expression must be ``caught up'' to the substituted equivalent after evaluation. This requires that the environment be stored alongside the unevaluated expression, and that a postprocessing step should be taken to perform the substitution and discard the stored environment. Note that this is essentially performing a substitution pass after evaluation, but is preferred over substitution during evaluation because it is only performed on the evaluation result (rather than all the intermediate expressions during evaluation). This is called \textit{substitution postprocessing}, and will be discussed in \cref{sec:postprocessing-substitution}.
+In other words, any unevaluated expression must be ``caught up'' to the substituted equivalent after evaluation. This requires that the environment be stored alongside the unevaluated expression, and that a postprocessing step should be taken to perform the substitution and discard the stored environment. Note that this is essentially performing a substitution pass after evaluation, but is preferred over substitution during evaluation because it is only performed on the evaluation result (rather than all the intermediate expressions during evaluation). We call this \textit{substitution postprocessing}, and will be discussed in \cref{sec:postprocessing-substitution}.
 
-We first define the \textit{evaluation boundary} to be the conceptual distinction between expressions for which evaluation has reached (``inside'' the boundary), and for those that remain unevaluated (``outside'' the boundary). This definition will be useful for describing the postprocessing algorithm.
+We first define the \textit{evaluation boundary} to be the conceptual distinction between expressions for which evaluation has reached (``inside'' the boundary), and for those that remain unevaluated (``outside'' the boundary). This definition will be useful for describing the postprocessing algorithm, closures, and fill-and-resume.
 
 \subsection{Evaluation of failed pattern matching using generalized closures}
 \label{sec:failed_pattern_match}
 
-There are two cases where an expression in the evaluation result may lie outside the evaluation boundary\footnote{A third case will appear in \Cref{sec:far_impl} when we discuss the fill-and-resume optimization.}. The first is in the body of a $\lambda$-abstraction. A $\lambda$-abstraction evaluates to a closure, and thus captures an environment with it. The second case is that of an unmatched \mintinline{text}|let| or \mintinline{text}|case| expression (in which the scrutinee matches none of the rules), for which the body expression(s) will remain unevaluated in the result without an associated environment\footnote{There is a third place where pattern-matching may fail: the pattern of an applied $\lambda$-abstraction may not match its argument. However, this is not an issue since functions are already captured in a closure.}. Pattern-matching is not part of Hazelnut Live or in this paper because pattern-matching is not a primary concern of either of these works. However, it is a practical concern with Hazel that arises from the introduction of evaluation with environments.
+There are two cases where an expression in the evaluation result may lie outside the evaluation boundary\footnote{A third case will appear in \Cref{sec:far_impl} when we discuss the fill-and-resume optimization.}. The first is in the body of a $\lambda$-abstraction. A $\lambda$-abstraction evaluates to a closure, and thus captures with it the lexical environment in which the function was defined. The second case is that of an unmatched \mintinline{text}|let| or \mintinline{text}|case| expression (in which the scrutinee matches none of the rules), for which the body expression(s) will remain unevaluated in the result without an associated environment\footnote{There is a third place where pattern-matching may fail: the pattern of an applied $\lambda$-abstraction may not match its argument. However, this is not an issue since functions are already captured in a closure.}. Pattern-matching is not part of Hazelnut Live or in this paper because pattern-matching is not a primary concern of either of these works. However, it is a practical concern with Hazel that arises from the introduction of evaluation with environments.
 
-We solve this by introducing (lexical) \textit{generalized closures}, the product of an arbitrary expression and its lexical environment. Traditionally, the term ``closure'' refers to \textit{function closures}, which are the product of a $\lambda$-abstraction with its lexical environment. Hazelnut Live introduces \textit{hole closures}, which are the product of hole environments with their lexical environments, and are fundamental to the Hazel live environment. Hole environments allow a user to inspect a hole's environment in the context inspector, and enable the fill-and-resume optimization described in \Cref{sec:far_impl}. We propose generalizing the term ``closures'' to the definition stated above. Conceptually, all generalized closures represent a partial or stopped evaluation (using the environment model), as well as the state (the environment) that may be used to resume the evaluation. Similar to the evaluation of function closures, closures are final (boxed) values and evaluate to themselves.
+We solve this by introducing (lexical) \textit{generalized closures}, the product of an arbitrary expression and its lexical environment. Traditionally, the term ``closure'' refers to \textit{function closures}, which are the product of a $\lambda$-abstraction with its lexical environment. Hazelnut Live introduces \textit{hole closures}, which are the product of hole environments with their lexical environments, and are fundamental to the Hazel live environment. Hole environments allow a user to inspect a hole's environment in the context inspector, and enable the fill-and-resume optimization described in \Cref{sec:far_impl}. We propose generalizing the term ``closures'' to the definition stated above. Conceptually, all generalized closures represent a ``stopped and/or resumable'' evaluation using the environment model, as well as the state (the environment) that may be used to resume the evaluation. Similar to the evaluation of function closures, closures are final (boxed) values and evaluate to themselves.
 
 The application of generalized closures to the problem of unevaluated \mintinline{text}|let| or \mintinline{text}|case| bodies is straightforward: if there is a failed pattern match, wrap the entire expression in a (generalized) closure with the current lexical environment. Then, the postprocessing can successfully perform the substitution.
 
 \subsection{Generalization of existing hole types}
 \label{sec:generalized-closures-datatypes}
 
-Consider the abbreviated definition of the internal expression variant type in \Cref{fig:generalized-closures-datatypes}. In \Cref{fig:ungeneralized-datatypes} the previous implementation is shown (when evaluating using the substitution model), augmented with a type for function closures. In this version, each expression variant that requires an environment has the environment hardcoded into the variant. In \Cref{fig:generalized-datatypes} the proposed version with generalized closures is shown. The \mintinline{text}|Lam|, \mintinline{text}|Let|, and \mintinline{text}|Case| variants are unchanged. Importantly, the environments are removed from the hole types and a new generalized \mintinline{text}|Closure| is introduced. In this model, a hole, $\lambda$-abstraction, unmatched \mintinline{text}|let|, or unmatched \mintinline{text}|case| expression is wrapped in the \mintinline{text}|Closure| variant when evaluated.
+Consider the abbreviated definition of the internal expression variant type in \Cref{fig:generalized-closures-datatypes}. In \Cref{fig:ungeneralized-datatypes} the previous implementation is shown (when evaluating using the substitution model), augmented with a type for function closures. In this version, each expression variant that requires an environment has the environment hardcoded into the variant. In \Cref{fig:generalized-datatypes} the proposed version with generalized closures is shown. The \mintinline{text}|Lam|, \mintinline{text}|Let|, and \mintinline{text}|Case| variants are unchanged. Importantly, the environments are removed from the hole types and a new generalized \mintinline{text}|Closure| variant is introduced. In this model, a hole, $\lambda$-abstraction, unmatched \mintinline{text}|let|, or unmatched \mintinline{text}|case| expression is wrapped in the \mintinline{text}|Closure| variant when evaluated.
 
 \begin{figure}
   \centering
@@ -194,14 +213,14 @@ Two subexpression judgments are shown in \Cref{fig:subexpression}. $d^-\subseteq
 \end{figure}
 
 \begin{theorem}[Evaluation boundary]
-  If $\varnothing\vdash d\Downarrow d'$ and $d''\in d'$ and $d''\textsf{ uneval}$, then $d''\subseteq[\env]d'''\in d'$.
+  If $\varnothing\vdash d\Downarrow d_1$ and $d_2\in d_1$ and $d_2\textsf{ uneval}$, then $d_2\subseteq[\env]d_3\in d_1$.
   \label{thm:eval-boundary-1}
 \end{theorem}
 
 \Cref{thm:eval-boundary-1} states that all unevaluated subexpressions lie within a closure in the evaluated result. This theorem ensures that the postprocessing substitution and fill-and-resume will have the necessary information to succeed. The justification is straightforward by switching on the evaluation rules. The evaluation rules for $\lambda$-abstractions and hole expressions wrap the expression in a closure.
 
 \begin{theorem}[Singular evaluation boundary]
-  If $\varnothing\vdash d\Downarrow d'$ and $d''\in d'$ and $[\env]d''\in d'$ and $[\env]d''\subset[\env']d'''$, then $d'''=\hhole{d''''}^u$.
+  If $\varnothing\vdash d\Downarrow d_1$ and $d_2\in d_1$ and $[\env]d_2\in d_1$ and $[\env]d_2\subset[\env']d_3$, then $d_3=\hhole{d_4}^u$.
   \label{thm:eval-boundary-2}
 \end{theorem}
 
@@ -210,7 +229,7 @@ Two subexpression judgments are shown in \Cref{fig:subexpression}. $d^-\subseteq
 \subsection{Alternative strategies for evaluation past the \\ evaluation boundary}
 \label{sec:alt_strat_unevaluated}
 
-Without generalized closures, unevaluated expressions (body expressions of $\lambda$-abstractions, unmatched \mintinline{text}|let| expressions, and unmatched \mintinline{text}|case| expressions) may be filled by a modified form of evaluation, which is only different in that a failed lookup (due to in-scope but yet-unbound variables) will leave the variable unchanged\footnote{Ordinarily, a lookup on a \mintinline{text}|BoundVar| (a variable which is in scope) should never fail during evaluation, and thus throws an exception during evaluation.}. However, this is essentially the same as substitution, and is expensive to do during evaluation. Also, while this speculative execution would be reasonable for \mintinline{text}|let| expressions, it would be highly undesirable for \mintinline{text}|case| expression, where it is easy to imagine an example where speculative execution of all branches leads to infinite recursion.
+Without generalized closures, unevaluated expressions (body expressions of $\lambda$-abstractions, unmatched \mintinline{text}|let| expressions, and unmatched \mintinline{text}|case| expressions) may be reached by ordinary evaluation which is slightly in that a failed lookup (due to in-scope but yet-unbound variables) will leave the variable unchanged\footnote{Ordinarily, a lookup on a \mintinline{text}|BoundVar| (a variable which is in scope) should never fail during evaluation, and thus throws an exception during evaluation.}. However, this eager evaluation is essentially the same as substitution, and is expensive to do during evaluation. Also, while this speculative execution would be reasonable for \mintinline{text}|let| expressions, it would be highly undesirable for \mintinline{text}|case| expression, where it is easy to imagine an example where speculative execution of all branches leads to infinite recursion.
 
 Another way to eliminate the case of unmatched expressions is to introduce an exhaustiveness checker to Hazel; then, we can guarantee (at run-time) that a pattern will never fail to match. This would also require changing the semantics of pattern holes, which always fail to match; the behavior may be changed so that pattern holes always match, but do not introduce new bindings. Since the focus of this work is not on patterns, these ideas were not explored and are left for future work in the Hazel project.
 
@@ -252,7 +271,7 @@ For expressions without subexpressions, the expression is returned unchanged; th
 
 For closure types, we first need to recusively apply $\pplco$ to all bindings in the closure environment. For non-empty holes, the body is inside the evaluation boundary and thus $\pplco$ is applied. For other expressions inside a closure, the body expression is outside the evaluation boundary, and thus $\pplct$ is applied to the body expression, using the closure environment. The closure is then removed.
 
-A $\lambda$-abstraction, \mintinline{text}|let| expression, \mintinline{text}|case| expression, or hole outside of a closure, or a bound variable that has not been looked up, will never exist outside of a closure within the evaluation boundary, so these cases need not be handled.
+A $\lambda$-abstraction, \mintinline{text}|let| expression, \mintinline{text}|case| expression, hole outside of a closure, or a bound variable that has not been looked up, will never exist outside of a closure within the evaluation boundary, so these cases need not be handled.
 
 Note that in the implementation with recursive data structures used to represent environments as described in \cref{sec:rec_impl}, an additional step must be taken before recursing into function closures. Recursive function bindings must be detected and converted to \mintinline{text}|FixF| expressions to prevent infinite recursion.
 
@@ -261,7 +280,7 @@ Note that in the implementation with recursive data structures used to represent
 
 When outside the evaluation boundary (and inside a closure), we need to substitute bound variables\footnote{The wording is a little tricky here, since there are the \mintinline{text}|BoundVar| and \mintinline{text}|FreeVar| internal expression variants, which refer to variables which are in scope or not in scope. However, we may only substitute variables which are in-scope (\mintinline{text}|BoundVar|) and bound; some instances may not yet be bound.} and assign an environment to holes.
 
-Bound variables are looked up in the environment; this lookup may fail if the variable does not exist in the environment, in which case the variable is left unchanged. For other primary expressions, the expression is left unchanged. When a hole is encountered, its environment is the closure environment\footnote{There is nothing to do at this point for hole closures. The hole closure numbering step will assign a closure identifier to the hole as described in the second postprocessing algorithm in \cref{sec:two-stage-renumber}.}. A closure will never exist outside the evaluation boundary in the evaluation result (by \Cref{thm:eval-boundary-2}).
+Bound variables are looked up in the environment; this lookup may fail if the variable does not exist in the environment, in which case the variable is left unchanged. For other primary expressions, the expression is left unchanged. When a hole is encountered, it is assigned the closure environment\footnote{There is nothing to do at this point for hole closures. The hole closure numbering step will assign a closure identifier to the hole as described in the second postprocessing algorithm in \cref{sec:two-stage-renumber}.}. A closure will never exist outside the evaluation boundary in the evaluation result (by \Cref{thm:eval-boundary-2}).
 
 Note that the $\pplco$ algorithm only takes an internal expression $d$ as its input, whereas the $\pplct$ algorithm takes an internal expression $d$ and a (closure) environment $\env$ as inputs.
 
@@ -281,21 +300,21 @@ Note that the $\pplco$ algorithm only takes an internal expression $d$ as its in
   \label{fig:big-step-inside-formal}
 \end{figure}
 
-We may try to characterize the result of the substitution process slightly more formally. \Cref{thm:substitution-postprocessing} describes how the substitution postprocessing algorithm removes closures in the result. Notably, this states that a closure exists in the result if and only if the closure's expression is a hole. This is consistent with what we expect in Hazelnut Live, where closures did not exist outside of hole closures. We can justify this by performing induction on the postprocessing rules; it is clear that all closures are eliminated using the \pplcl{}Closure rule, and closures are only introduced using the \pplclo{}EHole and \pplclo{}NEHole rules.
+We may try to characterize the result of the substitution process slightly more formally. \Cref{thm:substitution-postprocessing} describes how the substitution postprocessing algorithm removes closures in the result. Notably, this states that a closure exists in the postprocessed result if and only if the closure's expression is a hole. This is consistent with what we expect in Hazelnut Live, where closures did not exist outside of hole closures. We can justify this by performing induction on the postprocessing rules; it is clear that all closures are eliminated using the \pplcl{}Closure rule, and closures are only introduced using the \pplclo{}EHole and \pplclo{}NEHole rules.
 
 \Cref{thm:eval-correctness} states that the postprocessed result of evaluation with environments is the same as the result of evaluation with substitution, as presented in Hazelnut Live. We provide an intuitive justification for this. First, we check that the evaluation rules for the environment model are correct, and this is easy due the similarity to the evaluation rules for evaluation with substitution and evaluation with environments. The difference in the result lies only outside the evaluation boundary: holes and variables may not be correctly bound outside the environment boundary. We then perform induction using the postprocessing rules to ensure that variables and hole environments are properly looked up outside the evaluation boundary. \Cref{thm:eval-boundary-1} states that the postprocessing algorithm will have the necessary environments to perform the substitution pass. \Cref{thm:substitution-postprocessing} affirms that there will be no stray closures remaining in the result except hole closures, as non-hole closures did not exist in evaluation with substitution.
 
 \begin{theorem}[Substitution postprocessing closures]
-  If $\env\vdash d\Downarrow d'$ and $d'\pplc d''$, then:
+  If $\env\vdash d\Downarrow d_1$ and $d_1\pplc d_2$, then:
   \begin{enumerate}
-  \item If $[\env]d'''\in d''$, then $d'''=\hehole^u$ or $d'''=\hhole{d}^u$.
-  \item If $d'''=\hehole^u$ or $d'''=\hhole{d}^u$, then $d'''\subset[\env]d'''$.
+  \item If $[\env]d_3\in d_2$, then $d_3=\hehole^u$ or $d_3=\hhole{d}^u$.
+  \item If $d_3=\hehole^u$ or $d_3=\hhole{d}^u$, then $d_3\subset[\env]d_3$.
   \end{enumerate}
   \label{thm:substitution-postprocessing}
 \end{theorem}
 
 \begin{theorem}[Evaluation with environments correctness]
-  Let $\Downarrow_s$ be the evaluation semantics described by Hazelnut Live \cite{conf/popl/HazelnutLive19}. Then if $\env\vdash d\Downarrow d'$ and $d'\pplc d''$, and if $d\Downarrow_s d'''$, then $d''=d'''$.
+  Let $\Downarrow_s$ be the evaluation semantics described by Hazelnut Live \cite{conf/popl/HazelnutLive19}. Then if $\env\vdash d\Downarrow d_1$ and $d_1\pplc d_2$, and if $d\Downarrow_s d_3$, then $d_2=d_3$.
   \label{thm:eval-correctness}
 \end{theorem}
 

@@ -7,7 +7,7 @@
 Consider the program shown in \Cref{fig:far-motivation}. In this program, the calculation of $x=\text{fib }30$ is arbitrarily chosen to represent a computationally-expensive operation. The result of this program is \[
   [f\leftarrow [\varnothing]\lambda x.\{\dots\},x\leftarrow 832040]\hehole^1
 \]
-Now, if we want to ``fill'' hole 1 with the expression $x+2$, then it would seem wasteful to have to re-compute the value of $x$. After all, the computation bound to $x$ is exactly the same. Moreover, we realize that the evaluation result stores the computed value of $x$ in the hole's closure's environment. Rather than re-evaluating the original program, we may instead \textit{fill} the hole in the evaluated program result, and then \textit{resume} evaluation.
+Now, if we want to ``fill'' hole 1 with the expression $x+2$, then it would seem wasteful to have to re-compute the value of $x$. After all, the computed value bound to $x$ is exactly the same. Moreover, we realize that the evaluation result stores the computed value of $x$ in the hole's closure's environment. Rather than re-evaluating the original program, we may instead \textit{fill} the hole in the evaluated program result, and then \textit{resume} evaluation.
 \begin{gather*}
   [f\leftarrow [\varnothing]\lambda x.\{\dots\},x\leftarrow 832040](x+2) \\
   832040+2 \\
@@ -34,7 +34,7 @@ The fill-and-resume process can be broken into the following sequence.
 \item Determine whether a fill operation is appropriate. If it is not, perform regular evaluation of the program, and do not continue to the following steps.
 \item If the fill operation is valid, then obtain the fill parameters (the internal expression to fill, and the hole number from the previous edit state with which to fill).
 \item \textbf{Fill.} Pre-process the evaluation result to prepare for (re-)evaluation.
-\item \textbf{Resume.} Re-evaluate.
+\item \textbf{Resume.} Re-evaluate the filled expression.
 \item Pos-process the evaluation result for display purposes.
 \item Update the model with the evaluation results.
 \end{enumerate}
@@ -55,18 +55,25 @@ One way to approach the problem of obtaining the hole number and filled expressi
   1 \\
   12
 \end{gather*}
-We may remedy this specific case by grouping together consecutive construction actions\footnote{Grouping together of actions is already performed to some level by the undo history, for visual purposes.}. However, we may also consider more complicated edit sequences that involve movement and deletion actions, potentially outside of the hole. Consider the following edit sequence.
-\begin{gather*}
-  2+3*\hehole^1 \\
-  2+\hehole^2*\hehole^1\\
-  2+\hehole^1\\
-  2+5 \\
-  2+(5) \\
-  2+\hehole^1*(5) \\
-  2+3*(5) \\
-  2+3*(5+\hehole^1)
-\end{gather*}
-The final edit state in this sequence is actually a valid fill of the first edit state of the sequence\footnote{There are actually multiple valid fill operations here. Another valid fill operation occurs between the third edit state and all of the following edit states.}, such that $u=1$ and $d=5+\hehole^1$. However, an algorithm to trace the edit actions to determine that this is a valid fill may be difficult, since there is an incomprehensible mix of construct, delete, and movement edit actions. Even worse, the edits traverse outside the original hole, which likely makes the algorithm intractable.
+% \begin{gather*}
+%   2+3*\hehole^1 \\
+%   2+\hehole^2*\hehole^1\\
+%   2+\hehole^1\\
+%   2+5 \\
+%   2+(5) \\
+%   2+\hehole^1*(5) \\
+%   2+3*(5) \\
+%   2+3*(5+\hehole^1)
+% \end{gather*}
+
+\begin{figure}
+  \centering
+  \input{one-step-vs-n-step-far}
+  \caption{1-step vs. $n$-step FAR}
+  \label{fig:one-step-vs-n-step-far}
+\end{figure}
+
+We may remedy this specific case by grouping together consecutive construction actions\footnote{Grouping together of actions is already performed to some level by the undo history, for visual purposes.}. However, we may also consider more complicated edit sequences that involve movement and deletion actions, potentially outside of the hole. Consider the edit sequence shown in \Cref{fig:one-step-vs-n-step-far}. The final edit state in this sequence is actually a valid fill of the first edit state of the sequence\footnote{There are actually multiple valid fill operations here. Another valid fill operation occurs between the third edit state and all of the following edit states.}, such that $u=1$ and $d=5+\hehole^1$. However, an algorithm to trace the edit actions to determine that this is a valid fill may be difficult, since there is an incomprehensible mix of construct, delete, and movement edit actions. Even worse, the edits traverse outside the original hole, which likely makes the algorithm intractable.
 
 This method is only tractable for 1-step FAR or simple cases of grouped edit actiosn. We wish for a more robust yet still simple solution that is independent of the edit sequence between two states.
 
@@ -116,7 +123,7 @@ We divide up the structural diffing algorithm into cases based on expression for
 
   The last case to check for non-hole expressions are expressions with more than one subexpression. In this case, we first check if there exist any differences outside the subexpressions, which would result in a non fill diff rooted at the current node. Otherwise, if there are no subexpression diffs, then the result is no diff. If more than one subexpression has a diff, then the diff is a non fill diff rooted at the current node. The last case is when exactly one child has a diff, which would be passed through. This is the case for the binary function application expression form (DFEqApEq$_1$, DFEqApEq$_2$, DFEqApEq$_3$, DFEqApEq$_4$).
 
-  In the minimal $\lambda$-calculus grammars specified for Hazel, the only expression form of plural subexpression arity is function application, but the following description extends to higher numbers of subexpressions (such as the case for \mintinline{text}|case| expressions with arbitrary numbers of rules.
+  In the minimal $\lambda$-calculus grammars specified for Hazel, the only expression form of plural subexpression arity is function application, but the following description extends to higher numbers of subexpressions (such as \mintinline{text}|case| expressions with arbitrary numbers of rules.
 
   These rules are shown in \Cref{fig:structural-diff-non-holes}.
 
@@ -162,9 +169,9 @@ The diff algorithm begins by performing the structural diff between the elaborat
 \subsubsection{Performance tradeoffs of the two detection algorithms}
 \label{sec:far-detect-compare}
 
-In the most na\"ive form, the previous algorithm's efficiency is $O(\log E)$, where $E$ is the number of expression nodes in the program, if we assume that the depth of an expression node is logarithmic with respect to the total number of expression nodes. That algorithm only has to traverse up the ancestors to decide whether the edit lies in a hole.
+The efficiency of the na\"ive approach is $O(\log E)$, where $E$ is the number of expression nodes in the program, if we assume that the depth of an expression node is logarithmic with respect to the total number of expression nodes. That algorithm only has to traverse up the ancestors to decide whether the edit lies in a hole.
 
-The structural diff algorithm presented in this section is $O(E)$, since it traverses each node (once) until it finds a difference. However, if one travels backwards multiple edit states, then the cost is $O(SE)$, where $S$ is the number of edit states compared using this algorithm. While this is much more expensive than the previous algorithm, we assume that the program size is relatively small, causing delay only on the order of milliseconds. However, it may be able to find a valid fill-and-resume in many more cases than the previous algorithm, potentially saving a much longer repeated evaluation time.
+The structural diff algorithm presented in this section is $O(E)$, since it traverses each node (once) until it finds a difference. However, if one travels backwards multiple edit states, then the cost is $O(SE)$, where $S$ is the number of edit states compared using this algorithm. While this is much more expensive than the previous algorithm, we assume that the program size is relatively small, causing delay only on the order of milliseconds. However, it may be able to find a valid fill-and-resume in many more cases than the previous algorithm, potentially saving a much longer repeated evaluation time. An analysis of the tradeoff between the number of edit states $S$ to search and the expected performance gain is left for future work.
 
 \subsection{``Fill'': pre-processing the evaluation result for re-evaluation}
 \label{sec:far-preprocessing}
@@ -177,9 +184,9 @@ We note that the pre-processing acts on the un-post-processed previous evaluatio
 
 Another issue to tackle is the problem that closures were previously considered to be final values, and would not be re-evaluated. Technically, we may re-evaluate closures; since the evaluation function is idempotent, this will not yield the incorrect result, but it is needlessly inefficient. However, we will need to re-evaluate closures during FAR re-evaluation, since the fill expression will necessarily lie within some closure.
 
-For efficiency reasons, we will only want to re-evaluate all closures in the result exactly once. To do this, we set a flag for the closure that indicates that it should be re-evaluated. This preprocessing step will recurse through $\dresult$ and set the flag to true for all closures, which is characterized by \Cref{thm:fill-reeval}. All closures that result from an evaluation judgment will have the flag set to false. Only closures with the re-eval flag set will be re-evaluated. Closures with the re-eval flag set to false will act as values and evaluate to themselves, which is the same as the original evaluation behavior described in \cref{sec:generalized-closures-eval-boundary}. We denote closures with the re-eval flag set to false using the established notation for closures $[\env]d$\footnote{This allows previous discussions of closures to remain valid, since they take the interpretation that the re-eval flag is set to false.}, and denote closures with the re-eval flag set to true by $\llbracket\env\rrbracket d$\footnote{Using the double-square bracket notation also reinforces the fact that re-evaluation is tied with fill-and-resume, which also uses double-square brackets.}.
+For efficiency reasons, we will only want to re-evaluate all closures in the result exactly once. To do this, we set a flag for the closure that indicates that it should be re-evaluated. This preprocessing step will recurse through $\dresult$ and set the flag to true for all closures, which is characterized by \Cref{thm:fill-reeval}. All closures that result from an evaluation judgment will have the flag set to false. Only closures with the re-eval flag set will be re-evaluated. Closures with the re-eval flag set to false will act as values and evaluate to themselves, which is the same as the original evaluation behavior described in \cref{sec:generalized-closures-eval-boundary}. We denote closures with the re-eval flag set to false using the established notation for closures $[\env]d$\footnote{This allows previous discussions of closures to remain valid, since they take the interpretation that the re-eval flag is set to false.}, and denote closures with the re-eval flag set to true by $\llbracket\env\rrbracket d$\footnote{Using the double-square bracket notation also reinforces the fact that re-evaluation is tied with fill-and-resume, which also uses a double-square bracket notation.}.
 
-Finally, we may consider the issue of multiple instances of the same hole closure\footnote{Hole closure refers to the interpretation from \cref{sec:instance-illustration}: instances of hole $\ufill$ that share the same (physical) environment.}. If we substitute the hole, then we lose the information about the holes instance, and thus cannot memoize the evaluations of the same hole instance by environment number. A solution to this is to introduce another \mintinline{text}|DHExp.t| variant \mintinline{text}|FillExp(HoleClosureId.t, DHExp.t)| that indicates the hole closure number as well as the expression to fill. This will be denoted using a hole with a subscript $\hhole{d}_i$. The preprocessing expression will fill a hole $\ufill$ with this expression rather than the expression $\dfill$ directly. During evaluation, this data structure will facilitate the memoization of hole closures.
+Finally, we may consider the issue of filling multiple instances of the same hole closure\footnote{Hole closure refers to the interpretation from \cref{sec:instance-illustration}: instances of hole $\ufill$ that share the same (physical) environment.}. If we substitute the hole, then we lose the information about the holes instance, and thus cannot memoize the evaluations of the same hole instance by environment number, which may cause the evaluation result to differ from an ordinary non-fill evaluation. A solution to this is to introduce another \mintinline{text}|DHExp.t| variant \mintinline{text}|FillExp(HoleClosureId.t, DHExp.t)| that indicates the hole closure number as well as the expression to fill. This will be denoted using a hole with a subscript $\hhole{d}_i$. The preprocessing expression will fill a hole $\ufill$ with this expression rather than the expression $\dfill$ directly. During evaluation, this data structure will facilitate the memoization of hole closures.
 
 \subsection{``Resume'': Modifications to allow for re-evaluation}
 \label{sec:re-eval}
@@ -201,7 +208,7 @@ Due to the recursive nature of re-evaluation of closure environments, we expect 
   \label{fig:reeval-closures}
 \end{figure}
 
-The other difference that we have to deal with are memoizing the evaluation of the filled hole expressions. Per the discussion of the pre-processing step, all filled expressions will exist in a wrapper that indicates the hole number. We may simply memoize the results by that hole number. This requires us to thread some state throughout our evaluation\footnote{Luckily, threading state through evaluation is useful for other purposes as well, such as keeping track of the current \mintinline{text}|EvalEnvId.t|, and keeping track of evaluation state. These are grouped together under one data structure, \mintinline{text}|EvalState.t|, for ease of implementation.}.
+The other difference that we have to deal with are memoizing the evaluation of the filled hole expressions. Per the discussion of the pre-processing step, all filled expressions will exist in a wrapper that indicates the hole number. We may simply memoize the results by that hole number. This requires us to thread some state throughout our evaluation\footnote{We have the \texttt{EvalState.t} object for threading state through evaluation, which helps with this implementation.}.
 
 \begin{figure}
   \centering
@@ -244,7 +251,7 @@ An abstracted call graph for the action model (the process of responding to an a
 
 An edit action triggers the bidirectional action semantics, which generates an updated program edit state. This is then elaborated to an internal expression, evaluated, and then postprocessed. The results of evaluation are stored in \mintinline{text}|Result.t|.
 
-The updated abstract call graph is shown in \Cref{fig:current-evaluation-call-graph}. Fill and resume is fundamentally an operation on internal expressions, so we attempt to detect a hole fill operation after elaboration of the current edit state. The structural diff operation requires information about at least one previous edit state from the model's \mintinline{text}|UndoHistory.t|. The result of the previous evaluation is preprocessed, before being evaluated (using the updated evaluation judgments) and postprocessed as usual.
+The updated abstract call graph is shown in \Cref{fig:current-evaluation-call-graph}, with updated blocks shown in blue. Fill and resume is fundamentally an operation on internal expressions, so we attempt to detect a hole fill operation after elaboration of the current edit state. The structural diff operation requires information about at least one previous edit state from the model's \mintinline{text}|UndoHistory.t|. The result of the previous evaluation is preprocessed, before being evaluated (using the updated evaluation judgments) and postprocessed as usual.
 
 Since this is a very high-level view of the program, many details are abstracted out. For example, the evaluation function is memoized by the function \mintinline{text}|Program.get_result|, which facilitates the normal evaluation process. We will need to modify this memoization to also memoize the FAR evaluation results.
 
@@ -253,7 +260,7 @@ Since this is a very high-level view of the program, many details are abstracted
 
 We provide a characterization of the FAR process here via a set of metatheorems and informal justifications, as in previous sections on evaluation and the postprocessing process.
 
-Hazelnut Live provides two metatheorems to describe the overall FAR process. We will restate them here for completeness. Proofs may be found in \cite{conf/popl/HazelnutLive19}. \Cref{thm:filling-statics} describes the static semantics of filling. If the filled expression matches the assigned type of the hole in the hole context, then the type of the overall evaluation result should not change. We assume that the premise is true by the action semantics, elaboration process, and structural diffing algorithm: any hole fill detected by structural diffing should be well-typed according to automatic empty-holes and casts inserted by the action semantics and elaboration process.
+Hazelnut Live provides two metatheorems to describe the overall FAR process. We will restate them here for completeness. Proofs may be found in \cite{conf/popl/HazelnutLive19}. \Cref{thm:filling-statics} describes the static semantics of filling. If the filled expression matches the assigned type of the hole in the hole context, then the type of the overall evaluation result should not change. This is a (type) preservation property. We assume that the premise is true by the action semantics, elaboration process, and structural diffing algorithm: any hole fill detected by structural diffing should be well-typed according to automatic empty-holes and casts inserted by the action semantics and elaboration process.
 
 \begin{theorem}[Filling (FAR static correctness)]
   If $\Delta,u::\tau'[\Gamma'];\Gamma\vdash d:\tau$ and $\Delta;\Gamma'\vdash d':\tau'$ then $\Delta;\Gamma\vdash\far{d'}{u}{d:\tau}$.
@@ -272,12 +279,12 @@ In addition to the metatheorems governing the overall static and dynamic correct
 These metatheorems may not be necessary to prove commutativity, but they illustrate the behavior of the fill-and-resume steps: they demonstrate that re-evaluation reaches every expression within the evaluation boundary, including and especially any filled expressions. In other words, they check the proper coverage of the fill and resume steps when handling closures. These theorems are also both straightforwardly justified by the rules for the fill operation and evaluation.
 
 \begin{theorem}[Fill operation]
-  If $\varnothing\vdash d\Downarrow d'$, and $[d''/u]d'=d'''$, then $\not\exists[\env]d''''\in d'''$.
+  If $\varnothing\vdash d\Downarrow d_1$, and $[d_2/u]d_1=d_3$, then $\not\exists[\env]d_4\in d_3$.
   \label{thm:fill-reeval}
 \end{theorem}
 
 \begin{theorem}[Resume operation]
-  If $\varnothing\vdash d\Downarrow d'$ and $[d''/u]d'=d'''$ and $\varnothing\vdash d'''\Downarrow d''''$ then $\not\exists\llbracket\env\rrbracket d'''''\in d''''$.
+  If $\varnothing\vdash d\Downarrow d_1$ and $[d_2/u]d_1=d_3$ and $\varnothing\vdash d_3\Downarrow d_4$ then $\not\exists\llbracket\env\rrbracket d_5\in d_4$.
   \label{thm:resume-reeval}
 \end{theorem}
 
@@ -509,7 +516,7 @@ In \Cref{fig:far-fill-hole-in-hole-env} we fill a hole that does not exist direc
 
 The program in \cref{fig:far-hole-closure-memoization} shows the necessity of memoizing by hole closure number, in order to preserve the same result as if evaluating normally. In this example, we have two instances of hole 1 in the result. Since there is only one instantiation of hole 1, these are two instances of the same hole closure. If there were no memoization of filled expressions, then the filled expression $f\ 1$ would be evaluated twice. This is problematic because function application generates new environments (and new environment identifiers), so the two instances would have different closures and thus be considered two separate hole closures, even when they come from the same instantiation. Since the filled expression is memoized, the two instances of the hole have closures with the same environment identifier (indicated by the same superscript $i$ on the closure environments).
 
-The necessity of memoization in this case is related to the idea of the ``inversion'' of evaluation mentioned in \cref{sec:re-eval}: during normal evaluation, we expect that a variable may be referenced in multiple places after it is evaluated. However, during a resumed evaluation, we may encounter multiple unevaluated instances of the same instantiation; the first time it is encountered and evaluated is the de facto ``first instantiation'' of that expression.
+The necessity of memoization in this case is related to the idea of the ``inversion'' of evaluation mentioned in \cref{sec:re-eval}: during normal evaluation, we expect that a variable may be referenced in multiple places after it is evaluated. However, during a resumed evaluation, we may encounter multiple unevaluated instances of the same instantiation; the first time it is encountered and evaluated is the \textit{de facto} ``first instantiation'' of that expression.
 
 \begin{figure}
   \centering
@@ -574,7 +581,7 @@ The necessity of memoization in this case is related to the idea of the ``invers
 \subsubsection{Dynamic type errors}
 \label{sec:far-dynamic-type-errors}
 
-One may wonder if dynamic type errors (cast failure) have any nice relation to fill-and-resume, but it turns out that they are not treated much different than other non-hole expressions. We may not fill a cast failure directly, because it is not in a hole. We may only remove a cast failure if it lies in a non-empty hole that is filled.
+One may wonder if dynamic type errors (cast failure) have any nice relation to fill-and-resume, but it turns out that they are not treated much different than other non-hole expressions. We may not fill a cast failure directly, because it is not in a hole, and no environment is recorded for it\footnote{With generalized closures, it is not hard to save the environment of a failed cast, but  this is not very useful.}. We may only remove a cast failure if it lies in a non-empty hole that is filled.
 
 We may introduce new cast failures by filling an expression that is assigned to type hole (something of dynamic type). However, this is no different than introducing any well-typed expression and performing normal evaluation.
 
@@ -611,7 +618,7 @@ If, however, hole 1 in the original edit state was a parenthesized expression, a
 
 It may be useful to thread some state throughout the evaluation process. This means that changes to this state by an earlier invocation to evaluate will affect later evaluations.
 
-The concept of keeping state has already appeared in several contexts. For postprocessing, the memoized hole closure info keeps track of seen environments (\cref{sec:memoization}). For evaluation, we keep track of the next unique environment identifier and memoize the evaluation of filled expressions (\cref{sec:re-eval}). A theoretical discussion is revisited in \cref{sec:env-purity}.
+The concept of keeping state has already appeared in several contexts. For postprocessing, the memoized hole closure info keeps track of seen environments (\cref{sec:memoization}). For evaluation, we keep track of the next unique environment identifier and memoize the evaluation of filled expressions (\cref{sec:re-eval}). A theoretical discussion of statefulness is revisited in \cref{sec:env-purity}.
 
 This becomes relevant again (with respect to evaluation) because resuming evaluation requires us to store the state after evaluation, and restore the state after evaluation. Adding more state variables also makes the implementation messier by increasing the number of variables to pass to and return from each of the numerous calls to \mintinline{text}|Evaluator.evaluate|.
 
@@ -629,7 +636,7 @@ Step counting may be implemented simply by incrementing the count on each call t
 \section{Differences from the substitution model}
 \label{sec:far-sub}
 
-The FAR operation is much simpler when evaluating with substitution rather than with environments. With substitution, we eliminate the need for pre- and post-processing steps, and dealing with re-evaluating closures. However, this comes at the cost of not being able to memoize repeated instances of the same hole closure. The original description of FAR from \cite{conf/popl/HazelnutLive19} is reproduced in \Cref{sec:far-substitution}. The hole closure notation from \cite{conf/popl/HazelnutLive19}, in which the hole closure is represented using a subscript, is also used here, since the substitution model doesn't have the concept of separate closures.
+The FAR operation is much simpler when evaluating with substitution rather than with environments. With substitution, we eliminate the need for pre- and post-processing steps, and dealing with re-evaluating closures. However, this comes at the cost of not being able to memoize repeated instances of the same hole closure. The original description of FAR from \cite{conf/popl/HazelnutLive19} is reproduced in \Cref{sec:far-substitution}. The hole closure notation from \cite{conf/popl/HazelnutLive19}, in which the hole closure is represented using a subscript, is also used here, since the substitution model doesn't have the concept of separate (generalized) closures.
 
 What remains the same between the environment model and the substitution model is the need for an algorithm to detect the fill parameters, for which the structural diff algorithm presented in \cref{sec:far-detect-structural-diff} is still applicable.
 

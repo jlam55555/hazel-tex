@@ -16,9 +16,9 @@ It would be desirable if we can avoid working around this, perhaps by reformulat
 
 The implementation of FAR completed for this thesis is a limited proof-of-concept. The FAR detection mechanism (the structural diffing algorithm) and preprocessing steps are complete. However, due to limited time constraints, the implementation has not achieved parity with the theoretical exploration of FAR explored in this paper.
 
-Firstly, a list of past edit states should be made accessible to the FAR detection algorithm. The current structure of the Hazel toplevel and the undo history makes this a little trickier because there may be multiple unrelated histories caused by switching programs (``cards'') in the top panel of the Hazel UI.
+Firstly, a list of past edit states should be made accessible to the FAR detection algorithm. The current structure of the Hazel toplevel and the undo history makes this trickier because there may be multiple unrelated histories caused by switching programs (``cards'') in the top panel of the Hazel UI.
 
-Secondly, a result of FAR should be memoized alongside the results from regular evaluation. The current implementation of normal evaluation is memoized and is not aware of the FAR operation.
+Secondly, the evaluation result from FAR should be memoized alongside the results from regular evaluation. The current implementation of normal evaluation is memoized and is not aware of the FAR operation.
 
 Thirdly, the result of evaluating the program (\mintinline{text}|Result.t|) is not currently stored in the model, but the program's edit state (\mintinline{text}|Program.t|) is. This means that when the program result is needed in the Hazel UI, the program is re-evaluated. This is usually not a problem because of memoization, but FAR results are not memoized. It would be better to store the results of evaluation in the model and undo history to avoid this trouble.
 
@@ -50,7 +50,7 @@ Any changes to the interactiveness of the FAR operation will have a great effect
 \subsection{UI changes for notebook-style evaluation}
 \label{sec:far-improv-notebook-ui}
 
-We have motivated the use of Hazel with FAR for notebook-style evaluation in \cref{sec:notebook-ui}. It may be useful to the programmer to have additional visual aids to help enforce the benefits of resumed evaluation.
+We have motivated the use of Hazel with FAR for notebook-style evaluation in \cref{sec:notebook-ui}. It may be useful to the programmer to have additional visual aids to help enforce the benefits of resumed evaluation. This is currently a being developed on the \texttt{lab-notebook-ui} branch of the GitHub repository.
 
 It may be useful to format the code editor using a series of sections. These sections will be syntactic sugar for sequences of let statements, and edits to the code in a section will only cause the current and subsequent sections to re-evaluate. This also presents a method to choose the edit state from which to fill that is intuitive to the user.
 
@@ -59,14 +59,14 @@ Another useful feature to evaluate FAR is to show evaluation statistics in the U
 \section{Collection of editing statistics}
 \label{sec:collect-edit-statistics}
 
-The effects of switching evaluation to use environments instead of substitution, and the effect of different methods of choosing a previous edit state for FAR may drastically change the expected performance gain. We may only quantify expected differences in performance when concerned with specific types of programs or editing patterns.
+The effects of switching evaluation to use environments instead of substitution, and the effect of different methods of choosing a previous edit state for FAR may drastically change the expected performance gain. We may only quantify expected differences in performance when concerned with specific types of programs or editing patterns. We also do not know the effect of manual or automatic FAR on editing viscosity.
 
 Thus it will be useful to collect empirical statistics about user editing patterns, in order to gain a useful insight into the general expected effect on performance of this work. This information will likely help inform many other Hazel subprojects. Since Hazel is hosted online and is accessible to all, collecting usage statistics is technically very easy. Other online programming language environments, such as the Hedy incremental programming environment for programming education \cite{hermans2020hedy,gilsing2021gradual}, have collected user editing statistics to help direct their work.
 
 \section{Generalization of memoized methods}
 \label{sec:generalized-memoization}
 
-Memoization plays an important part of this work. Memoization of environment plays a role in the substitution postprocessing (\cref{sec:postprocessing-substitution}), hole numbering postprocessing (\cref{sec:hole-numbering-algorithm}), structural equality checking (\cref{sec:fast-equals}), evaluation of filled expressions (\cref{sec:re-eval}), and re-evaluation of environments (\cref{sec:far-improv-memo-envs}). Despite this, each time memoization is used, the implementation and formalization are ad hoc. This is due to the scattered discovery of performance problems and realization that memoization would be useful.
+Memoization plays an important part of this work. Memoization of environment plays a role in the substitution postprocessing (\cref{sec:postprocessing-substitution}), hole numbering postprocessing (\cref{sec:hole-numbering-algorithm}), structural equality checking (\cref{sec:fast-equals}), evaluation of filled expressions (\cref{sec:re-eval}), and re-evaluation of environments (\cref{sec:far-improv-memo-envs}). Despite this, each time memoization is used, the implementation and formalization are \textit{ad hoc}. This is due to the scattered discovery of performance problems and realization that memoization would be useful.
 
 A future implementation of memoized algorithms will be well-served by a generalized characterization of memoization by environments. This should include a generalized notation, so that new memoized algorithms can be easily introduced. This should also include a precise characterization of what algorithms may be memoized; for example, the difficulty presented in \cref{sec:postprocessing-simplification} is due to the difficulty of memoizing the hole parent tracking process as part of the hole numbering process.
 
